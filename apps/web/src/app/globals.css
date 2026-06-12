@@ -1,0 +1,127 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─────────────────────────────────────────────────────────────
+   IGNITE DESIGN TOKENS — fitNXT
+   Dark theme is default. Light theme activates via .light on <html>.
+   All component styles reference these variables — never hardcode hex.
+───────────────────────────────────────────────────────────── */
+
+:root {
+  /* Surfaces */
+  --bg:        #06060D;
+  --surface:   #0D0D1A;
+  --surface-2: #141426;
+  --surface-3: #1C1C32;
+  --surface-4: #23233C;
+  --border:    rgba(255, 255, 255, 0.055);
+  --border-2:  rgba(255, 255, 255, 0.10);
+
+  /* Violet — AI / coaching / intelligence layer */
+  --violet:        #A78BFA;
+  --violet-deep:   #7C3AED;
+  --violet-tint:   rgba(124, 58, 237, 0.12);
+  --violet-border: rgba(167, 139, 250, 0.22);
+  --violet-glow:   rgba(124, 58, 237, 0.20);
+
+  /* Coral / Ember — effort / intensity / active workout layer */
+  --coral:        #F97066;
+  --coral-deep:   #C4361A;
+  --coral-tint:   rgba(249, 112, 102, 0.12);
+  --coral-border: rgba(249, 112, 102, 0.22);
+  --coral-glow:   rgba(249, 112, 102, 0.20);
+
+  /* Gold — achievement only (once per screen max) */
+  --gold:        #FCD34D;
+  --gold-tint:   rgba(252, 211, 77, 0.10);
+  --gold-border: rgba(252, 211, 77, 0.22);
+
+  /* Semantic */
+  --success:      #4ADE80;
+  --success-tint: rgba(74, 222, 128, 0.10);
+  --danger:       #EF4444;
+  --danger-tint:  rgba(239, 68, 68, 0.10);
+
+  /* Text */
+  --text-1: #EEEEF8;
+  --text-2: #76768E;
+  --text-3: #36364E;
+}
+
+/* Light theme — apply .light to <html> */
+.light {
+  --bg:        #EEEDF8;
+  --surface:   #FFFFFF;
+  --surface-2: #F2F1FA;
+  --surface-3: #E9E7F5;
+  --surface-4: #DDDAF0;
+  --border:    rgba(0, 0, 0, 0.07);
+  --border-2:  rgba(0, 0, 0, 0.11);
+
+  --violet:        #6D28D9;
+  --violet-deep:   #5B21B6;
+  --violet-tint:   rgba(109, 40, 217, 0.07);
+  --violet-border: rgba(109, 40, 217, 0.18);
+  --violet-glow:   rgba(109, 40, 217, 0.12);
+
+  --coral:        #C4361A;
+  --coral-deep:   #9A2B1F;
+  --coral-tint:   rgba(196, 54, 26, 0.07);
+  --coral-border: rgba(196, 54, 26, 0.18);
+  --coral-glow:   rgba(196, 54, 26, 0.10);
+
+  --gold:        #92400E;
+  --gold-tint:   rgba(146, 64, 14, 0.07);
+  --gold-border: rgba(146, 64, 14, 0.18);
+
+  --success:      #15803D;
+  --success-tint: rgba(21, 128, 61, 0.07);
+  --danger:       #DC2626;
+  --danger-tint:  rgba(220, 38, 38, 0.07);
+
+  --text-1: #16162A;
+  --text-2: #606080;
+  --text-3: #ABABC8;
+}
+
+/* ── Base ─────────────────────────────────────────────────── */
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  background: var(--bg);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text-1);
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
+  min-height: 100dvh;
+  overscroll-behavior: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+
+:focus { outline: none; }
+:focus-visible {
+  outline: 2px solid var(--violet);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--border-2);
+  border-radius: 99px;
+}
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+}
