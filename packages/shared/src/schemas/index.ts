@@ -67,3 +67,29 @@ export const PersonalRecordSchema = z.object({
   previousValue: z.number().nonnegative().optional(),
 });
 export type PersonalRecord = z.infer<typeof PersonalRecordSchema>;
+
+export const LoginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+});
+export type LoginInput = z.infer<typeof LoginSchema>;
+
+export const RegisterSchema = z
+  .object({
+    displayName: z.string().min(2).max(100),
+    email: z.string().email(),
+    password: z
+      .string()
+      .min(8)
+      .max(72)
+      .regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+        'Password must contain uppercase, lowercase, and number',
+      ),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  });
+export type RegisterInput = z.infer<typeof RegisterSchema>;
