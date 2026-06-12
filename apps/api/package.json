@@ -8,7 +8,9 @@
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint \"{src,libs}/**/*.ts\""
+    "lint": "eslint \"{src,libs}/**/*.ts\"",
+    "migrate": "ts-node -r tsconfig-paths/register libs/database/migrate.ts",
+    "migrate:down": "ts-node -r tsconfig-paths/register libs/database/migrate.ts down"
   },
   "dependencies": {
     "@nestjs/common": "^10.3.0",
