@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>fitNXT — Ignite Direction Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+/* ─────────────────────────────────────────────────────────────
+   DESIGN TOKENS — "IGNITE"
+   Violet = intelligence / AI coaching layer
+   Coral  = intensity / effort / heat layer
+   Gold   = achievement / milestone (used sparingly)
+───────────────────────────────────────────────────────────── */
+:root {
+  /* Surfaces */
+  --bg:      #06060D;
+  --surface: #0D0D1A;
+  --s2:      #141426;
+  --s3:      #1C1C32;
+  --s4:      #23233C;
+  --border:  rgba(255,255,255,0.055);
+  --b2:      rgba(255,255,255,0.10);
+
+  /* Violet — AI, coaching, intelligence */
+  --v:        #A78BFA;
+  --v-deep:   #7C3AED;
+  --v-tint:   rgba(124,58,237,0.12);
+  --v-border: rgba(167,139,250,0.22);
+  --v-glow:   rgba(124,58,237,0.20);
+
+  /* Coral / Ember — intensity, effort, heat */
+  --c:        #F97066;
+  --c-deep:   #C4361A;
+  --c-tint:   rgba(249,112,102,0.12);
+  --c-border: rgba(249,112,102,0.22);
+  --c-glow:   rgba(249,112,102,0.20);
+
+  /* Gold — PRs, achievements, streaks (rare, sacred) */
+  --g:        #FCD34D;
+  --g-tint:   rgba(252,211,77,0.10);
+  --g-border: rgba(252,211,77,0.22);
+
+  /* Semantic */
+  --ok:       #4ADE80;
+  --ok-tint:  rgba(74,222,128,0.10);
+  --danger:   #EF4444;
+
+  /* Text */
+  --t1: #EEEEF8;
+  --t2: #76768E;
+  --t3: #36364E;
+
+  /* Fonts */
+  --fd: 'Syne', sans-serif;
+  --fb: 'DM Sans', sans-serif;
+  --fm: 'JetBrains Mono', monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { background: var(--bg); }
+body {
+  font-family: var(--fb);
+  background: var(--bg);
+  background-image:
+    radial-gradient(ellipse 60% 40% at 20% 0%, rgba(124,58,237,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 80% 10%, rgba(249,112,102,0.04) 0%, transparent 50%);
+  color: var(--t1);
+  min-height: 100vh;
+  padding: 56px 24px 100px;
+}
+
+/* ── PAGE HEADER ── */
+.page-header { text-align: center; margin-bottom: 40px; }
+.wordmark {
+  font-family: var(--fd);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--t3);
+  margin-bottom: 20px;
+}
+.page-header h1 {
+  font-family: var(--fd);
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 800;
+  letter-spacing: -1.5px;
+  line-height: 1.1;
+  margin-bottom: 14px;
+}
+.page-header h1 em { font-style: normal; color: var(--v); }
+.page-header h1 strong { font-style: normal; color: var(--c); }
+.page-header p {
+  font-size: 14px;
+  color: var(--t2);
+  max-width: 480px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+
+/* ── PALETTE SWATCHES ── */
+.swatches {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 56px;
+}
+.sw {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--b2);
+  border-radius: 100px;
+  padding: 6px 14px 6px 9px;
+}
+.sw-dot { width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; }
+.sw-info { display: flex; flex-direction: column; }
+.sw-name { font-size: 11px; font-weight: 500; color: var(--t1); }
+.sw-hex { font-family: var(--fm); font-size: 10px; color: var(--t3); margin-top: 1px; }
+.sw-role { font-size: 10px; color: var(--t2); margin-top: 1px; }
+
+/* ── SCREEN GRID ── */
+.screens-grid {
+  display: flex;
+  gap: 36px;
+  justify-content: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+/* ── PHONE WRAP ── */
+.phone-wrap { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.screen-tag {
+  font-family: var(--fd);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--t3);
+}
+.screen-sub {
+  font-size: 11px;
+  color: var(--t3);
+  text-align: center;
+  max-width: 260px;
+  line-height: 1.5;
+  margin-top: -10px;
+}
+
+/* ── PHONE FRAME ── */
+.phone {
+  width: 300px;
+  height: 650px;
+  background: var(--surface);
+  border-radius: 44px;
+  border: 1.5px solid var(--b2);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+.phone-home   { box-shadow: 0 0 0 8px rgba(255,255,255,0.015), 0 48px 100px rgba(0,0,0,0.7), 0 0 80px var(--v-glow); }
+.phone-workout { box-shadow: 0 0 0 8px rgba(255,255,255,0.015), 0 48px 100px rgba(0,0,0,0.7), 0 0 80px var(--c-glow); }
+.phone-coach  { box-shadow: 0 0 0 8px rgba(255,255,255,0.015), 0 48px 100px rgba(0,0,0,0.7), 0 0 60px var(--v-glow); }
+
+/* ── DYNAMIC ISLAND ── */
+.island {
+  position: absolute;
+  top: 10px; left: 50%; transform: translateX(-50%);
+  width: 90px; height: 26px;
+  background: #000;
+  border-radius: 14px;
+  z-index: 20;
+}
+
+/* ── STATUS BAR ── */
+.sb {
+  height: 44px;
+  padding: 14px 22px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+.sb-time { font-family: var(--fm); font-size: 12px; font-weight: 500; color: var(--t1); }
+.sb-icons {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--t1);
+}
+
+/* ── CONTENT ── */
+.content {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ── BOTTOM NAV ── */
+.bnav {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 72px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 4px 10px;
+  flex-shrink: 0;
+}
+.ni {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  flex: 1;
+  padding: 6px 0;
+  opacity: 0.3;
+}
+.ni.on { opacity: 1; }
+.ni-lbl {
+  font-size: 9.5px;
+  font-weight: 500;
+  color: var(--t2);
+}
+.ni.on .ni-lbl { color: var(--v); }
+
+/* ─────────────────────────────────────────────────────────────
+   SCREEN 1 — HOME / DASHBOARD
+───────────────────────────────────────────────────────────── */
+.home-header {
+  padding: 6px 18px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.home-greet {
+  font-family: var(--fd);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: var(--t1);
+}
+.home-date {
+  font-size: 11px;
+  color: var(--t2);
+  margin-top: 2px;
+  font-weight: 300;
+}
+.avatar-ring {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--v-deep), var(--c));
+  padding: 2px;
+}
+.avatar-inner {
+  width: 100%; height: 100%;
+  border-radius: 50%;
+  background: var(--s3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--fd);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--t1);
+}
+
+/* AI pill */
+.ai-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--v-tint);
+  border: 1px solid var(--v-border);
+  border-radius: 100px;
+  padding: 5px 12px;
+  margin: 0 18px 14px;
+}
+.ai-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--v);
+  flex-shrink: 0;
+  animation: pulse 2s ease infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.8); }
+}
+.ai-pill-text {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--v);
+}
+
+/* Workout CTA card (ember gradient) */
+.workout-card {
+  margin: 0 18px 14px;
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+  background:
+    radial-gradient(ellipse 70% 60% at 90% 10%, #F97066 0%, rgba(196,54,26,0.8) 45%, transparent 75%),
+    linear-gradient(160deg, #1E0B08 0%, #3D150E 50%, #6B1E12 100%);
+  padding: 18px;
+  min-height: 110px;
+}
+.wc-label {
+  font-family: var(--fm);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(249,112,102,0.7);
+  margin-bottom: 6px;
+}
+.wc-name {
+  font-family: var(--fd);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: #fff;
+  margin-bottom: 4px;
+}
+.wc-meta {
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 14px;
+  font-family: var(--fm);
+}
+.wc-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 100px;
+  padding: 7px 14px;
+  font-family: var(--fd);
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.04em;
+}
+
+/* Week strip */
+.week-strip {
+  display: flex;
+  gap: 5px;
+  padding: 0 18px;
+  margin-bottom: 12px;
+}
+.wd {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 3px;
+  border-radius: 10px;
+  background: var(--s2);
+  border: 1px solid var(--border);
+}
+.wd.done {
+  background: var(--v-tint);
+  border-color: var(--v-border);
+}
+.wd.today {
+  background: var(--c-tint);
+  border-color: var(--c-border);
+}
+.wd-lbl {
+  font-family: var(--fm);
+  font-size: 8px;
+  color: var(--t3);
+}
+.wd.done .wd-lbl { color: var(--v); }
+.wd.today .wd-lbl { color: var(--c); }
+.wd-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--t3);
+}
+.wd.done .wd-dot { background: var(--v); }
+.wd.today .wd-dot { background: var(--c); }
+
+/* Metric grid */
+.metric-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 0 18px 12px;
+}
+.mc {
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+  position: relative;
+  overflow: hidden;
+}
+.mc::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  border-radius: 14px 14px 0 0;
+}
+.mc.v::after { background: var(--v); }
+.mc.c::after { background: var(--c); }
+.mc.g::after { background: var(--g); }
+.mc.ok::after { background: var(--ok); }
+
+.mc-val {
+  font-family: var(--fd);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: var(--t1);
+  line-height: 1.1;
+}
+.mc-unit { font-size: 11px; color: var(--t2); font-weight: 400; }
+.mc-lbl { font-size: 10px; color: var(--t3); margin-top: 3px; }
+
+/* AI Coach insight card */
+.section-hd {
+  font-family: var(--fd);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--t3);
+  padding: 0 18px;
+  margin-bottom: 8px;
+}
+.insight-card {
+  margin: 0 18px;
+  background: var(--v-tint);
+  border: 1px solid var(--v-border);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+.insight-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.insight-icon {
+  width: 20px; height: 20px;
+  background: var(--v-tint);
+  border: 1px solid var(--v-border);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.insight-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--v);
+}
+.insight-body {
+  font-size: 11px;
+  color: var(--t2);
+  line-height: 1.6;
+}
+.insight-body span { color: var(--t1); }
+
+
+/* ─────────────────────────────────────────────────────────────
+   SCREEN 2 — ACTIVE WORKOUT
+───────────────────────────────────────────────────────────── */
+.session-hd {
+  padding: 6px 18px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.session-back {
+  width: 32px; height: 32px;
+  border-radius: 10px;
+  background: var(--s2);
+  border: 1px solid var(--b2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--t1);
+}
+.session-name {
+  font-family: var(--fd);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--t1);
+}
+.session-timer {
+  font-family: var(--fm);
+  font-size: 12px;
+  color: var(--c);
+  background: var(--c-tint);
+  border: 1px solid var(--c-border);
+  padding: 4px 10px;
+  border-radius: 100px;
+}
+
+/* Exercise hero */
+.ex-hero {
+  padding: 14px 18px 4px;
+  text-align: center;
+}
+.ex-hero-name {
+  font-family: var(--fd);
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  color: var(--t1);
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
+.ex-hero-muscle {
+  font-family: var(--fm);
+  font-size: 10px;
+  color: var(--t3);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Progress ring */
+.ring-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 0 6px;
+  position: relative;
+}
+.ring-center {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.ring-set-num {
+  font-family: var(--fd);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  color: var(--t1);
+  line-height: 1;
+}
+.ring-set-lbl {
+  font-family: var(--fm);
+  font-size: 9px;
+  color: var(--t3);
+  letter-spacing: 0.1em;
+  margin-top: 2px;
+}
+
+/* Stat row */
+.stat-row {
+  display: flex;
+  gap: 8px;
+  padding: 0 18px;
+  margin-bottom: 10px;
+}
+.stat-box {
+  flex: 1;
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 8px;
+  text-align: center;
+}
+.stat-val {
+  font-family: var(--fd);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--t1);
+  letter-spacing: -0.5px;
+}
+.stat-unit { font-size: 10px; color: var(--t2); }
+.stat-lbl {
+  font-size: 9px;
+  color: var(--t3);
+  font-family: var(--fm);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 3px;
+}
+
+/* Previous sets */
+.prev-sets {
+  margin: 0 18px 10px;
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.prev-set-hd {
+  font-family: var(--fm);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--t3);
+  padding: 8px 12px 6px;
+  border-bottom: 1px solid var(--border);
+}
+.prev-set-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.prev-set-row:last-child { border-bottom: none; }
+.psr-set {
+  font-family: var(--fm);
+  font-size: 10px;
+  color: var(--t3);
+  width: 36px;
+}
+.psr-val {
+  font-size: 11px;
+  color: var(--t2);
+  flex: 1;
+  text-align: center;
+}
+.psr-check {
+  width: 16px; height: 16px;
+  border-radius: 5px;
+  background: var(--c-tint);
+  border: 1px solid var(--c-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Log set button */
+.log-btn {
+  margin: 0 18px 10px;
+  background: linear-gradient(135deg, var(--c-deep), var(--c));
+  border-radius: 14px;
+  padding: 14px;
+  text-align: center;
+  font-family: var(--fd);
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* AI tip in workout */
+.ai-tip {
+  margin: 0 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--v-tint);
+  border: 1px solid var(--v-border);
+  border-radius: 10px;
+  padding: 8px 12px;
+}
+.ai-tip-icon {
+  width: 18px; height: 18px;
+  background: var(--v-tint);
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.ai-tip-text { font-size: 10.5px; color: var(--v); line-height: 1.5; }
+.ai-tip-text strong { color: var(--t1); }
+
+
+/* ─────────────────────────────────────────────────────────────
+   SCREEN 3 — AI COACH
+───────────────────────────────────────────────────────────── */
+.coach-hd {
+  padding: 6px 18px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.coach-title {
+  font-family: var(--fd);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+/* Meso card */
+.meso-card {
+  margin: 0 18px 12px;
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+  padding: 18px;
+  background:
+    radial-gradient(ellipse 80% 60% at 90% 0%, rgba(167,139,250,0.35) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 0% 100%, rgba(124,58,237,0.25) 0%, transparent 60%),
+    var(--s3);
+  border: 1px solid var(--v-border);
+}
+.meso-phase {
+  font-family: var(--fm);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--v);
+  margin-bottom: 6px;
+}
+.meso-title {
+  font-family: var(--fd);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--t1);
+  margin-bottom: 6px;
+}
+.meso-body {
+  font-size: 11px;
+  color: var(--t2);
+  line-height: 1.6;
+}
+.meso-body span { color: var(--t1); }
+
+/* Readiness row */
+.readiness-row {
+  display: flex;
+  gap: 8px;
+  padding: 0 18px;
+  margin-bottom: 12px;
+}
+.rr-card {
+  flex: 1;
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.rr-num {
+  font-family: var(--fd);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+.rr-lbl {
+  font-size: 9px;
+  color: var(--t3);
+  font-family: var(--fm);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.rr-bar { width: 100%; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.rr-fill { height: 100%; border-radius: 2px; }
+
+/* PR card */
+.pr-card {
+  margin: 0 18px 12px;
+  background: var(--g-tint);
+  border: 1px solid var(--g-border);
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.pr-badge {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #CA8A04, var(--g));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.pr-info {}
+.pr-label {
+  font-family: var(--fm);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--g);
+  margin-bottom: 3px;
+}
+.pr-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--t1);
+}
+.pr-val {
+  font-family: var(--fm);
+  font-size: 11px;
+  color: var(--t2);
+  margin-top: 1px;
+}
+
+/* Recommendations */
+.rec-list { padding: 0 18px; }
+.rec-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+}
+.rec-item:last-child { border-bottom: none; }
+.rec-bullet {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--v);
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+.rec-text { font-size: 11px; color: var(--t2); line-height: 1.5; }
+.rec-text strong { color: var(--t1); font-weight: 500; }
+
+</style>
+</head>
+<body>
+
+<!-- ── PAGE HEADER ── -->
+<div class="page-header">
+  <div class="wordmark">fitNXT — Design Direction</div>
+  <h1><em>Intelligence</em> meets <strong>Intensity</strong></h1>
+  <p>
+    <em style="font-style:normal;color:var(--v)">Violet</em> owns the AI coaching layer.
+    <strong style="color:var(--c)">Coral</strong> owns effort and heat.
+    Gold appears only for achievements — making it feel earned.
+  </p>
+</div>
+
+<!-- ── PALETTE SWATCHES ── -->
+<div class="swatches">
+  <div class="sw">
+    <div class="sw-dot" style="background:#A78BFA"></div>
+    <div class="sw-info">
+      <span class="sw-name">Violet</span>
+      <span class="sw-hex">#A78BFA</span>
+      <span class="sw-role">AI · Coaching · Intelligence</span>
+    </div>
+  </div>
+  <div class="sw">
+    <div class="sw-dot" style="background:#7C3AED"></div>
+    <div class="sw-info">
+      <span class="sw-name">Deep Violet</span>
+      <span class="sw-hex">#7C3AED</span>
+      <span class="sw-role">Fills · Pressed states</span>
+    </div>
+  </div>
+  <div class="sw">
+    <div class="sw-dot" style="background:#F97066"></div>
+    <div class="sw-info">
+      <span class="sw-name">Coral</span>
+      <span class="sw-hex">#F97066</span>
+      <span class="sw-role">Effort · Intensity · Heat</span>
+    </div>
+  </div>
+  <div class="sw">
+    <div class="sw-dot" style="background:#C4361A"></div>
+    <div class="sw-info">
+      <span class="sw-name">Ember</span>
+      <span class="sw-hex">#C4361A</span>
+      <span class="sw-role">Max effort · Danger zone</span>
+    </div>
+  </div>
+  <div class="sw">
+    <div class="sw-dot" style="background:#FCD34D"></div>
+    <div class="sw-info">
+      <span class="sw-name">Gold</span>
+      <span class="sw-hex">#FCD34D</span>
+      <span class="sw-role">PRs · Streaks (rare)</span>
+    </div>
+  </div>
+  <div class="sw">
+    <div class="sw-dot" style="background:#06060D;border:1px solid rgba(255,255,255,0.12)"></div>
+    <div class="sw-info">
+      <span class="sw-name">Void</span>
+      <span class="sw-hex">#06060D</span>
+      <span class="sw-role">App background</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── SCREENS ── -->
+<div class="screens-grid">
+
+
+  <!-- ════════════════════════════════════
+       SCREEN 1 — HOME
+  ════════════════════════════════════ -->
+  <div class="phone-wrap">
+    <div class="screen-tag">Home</div>
+    <div class="phone phone-home">
+      <div class="island"></div>
+
+      <!-- Status bar -->
+      <div class="sb">
+        <span class="sb-time">9:41</span>
+        <div class="sb-icons">
+          <svg width="15" height="11" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M1 6s4.5-5 11-5 11 5 11 5M5 10s3-3.5 7-3.5 7 3.5 7 3.5M9 14s1.5-2 3-2 3 2 3 2M12 18v.5"/></svg>
+          <svg width="13" height="11" fill="currentColor" viewBox="0 0 24 16"><rect x="0" y="3" width="18" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="5" width="11" height="6" rx="1" fill="currentColor"/><path d="M20 6v4a2 2 0 000-4z" fill="currentColor"/></svg>
+        </div>
+      </div>
+
+      <div class="content">
+        <!-- Header -->
+        <div class="home-header">
+          <div>
+            <div class="home-greet">Good morning, Sid</div>
+            <div class="home-date">Thursday · Jun 12</div>
+          </div>
+          <div class="avatar-ring">
+            <div class="avatar-inner">S</div>
+          </div>
+        </div>
+
+        <!-- AI pill -->
+        <div class="ai-pill">
+          <div class="ai-dot"></div>
+          <span class="ai-pill-text">Recovery 87% · Push day ready</span>
+        </div>
+
+        <!-- Today's workout card -->
+        <div class="workout-card">
+          <div class="wc-label">Today · Upper Push</div>
+          <div class="wc-name">Strength Block</div>
+          <div class="wc-meta">7 exercises · ~58 min · 4×5 main lifts</div>
+          <div class="wc-btn">
+            <svg width="10" height="10" fill="white" viewBox="0 0 12 12"><polygon points="3,1 11,6 3,11"/></svg>
+            START WORKOUT
+          </div>
+        </div>
+
+        <!-- Week strip -->
+        <div class="week-strip">
+          <div class="wd done"><span class="wd-lbl">M</span><div class="wd-dot"></div></div>
+          <div class="wd done"><span class="wd-lbl">T</span><div class="wd-dot"></div></div>
+          <div class="wd done"><span class="wd-lbl">W</span><div class="wd-dot"></div></div>
+          <div class="wd today"><span class="wd-lbl">T</span><div class="wd-dot"></div></div>
+          <div class="wd"><span class="wd-lbl">F</span><div class="wd-dot"></div></div>
+          <div class="wd"><span class="wd-lbl">S</span><div class="wd-dot"></div></div>
+          <div class="wd"><span class="wd-lbl">S</span><div class="wd-dot"></div></div>
+        </div>
+
+        <!-- Metrics -->
+        <div class="metric-grid">
+          <div class="mc v">
+            <div class="mc-val">12,480 <span class="mc-unit">lbs</span></div>
+            <div class="mc-lbl">Weekly volume</div>
+          </div>
+          <div class="mc g">
+            <div class="mc-val">14 <span class="mc-unit">days</span></div>
+            <div class="mc-lbl">Current streak</div>
+          </div>
+          <div class="mc c">
+            <div class="mc-val">1.8 <span class="mc-unit">RIR</span></div>
+            <div class="mc-lbl">Avg effort today</div>
+          </div>
+          <div class="mc ok">
+            <div class="mc-val">7h <span class="mc-unit">20m</span></div>
+            <div class="mc-lbl">Last night's sleep</div>
+          </div>
+        </div>
+
+        <!-- AI Coach insight -->
+        <div class="section-hd">AI Coach</div>
+        <div class="insight-card">
+          <div class="insight-header">
+            <div class="insight-icon">
+              <svg width="10" height="10" fill="none" stroke="var(--v)" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            </div>
+            <span class="insight-title">Strength trending up</span>
+          </div>
+          <div class="insight-body">
+            Your bench press is <span>+11% vs last block.</span> Peak load week — push intensity today before next week's deload.
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom nav -->
+      <div class="bnav">
+        <div class="ni on">
+          <svg width="20" height="20" fill="none" stroke="var(--v)" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+          <span class="ni-lbl">Home</span>
+        </div>
+        <div class="ni">
+          <svg width="20" height="20" fill="none" stroke="var(--t2)" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="10,8 16,12 10,16 10,8"/></svg>
+          <span class="ni-lbl">Train</span>
+        </div>
+        <div class="ni">
+          <svg width="20" height="20" fill="none" stroke="var(--t2)" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          <span class="ni-lbl">Coach</span>
+        </div>
+        <div class="ni">
+          <svg width="20" height="20" fill="none" stroke="var(--t2)" stroke-width="1.8" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <span class="ni-lbl">Progress</span>
+        </div>
+        <div class="ni">
+          <svg width="20" height="20" fill="none" stroke="var(--t2)" stroke-width="1.8" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span class="ni-lbl">Me</span>
+        </div>
+      </div>
+    </div>
+    <div class="screen-sub">Violet = AI layer. Coral = today's intensity.<br>Gold streak badge — appears once, earned.</div>
+  </div>
+
+
+  <!-- ════════════════════════════════════
+       SCREEN 2 — ACTIVE WORKOUT
+  ════════════════════════════════════ -->
+  <div class="phone-wrap">
+    <div class="screen-tag">Active Workout</div>
+    <div class="phone phone-workout">
+      <div class="island"></div>
+
+      <!-- Status bar -->
+      <div class="sb">
+        <span class="sb-time">10:24</span>
+        <div class="sb-icons">
+          <svg width="15" height="11" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M1 6s4.5-5 11-5 11 5 11 5M5 10s3-3.5 7-3.5 7 3.5 7 3.5M9 14s1.5-2 3-2 3 2 3 2M12 18v.5"/></svg>
+          <svg width="13" height="11" fill="currentColor" viewBox="0 0 24 16"><rect x="0" y="3" width="18" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="5" width="14" height="6" rx="1" fill="currentColor"/><path d="M20 6v4a2 2 0 000-4z" fill="currentColor"/></svg>
+        </div>
+      </div>
+
+      <div class="content">
+        <!-- Session header -->
+        <div class="session-hd">
+          <div class="session-back">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"/></svg>
+          </div>
+          <span class="session-name">Upper Push · A1</span>
+          <div class="session-timer">42:17</div>
+        </div>
+
+        <!-- Exercise hero -->
+        <div class="ex-hero">
+          <div class="ex-hero-name">Bench Press</div>
+          <div class="ex-hero-muscle">Chest · Anterior Delt · Triceps</div>
+        </div>
+
+        <!-- SVG progress ring -->
+        <div class="ring-wrap">
+          <svg width="130" height="130" viewBox="0 0 130 130">
+            <!-- Track -->
+            <circle cx="65" cy="65" r="54" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="8"/>
+            <!-- Progress (4 of 5 sets = 80%) -->
+            <circle cx="65" cy="65" r="54"
+              fill="none"
+              stroke="url(#ringGrad)"
+              stroke-width="8"
+              stroke-linecap="round"
+              stroke-dasharray="339.3"
+              stroke-dashoffset="67.9"
+              transform="rotate(-90 65 65)"/>
+            <!-- Tick marks for completed sets -->
+            <circle cx="65" cy="13" r="4" fill="var(--c)" opacity="0.9"/>
+            <circle cx="113" cy="37" r="4" fill="var(--c)" opacity="0.9"/>
+            <circle cx="113" cy="93" r="4" fill="var(--c)" opacity="0.9"/>
+            <circle cx="65" cy="117" r="4" fill="var(--c)" opacity="0.9"/>
+            <circle cx="17" cy="93" r="4" fill="var(--s3)"/>
+            <defs>
+              <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="var(--c-deep)"/>
+                <stop offset="100%" stop-color="var(--c)"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="ring-center">
+            <div class="ring-set-num">4/5</div>
+            <div class="ring-set-lbl">SETS</div>
+          </div>
+        </div>
+
+        <!-- Stat row -->
+        <div class="stat-row">
+          <div class="stat-box">
+            <div class="stat-val">135 <span class="stat-unit">lbs</span></div>
+            <div class="stat-lbl">Load</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val">8 <span class="stat-unit">reps</span></div>
+            <div class="stat-lbl">Target</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val" style="color:var(--c)">1 <span class="stat-unit">RIR</span></div>
+            <div class="stat-lbl">In Reserve</div>
+          </div>
+        </div>
+
+        <!-- Previous sets -->
+        <div class="prev-sets">
+          <div class="prev-set-hd">Previous sets</div>
+          <div class="prev-set-row">
+            <span class="psr-set">SET 1</span>
+            <span class="psr-val">135 lbs · 8 reps · RIR 2</span>
+            <div class="psr-check">
+              <svg width="8" height="8" fill="none" stroke="var(--c)" stroke-width="2.5" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
+            </div>
+          </div>
+          <div class="prev-set-row">
+            <span class="psr-set">SET 2</span>
+            <span class="psr-val">135 lbs · 8 reps · RIR 2</span>
+            <div class="psr-check">
+              <svg width="8" height="8" fill="none" stroke="var(--c)" stroke-width="2.5" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
+            </div>
+          </div>
+          <div class="prev-set-row">
+            <span class="psr-set">SET 3</span>
+            <span class="psr-val">135 lbs · 8 reps · RIR 1</span>
+            <div class="psr-check">
+              <svg width="8" height="8" fill="none" stroke="var(--c)" stroke-width="2.5" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Log set CTA -->
+        <div class="log-btn" style="margin-top:10px">
+          <svg width="14" height="14" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+          LOG SET 4
+        </div>
+
+        <!-- AI tip -->
+        <div class="ai-tip">
+          <div class="ai-tip-icon">
+            <svg width="10" height="10" fill="none" stroke="var(--v)" stroke-width="2" viewBox="0 0 24 24"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg>
+          </div>
+          <div class="ai-tip-text"><strong>Try 140 lbs</strong> next set — you're leaving too much in reserve for week 11.</div>
+        </div>
+      </div>
+
+      <!-- Bottom nav -->
+      <div class="bnav">
+        <div class="ni">
+          <svg width="20" height="20" fill="none" stroke="var(--t2)" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+          <span class="ni-lbl">Home</span>
+        </div>
+        <div class="ni on" style="--v:var(--c)">
+          <svg width="20" height="20" fill="none" stroke="var(--c)" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="10,8 16,12 10,16 10,8"/></svg>
+          <span class="ni-lbl" style="color:var(--c)">Train</span>
+        </div>
+        <div class="ni">
+          <svg width="20" height="20" fill="none" stroke="var(--t2)" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          <span class="ni-lbl">Coach</span>
+        </div>
+        <div class="ni">
+          <svg width="20" height="20" fill="none" stroke="var(--t2)" stroke-width="1.8" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <span class="ni-lbl">Progress</span>
+        </div>
+        <div class="ni">
+          <svg width="20" height="20" fill="none" stroke="var(--t2)" stroke-width="1.8" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span class="ni-lbl">Me</span>
+        </div>
+      </div>
+    </div>
+    <div class="screen-sub">Coral owns the active state. Violet<br>AI tip appears without competing.</div>
+  </div>
+
+
+  <!-- ════════════════════════════════════
+       SCREEN 3 — AI COACH
+  ════════════════════════════════════ -->
+  <div class="phone-wrap">
+    <div class="screen-tag">AI Coach</div>
+    <div class="phone phone-coach">
+      <div class="island"></div>
+
+      <!-- Status bar -->
+      <div class="sb">
+        <span class="sb-time">9:41</span>
+        <div class="sb-icons">
+          <svg width="15" height="11" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M1 6s4.5-5 11-5 11 5 11 5M5 10s3-3.5 7-3.5 7 3.5 7 3.5M9 14s1.5-2 3-2 3 2 3 2M12 18v.5"/></svg>
+          <svg width="13" height="11" fill="currentColor" viewBox="0 0 24 16"><rect x="0" y="3" width="18" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="5" width="12" height="6" rx="1" fill="currentColor"/><path d="M20 6v4a2 2 0 000-4z" fill="currentColor"/></svg>
+        </div>
+      </div>
+
+      <div class="content">
+        <!-- Header -->
+        <div class="coach-hd">
+          <div>
+            <div class="coach-title">AI Coach</div>
+            <div style="font-size:11px;color:var(--t2);margin-top:2px">Week 12 · Peaking phase</div>
+          </div>
+          <div style="background:var(--v-tint);border:1px solid var(--v-border);border-radius:8px;padding:7px;display:flex;align-items:center;justify-content:center;">
+            <svg width="16" height="16" fill="none" stroke="var(--v)" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+          </div>
+        </div>
+
+        <!-- Meso insight card -->
+        <div class="meso-card">
+          <div class="meso-phase">Meso 3 · Accumulation peak</div>
+          <div class="meso-title">You're at your strongest.<br>Don't waste the window.</div>
+          <div class="meso-body" style="margin-top:8px">
+            Strength metrics are <span>peaking across all compounds.</span>
+            This week is optimal for max effort sets before your scheduled deload.
+          </div>
+        </div>
+
+        <!-- Readiness row -->
+        <div class="readiness-row">
+          <div class="rr-card">
+            <div class="rr-num" style="color:var(--v)">87</div>
+            <div class="rr-bar"><div class="rr-fill" style="width:87%;background:var(--v)"></div></div>
+            <div class="rr-lbl">Readiness</div>
+          </div>
+          <div class="rr-card">
+            <div class="rr-num" style="color:var(--c)">94</div>
+            <div class="rr-bar"><div class="rr-fill" style="width:94%;background:var(--c)"></div></div>
+            <div class="rr-lbl">Load %</div>
+          </div>
+          <div class="rr-card">
+            <div class="rr-num" style="color:var(--ok)">+12</div>
+            <div class="rr-bar"><div class="rr-fill" style="width:60%;background:var(--ok)"></div></div>
+            <div class="rr-lbl">Vol % WoW</div>
+          </div>
+        </div>
+
+        <!-- PR card -->
+        <div class="pr-card">
+          <div class="pr-badge">
+            <svg width="18" height="18" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26 12,2"/></svg>
+          </div>
+          <div class="pr-info">
+            <div class="pr-label">New personal record</div>
+            <div class="pr-name">Bench Press — 1RM estimate</div>
+            <div class="pr-val">145 lbs · Set last Tuesday</div>
+          </div>
+        </div>
+
+        <!-- Recommendations -->
+        <div class="section-hd" style="margin-top:4px">Recommendations</div>
+        <div class="rec-list">
+          <div class="rec-item">
+            <div class="rec-bullet"></div>
+            <div class="rec-text">
+              <strong>Max effort sets this week.</strong> Readiness is high and load capacity is near your cycle peak.
+            </div>
+          </div>
+          <div class="rec-item">
+            <div class="rec-bullet"></div>
+            <div class="rec-text">
+              <strong>Deload next week.</strong> Neural fatigue accumulation will affect performance by Week 13 otherwise.
+            </div>
+          </div>
+          <div class="rec-item">
+            <div class="rec-bullet" style="background:var(--c)"></div>
+            <div class="rec-text">
+              <strong>Add 1 rear delt exercise.</strong> Shoulder balance ratio is slightly skewed at current volume.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom nav -->
+      <div class="bnav">
+        <div class="ni">
+          <svg width="20" height="20" fill="none" stroke="var(--t2)" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+          <span class="ni-lbl">Home</span>
+        </div>
+        <div class="ni">
+          <svg width="20" height="20" fill="none" stroke="var(--t2)" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="10,8 16,12 10,16 10,8"/></svg>
+          <span class="ni-lbl">Train</span>
+        </div>
+        <div class="ni on">
+          <svg width="20" height="20" fill="none" stroke="var(--v)" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          <span class="ni-lbl">Coach</span>
+        </div>
+        <div class="ni">
+          <svg width="20" height="20" fill="none" stroke="var(--t2)" stroke-width="1.8" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <span class="ni-lbl">Progress</span>
+        </div>
+        <div class="ni">
+          <svg width="20" height="20" fill="none" stroke="var(--t2)" stroke-width="1.8" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span class="ni-lbl">Me</span>
+        </div>
+      </div>
+    </div>
+    <div class="screen-sub">Violet intelligence layer in full. Gold<br>PR card is the only warm element.</div>
+  </div>
+
+
+</div>
+
+<!-- ── FOOTNOTE ── -->
+<div style="text-align:center;margin-top:64px;font-family:var(--fm);font-size:10px;color:var(--t3);letter-spacing:0.08em;">
+  fitNXT · Ignite Design Direction · 2026
+  <br style="margin-bottom:6px">
+  No lime. No Nike. Nothing like anything in the fitness category.
+</div>
+
+</body>
+</html>

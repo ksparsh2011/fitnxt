@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrainNXT — Goal Tracking & Onboarding Screens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0A0A0F;
+    --surface: #111118;
+    --surface2: #18181F;
+    --surface3: #1F1F28;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --accent: #C8F34A;
+    --accent2: #6366F1;
+    --accent3: #F59E0B;
+    --danger: #EF4444;
+    --success: #22C55E;
+    --text: #F0F0F5;
+    --text2: #8888A0;
+    --text3: #4A4A60;
+    --font-display: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { background: #05050A; }
+  body { font-family: var(--font-body); background: #05050A; color: var(--text); min-height: 100vh; padding: 40px 20px 80px; }
+
+  .page-header { text-align: center; margin-bottom: 16px; }
+  .page-header h1 { font-family: var(--font-display); font-size: clamp(24px,4vw,36px); font-weight: 800; letter-spacing: -1px; }
+  .page-header h1 span { color: var(--accent); }
+  .page-header p { font-size: 13px; color: var(--text2); margin-top: 6px; max-width: 560px; margin-left: auto; margin-right: auto; line-height: 1.6; }
+
+  .context-box { max-width: 700px; margin: 0 auto 32px; background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2); border-radius: 14px; padding: 16px 20px; font-size: 13px; color: #818CF8; line-height: 1.7; }
+  .context-box strong { color: #A5B4FC; }
+
+  .screen-nav { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 36px; }
+  .screen-btn { font-family: var(--font-body); font-size: 12px; font-weight: 500; padding: 7px 14px; border-radius: 100px; border: 1px solid var(--border2); background: var(--surface); color: var(--text2); cursor: pointer; transition: all 0.2s; }
+  .screen-btn.active, .screen-btn:hover { background: var(--accent); color: #0A0A0F; border-color: var(--accent); }
+
+  .phones-row { display: flex; gap: 28px; justify-content: center; align-items: flex-start; flex-wrap: wrap; }
+  .phone-wrap { display: none; flex-direction: column; align-items: center; gap: 12px; }
+  .phone-wrap.active { display: flex; }
+  .screen-label { font-family: var(--font-display); font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); }
+  .screen-sublabel { font-size: 11px; color: var(--text3); text-align: center; max-width: 280px; line-height: 1.5; }
+
+  .phone { width: 320px; height: 680px; background: var(--surface); border-radius: 40px; border: 1.5px solid var(--border2); overflow: hidden; position: relative; box-shadow: 0 0 0 8px rgba(255,255,255,0.02), 0 40px 80px rgba(0,0,0,0.6); display: flex; flex-direction: column; }
+  .notch { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 100px; height: 28px; background: var(--bg); border-radius: 0 0 20px 20px; z-index: 10; }
+  .status-bar { height: 40px; padding: 8px 24px 0; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .status-time { font-family: var(--font-mono); font-size: 11px; font-weight: 500; }
+  .status-icons { font-family: var(--font-mono); font-size: 11px; }
+  .screen-content { flex: 1; overflow-y: auto; padding: 0 0 80px; scrollbar-width: none; }
+  .screen-content::-webkit-scrollbar { display: none; }
+
+  .bottom-nav { position: absolute; bottom: 0; left: 0; right: 0; height: 72px; background: var(--surface); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-around; padding: 0 8px 8px; }
+  .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; flex: 1; padding: 8px 4px 4px; opacity: 0.4; }
+  .nav-item.active { opacity: 1; }
+  .nav-item svg { width: 20px; height: 20px; }
+  .nav-item span { font-size: 10px; font-weight: 500; }
+  .nav-item.active span { color: var(--accent); }
+
+  /* Atoms */
+  .pill { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 100px; }
+  .pill-accent { background: rgba(200,243,74,0.12); color: var(--accent); }
+  .pill-indigo { background: rgba(99,102,241,0.15); color: #818CF8; }
+  .pill-amber { background: rgba(245,158,11,0.15); color: var(--accent3); }
+  .pill-red { background: rgba(239,68,68,0.12); color: #FCA5A5; }
+  .pill-green { background: rgba(34,197,94,0.12); color: #4ADE80; }
+  .card { background: var(--surface2); border: 1px solid var(--border); border-radius: 16px; margin: 0 20px 10px; overflow: hidden; }
+  .card-p { padding: 14px 16px; }
+  .section-heading { font-family: var(--font-display); font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); padding: 0 20px; margin-bottom: 8px; }
+  .progress-track { height: 5px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 3px; }
+
+  /* ══════════════════════════════════
+     SCREEN A — ONBOARDING: AI INTAKE
+  ══════════════════════════════════ */
+  .onboard-header { padding: 20px 20px 8px; }
+  .onboard-step { font-family: var(--font-mono); font-size: 10px; color: var(--accent); letter-spacing: 0.1em; margin-bottom: 8px; }
+  .onboard-title { font-family: var(--font-display); font-size: 20px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.2; color: var(--text); margin-bottom: 4px; }
+  .onboard-sub { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+  .step-progress { display: flex; gap: 4px; padding: 0 20px; margin: 12px 0 16px; }
+  .step-dot { flex: 1; height: 3px; border-radius: 2px; background: var(--surface3); }
+  .step-dot.done { background: var(--accent); }
+  .step-dot.active { background: rgba(200,243,74,0.4); }
+
+  .intake-chat { padding: 0 20px; display: flex; flex-direction: column; gap: 10px; }
+  .ai-bubble { background: var(--surface2); border: 1px solid var(--border); border-radius: 14px 14px 14px 4px; padding: 12px 14px; font-size: 13px; color: var(--text); line-height: 1.5; }
+  .ai-bubble-label { font-family: var(--font-mono); font-size: 9px; color: var(--accent); margin-bottom: 5px; letter-spacing: 0.08em; }
+  .input-answer { background: var(--accent); border-radius: 14px 14px 4px 14px; padding: 10px 14px; font-size: 13px; color: #0A0A0F; font-weight: 500; align-self: flex-end; max-width: 85%; }
+  .quick-picks { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+  .qpick { background: var(--surface3); border: 1px solid var(--border2); border-radius: 100px; padding: 5px 12px; font-size: 12px; color: var(--text2); }
+  .qpick.selected { background: rgba(200,243,74,0.12); border-color: rgba(200,243,74,0.3); color: var(--accent); }
+
+  /* ══════════════════════════════════
+     SCREEN B — GOAL CARD ON DASHBOARD
+  ══════════════════════════════════ */
+  .dash-header { padding: 16px 20px 12px; display: flex; align-items: center; justify-content: space-between; }
+  .dash-greeting { font-family: var(--font-display); font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+  .dash-date { font-size: 12px; color: var(--text2); margin-top: 2px; font-weight: 300; }
+  .avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), #4ADE80); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 14px; font-weight: 700; color: #0A0A0F; }
+
+  /* Goal progress card — the new component */
+  .goal-card { margin: 0 20px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: 18px; padding: 16px; }
+  .goal-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .goal-card-title { font-family: var(--font-display); font-size: 12px; font-weight: 600; color: var(--text2); letter-spacing: 0.05em; text-transform: uppercase; }
+  .goal-tag { font-family: var(--font-display); font-size: 10px; font-weight: 700; letter-spacing: 0.08em; color: var(--accent); background: rgba(200,243,74,0.1); padding: 3px 10px; border-radius: 100px; }
+  .goal-primary { display: flex; align-items: flex-end; gap: 12px; margin-bottom: 14px; }
+  .goal-stat { flex: 1; }
+  .goal-stat-label { font-size: 10px; color: var(--text3); font-family: var(--font-mono); margin-bottom: 3px; }
+  .goal-stat-val { font-family: var(--font-display); font-size: 22px; font-weight: 700; letter-spacing: -1px; }
+  .goal-stat-val.current { color: var(--text); }
+  .goal-stat-val.target { color: var(--accent); }
+  .goal-stat-unit { font-size: 12px; color: var(--text2); font-weight: 400; }
+  .goal-arrow { font-size: 18px; color: var(--text3); padding-bottom: 4px; }
+  .goal-pct { font-family: var(--font-mono); font-size: 11px; color: var(--accent); background: rgba(200,243,74,0.08); padding: 4px 10px; border-radius: 8px; text-align: center; }
+  .goal-pct-label { font-size: 9px; color: var(--text3); margin-top: 1px; }
+
+  .goal-tracks { display: flex; flex-direction: column; gap: 8px; }
+  .goal-track-row { display: flex; align-items: center; gap: 10px; }
+  .goal-track-label { font-size: 11px; color: var(--text2); min-width: 68px; }
+  .goal-track-bar { flex: 1; height: 5px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; }
+  .goal-track-fill { height: 100%; border-radius: 3px; }
+  .goal-track-vals { font-family: var(--font-mono); font-size: 10px; color: var(--text3); min-width: 52px; text-align: right; }
+
+  /* Alert banner */
+  .alert-banner { margin: 0 20px 12px; background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); border-radius: 14px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; }
+  .alert-icon { font-size: 18px; flex-shrink: 0; }
+  .alert-text { flex: 1; font-size: 12px; color: #FCD34D; line-height: 1.5; }
+  .alert-text strong { display: block; font-weight: 600; margin-bottom: 2px; }
+  .alert-cta { font-size: 11px; font-weight: 600; color: var(--accent3); background: rgba(245,158,11,0.15); padding: 5px 10px; border-radius: 8px; flex-shrink: 0; }
+
+  /* Check-in mini -->
+  .checkin-mini { margin: 0 20px 12px; background: var(--accent); border-radius: 16px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; }
+  .checkin-mini-left { }
+  .checkin-mini-day { font-family: var(--font-display); font-size: 10px; font-weight: 600; color: rgba(0,0,0,0.5); letter-spacing: 0.08em; text-transform: uppercase; }
+  .checkin-mini-name { font-family: var(--font-display); font-size: 18px; font-weight: 800; color: #0A0A0F; letter-spacing: -0.5px; }
+  .checkin-mini-btn { background: #0A0A0F; color: var(--accent); font-family: var(--font-display); font-size: 11px; font-weight: 700; padding: 8px 14px; border-radius: 100px; letter-spacing: 0.05em; }
+
+  /* Week strip compact */
+  .week-strip { display: flex; gap: 5px; padding: 0 20px; margin-bottom: 14px; }
+  .week-day { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 7px 3px; border-radius: 9px; background: var(--surface2); border: 1px solid var(--border); }
+  .week-day.done { background: rgba(200,243,74,0.08); border-color: rgba(200,243,74,0.2); }
+  .week-day.today { background: var(--surface3); border-color: rgba(255,255,255,0.15); }
+  .week-day-label { font-family: var(--font-mono); font-size: 9px; color: var(--text3); }
+  .week-day.today .week-day-label { color: var(--text2); }
+  .week-day-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--text3); }
+  .week-day.done .week-day-dot { background: var(--accent); }
+  .week-day.today .week-day-dot { background: var(--text); }
+
+  /* ══════════════════════════════════
+     SCREEN C — BODY METRICS / BMI LOG
+  ══════════════════════════════════ */
+  .bmi-header { padding: 14px 20px 10px; }
+  .bmi-title { font-family: var(--font-display); font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+  .bmi-subtitle { font-size: 12px; color: var(--text2); margin-top: 2px; }
+
+  /* Gauge */
+  .gauge-card { margin: 0 20px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: 18px; padding: 20px 16px 16px; }
+  .gauge-title { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; font-family: var(--font-mono); margin-bottom: 14px; }
+  .gauge-svg-wrap { display: flex; justify-content: center; margin-bottom: 12px; }
+  .gauge-labels { display: flex; justify-content: space-between; }
+  .gauge-label { text-align: center; }
+  .gauge-label-val { font-family: var(--font-display); font-size: 16px; font-weight: 700; }
+  .gauge-label-sub { font-size: 10px; color: var(--text3); }
+
+  /* Timeline */
+  .timeline { padding: 0 20px; }
+  .timeline-item { display: flex; gap: 12px; padding-bottom: 16px; position: relative; }
+  .timeline-item::before { content: ''; position: absolute; left: 11px; top: 22px; bottom: 0; width: 1px; background: var(--border); }
+  .timeline-item:last-child::before { display: none; }
+  .timeline-dot { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--border2); background: var(--surface2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 10px; }
+  .timeline-dot.latest { background: rgba(200,243,74,0.12); border-color: rgba(200,243,74,0.4); }
+  .timeline-dot.first { background: var(--surface3); border-color: var(--border2); }
+  .timeline-body { flex: 1; }
+  .timeline-date { font-family: var(--font-mono); font-size: 10px; color: var(--text3); margin-bottom: 4px; }
+  .timeline-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; }
+  .timeline-metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .t-metric-val { font-family: var(--font-display); font-size: 15px; font-weight: 700; }
+  .t-metric-label { font-size: 9px; color: var(--text3); font-family: var(--font-mono); }
+  .delta-pill { font-family: var(--font-mono); font-size: 10px; font-weight: 500; padding: 2px 7px; border-radius: 6px; display: inline-block; margin-top: 4px; }
+  .delta-good { background: rgba(34,197,94,0.12); color: #4ADE80; }
+  .delta-warn { background: rgba(245,158,11,0.12); color: #FCD34D; }
+
+  /* Add BMI btn */
+  .add-bmi-btn { margin: 0 20px 12px; background: var(--accent); color: #0A0A0F; font-family: var(--font-display); font-size: 14px; font-weight: 700; padding: 14px; border-radius: 14px; text-align: center; letter-spacing: 0.02em; }
+
+  /* ══════════════════════════════════
+     SCREEN D — BMI INTAKE (NEW SCAN)
+  ══════════════════════════════════ */
+  .bmi-intake-header { padding: 20px 20px 12px; }
+  .bmi-intake-tag { font-family: var(--font-mono); font-size: 10px; color: var(--accent); letter-spacing: 0.1em; margin-bottom: 8px; }
+  .bmi-intake-title { font-family: var(--font-display); font-size: 20px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.2; margin-bottom: 4px; }
+  .bmi-intake-sub { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+  .intake-section { margin: 0 20px 12px; }
+  .intake-label { font-size: 11px; color: var(--text3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+  .intake-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .intake-field { background: var(--surface2); border: 1px solid var(--border2); border-radius: 12px; padding: 12px; }
+  .intake-field-label { font-size: 10px; color: var(--text3); font-family: var(--font-mono); margin-bottom: 5px; }
+  .intake-field-val { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; }
+  .intake-field-unit { font-size: 11px; color: var(--text2); font-weight: 400; }
+  .intake-field.active { border-color: rgba(200,243,74,0.4); background: rgba(200,243,74,0.04); }
+  .intake-field.active .intake-field-label { color: var(--accent); }
+
+  /* Photo upload option */
+  .photo-upload-option { margin: 0 20px 12px; border: 1.5px dashed var(--border2); border-radius: 14px; padding: 14px; display: flex; align-items: center; gap: 12px; }
+  .photo-upload-icon { width: 40px; height: 40px; border-radius: 12px; background: rgba(99,102,241,0.1); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .photo-upload-text { font-size: 13px; color: var(--text2); }
+  .photo-upload-hint { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+  /* AI Analysis preview */
+  .ai-analysis { margin: 0 20px 12px; background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2); border-radius: 14px; padding: 12px 14px; }
+  .ai-analysis-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .ai-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent2); }
+  .ai-analysis-title { font-size: 11px; font-weight: 500; color: #818CF8; }
+  .ai-analysis-body { font-size: 12px; color: #A5B4FC; line-height: 1.6; }
+  .ai-analysis-highlight { font-family: var(--font-mono); font-size: 11px; color: var(--accent); margin-top: 6px; }
+
+  .confirm-btn { margin: 0 20px; background: var(--accent); color: #0A0A0F; font-family: var(--font-display); font-size: 14px; font-weight: 700; padding: 14px; border-radius: 14px; text-align: center; }
+
+  /* ══════════════════════════════════
+     SCREEN E — GOAL DETAIL PAGE
+  ══════════════════════════════════ */
+  .goal-detail-header { padding: 14px 20px 10px; display: flex; align-items: center; gap: 12px; }
+  .back-btn { width: 32px; height: 32px; border-radius: 10px; background: var(--surface2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--text2); font-size: 16px; flex-shrink: 0; }
+  .goal-detail-title { font-family: var(--font-display); font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
+
+  /* Big goal ring */
+  .big-goal-ring { margin: 0 20px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: 18px; padding: 20px; display: flex; align-items: center; gap: 20px; }
+  .ring-wrap { position: relative; flex-shrink: 0; }
+  .ring-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+  .ring-pct { font-family: var(--font-display); font-size: 22px; font-weight: 800; color: var(--accent); letter-spacing: -1px; }
+  .ring-label { font-size: 9px; color: var(--text3); font-family: var(--font-mono); }
+  .goal-breakdown { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+  .gb-item { }
+  .gb-label { font-size: 10px; color: var(--text3); font-family: var(--font-mono); margin-bottom: 3px; }
+  .gb-vals { display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .gb-current { font-family: var(--font-display); font-size: 14px; font-weight: 600; color: var(--text); }
+  .gb-target { font-family: var(--font-display); font-size: 14px; font-weight: 600; color: var(--accent); }
+
+  /* Milestone timeline */
+  .milestones { padding: 0 20px; }
+  .milestone { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .milestone:last-child { border-bottom: none; }
+  .ms-icon { width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+  .ms-icon.done { background: rgba(34,197,94,0.12); }
+  .ms-icon.current { background: rgba(200,243,74,0.12); }
+  .ms-icon.upcoming { background: var(--surface3); opacity: 0.5; }
+  .ms-info { flex: 1; }
+  .ms-name { font-size: 13px; font-weight: 500; color: var(--text); }
+  .ms-detail { font-size: 11px; color: var(--text3); font-family: var(--font-mono); margin-top: 1px; }
+  .ms-date { font-size: 11px; color: var(--text3); }
+  .ms-date.achieved { color: var(--success); font-weight: 500; }
+
+  /* Next BMI alert card */
+  .next-bmi-card { margin: 0 20px 12px; background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.18); border-radius: 16px; padding: 14px; }
+  .next-bmi-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .next-bmi-title { font-size: 12px; font-weight: 500; color: #FCD34D; display: flex; align-items: center; gap: 6px; }
+  .next-bmi-countdown { font-family: var(--font-display); font-size: 22px; font-weight: 800; color: var(--accent3); letter-spacing: -1px; }
+  .next-bmi-unit { font-size: 11px; color: var(--text2); }
+  .next-bmi-body { font-size: 12px; color: #FCD34D; line-height: 1.6; opacity: 0.8; }
+  .next-bmi-why { margin-top: 8px; font-size: 11px; color: var(--text3); font-family: var(--font-mono); }
+
+  /* Notes panel */
+  .notes-panel { max-width: 860px; margin: 48px auto 0; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 28px; }
+  .notes-title { font-family: var(--font-display); font-size: 16px; font-weight: 700; margin-bottom: 20px; }
+  .notes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+  .note-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
+  .note-card-title { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); margin-bottom: 8px; }
+  .note-card-body { font-size: 12px; color: var(--text2); line-height: 1.7; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Train<span>NXT</span> — Goal Tracking</h1>
+  <p>The missing screens: Onboarding intake, Goal visibility on dashboard, Body metrics log, BMI update flow, and Goal detail page.</p>
+</div>
+
+<div class="context-box">
+  <strong>What was missing from v1:</strong> The user had no way to set their goal, no way to see progress toward it on the dashboard, no BMI history log, no way to log a new BMI scan, and no alerts for when to get re-tested. These 5 screens fix all of that. The goal card from Screen B now appears at the top of every dashboard view.
+</div>
+
+<div class="screen-nav">
+  <button class="screen-btn active" onclick="show('onboard')">A · Onboarding</button>
+  <button class="screen-btn" onclick="show('dashboard')">B · Dashboard + Goal Card</button>
+  <button class="screen-btn" onclick="show('metrics')">C · Body Metrics Log</button>
+  <button class="screen-btn" onclick="show('bmiadd')">D · Log New BMI Scan</button>
+  <button class="screen-btn" onclick="show('goaldetail')">E · Goal Detail</button>
+</div>
+
+<div class="phones-row">
+
+  <!-- ════ SCREEN A: ONBOARDING ════ -->
+  <div class="phone-wrap active" id="screen-onboard">
+    <div class="screen-label">A · First-time Onboarding</div>
+    <div class="screen-sublabel">AI intake flow — user shares all context. Happens once. Populates the entire system.</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="status-bar"><span class="status-time">10:00</span><span class="status-icons">87%</span></div>
+      <div class="screen-content">
+        <div class="onboard-header">
+          <div class="onboard-step">STEP 3 OF 5 · GOALS</div>
+          <div class="onboard-title">What are you working toward?</div>
+          <div class="onboard-sub">Be specific — the more you share, the better your plan.</div>
+        </div>
+        <div class="step-progress">
+          <div class="step-dot done"></div>
+          <div class="step-dot done"></div>
+          <div class="step-dot active"></div>
+          <div class="step-dot"></div>
+          <div class="step-dot"></div>
+        </div>
+
+        <div class="intake-chat">
+          <div class="ai-bubble">
+            <div class="ai-bubble-label">🧠 TRAINER</div>
+            What's your primary goal right now? Don't overthink it.
+            <div class="quick-picks" style="margin-top:10px">
+              <div class="qpick">Lose fat</div>
+              <div class="qpick selected">Reduce body fat %</div>
+              <div class="qpick">Build muscle</div>
+              <div class="qpick">Get stronger</div>
+              <div class="qpick">Recomposition</div>
+            </div>
+          </div>
+
+          <div class="input-answer">Reduce body fat %</div>
+
+          <div class="ai-bubble">
+            <div class="ai-bubble-label">🧠 TRAINER</div>
+            Got it. What's your current body fat % and where do you want to get to?
+          </div>
+
+          <div class="input-answer">I'm at 25% and want to get to 20%</div>
+
+          <div class="ai-bubble">
+            <div class="ai-bubble-label">🧠 TRAINER</div>
+            5% reduction is absolutely achievable. At your stats, that's roughly 12–16 weeks on a lean cut with 400 kcal deficit and high protein. I'll build the plan around that.<br><br>
+            <strong style="color:var(--accent)">When did you last get a proper body fat test done?</strong>
+            <div class="quick-picks" style="margin-top:10px">
+              <div class="qpick selected">Today / this week</div>
+              <div class="qpick">Last month</div>
+              <div class="qpick">3+ months ago</div>
+              <div class="qpick">Never</div>
+            </div>
+          </div>
+
+          <div class="input-answer">Today — got DEXA scan done</div>
+
+          <div class="ai-bubble">
+            <div class="ai-bubble-label">🧠 TRAINER</div>
+            DEXA is the gold standard. I'll set your baseline at 25% body fat as of today and remind you to retest in <span style="color:var(--accent);font-weight:500">6 weeks</span>. That's the earliest meaningful change shows up on DEXA.
+          </div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div style="width:100%;padding:0 20px">
+          <div style="background:var(--accent);color:#0A0A0F;font-family:var(--font-display);font-size:14px;font-weight:700;padding:13px;border-radius:14px;text-align:center">CONTINUE →</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ SCREEN B: DASHBOARD + GOAL CARD ════ -->
+  <div class="phone-wrap" id="screen-dashboard">
+    <div class="screen-label">B · Dashboard — Goal Card Added</div>
+    <div class="screen-sublabel">Goal progress now visible at top of every dashboard. Always one tap from full detail.</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="status-bar"><span class="status-time">9:41</span><span class="status-icons">87%</span></div>
+      <div class="screen-content">
+        <div class="dash-header">
+          <div>
+            <div class="dash-greeting">Morning, Sparsh 👋</div>
+            <div class="dash-date">Thursday · Week 6 of 12</div>
+          </div>
+          <div class="avatar">SK</div>
+        </div>
+
+        <!-- ⚡ NEW: BMI Alert Banner -->
+        <div class="alert-banner">
+          <div class="alert-icon">📊</div>
+          <div class="alert-text">
+            <strong>BMI check-in due in 3 days</strong>
+            6 weeks since your last DEXA scan. Time to measure progress.
+          </div>
+          <div class="alert-cta">Log Now</div>
+        </div>
+
+        <!-- ⚡ NEW: Goal Progress Card -->
+        <div class="goal-card" onclick="">
+          <div class="goal-card-header">
+            <div class="goal-card-title">Your Goal</div>
+            <div class="goal-tag">CUT · WEEK 6</div>
+          </div>
+
+          <div class="goal-primary">
+            <div class="goal-stat">
+              <div class="goal-stat-label">STARTED AT</div>
+              <div class="goal-stat-val current">25<span class="goal-stat-unit">%</span></div>
+              <div style="font-size:10px;color:var(--text3);font-family:var(--font-mono)">body fat</div>
+            </div>
+            <div class="goal-arrow">→</div>
+            <div class="goal-stat">
+              <div class="goal-stat-label">CURRENT</div>
+              <div class="goal-stat-val current" style="color:var(--text)">22.5<span class="goal-stat-unit">%</span></div>
+              <div style="font-size:10px;color:var(--text3);font-family:var(--font-mono)">est. today</div>
+            </div>
+            <div class="goal-arrow">→</div>
+            <div class="goal-stat">
+              <div class="goal-stat-label">TARGET</div>
+              <div class="goal-stat-val target">20<span class="goal-stat-unit">%</span></div>
+              <div style="font-size:10px;color:var(--accent);font-family:var(--font-mono)">goal</div>
+            </div>
+          </div>
+
+          <div class="goal-tracks">
+            <div class="goal-track-row">
+              <div class="goal-track-label">Body fat</div>
+              <div class="goal-track-bar">
+                <div class="goal-track-fill" style="width:50%;background:var(--accent)"></div>
+              </div>
+              <div class="goal-track-vals">−2.5 / −5%</div>
+            </div>
+            <div class="goal-track-row">
+              <div class="goal-track-label">Weight</div>
+              <div class="goal-track-bar">
+                <div class="goal-track-fill" style="width:45%;background:#6366F1"></div>
+              </div>
+              <div class="goal-track-vals">−1.8 / −4kg</div>
+            </div>
+            <div class="goal-track-row">
+              <div class="goal-track-label">Timeline</div>
+              <div class="goal-track-bar">
+                <div class="goal-track-fill" style="width:50%;background:rgba(200,243,74,0.4)"></div>
+              </div>
+              <div class="goal-track-vals">Wk 6 / 12</div>
+            </div>
+          </div>
+
+          <div style="margin-top:10px;font-size:11px;color:var(--text3);text-align:right;font-family:var(--font-mono)">Tap for full detail →</div>
+        </div>
+
+        <!-- Check-in -->
+        <div class="checkin-mini">
+          <div class="checkin-mini-left">
+            <div class="checkin-mini-day">Today · Push Day</div>
+            <div class="checkin-mini-name">Check in to gym</div>
+          </div>
+          <div class="checkin-mini-btn">CHECK IN</div>
+        </div>
+
+        <!-- Week strip -->
+        <div class="week-strip">
+          <div class="week-day done"><div class="week-day-label">M</div><div class="week-day-dot"></div></div>
+          <div class="week-day done"><div class="week-day-label">T</div><div class="week-day-dot"></div></div>
+          <div class="week-day done"><div class="week-day-label">W</div><div class="week-day-dot"></div></div>
+          <div class="week-day today"><div class="week-day-label">Th</div><div class="week-day-dot"></div></div>
+          <div class="week-day"><div class="week-day-label">F</div><div class="week-day-dot"></div></div>
+          <div class="week-day"><div class="week-day-label">S</div><div class="week-day-dot"></div></div>
+          <div class="week-day"><div class="week-day-label">S</div><div class="week-day-dot"></div></div>
+        </div>
+
+        <div class="section-heading">Today's workout</div>
+        <div class="card">
+          <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px">
+            <div style="width:24px;height:24px;border-radius:8px;background:rgba(200,243,74,0.12);border:1px solid rgba(200,243,74,0.3);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:10px;color:var(--accent)">✓</div>
+            <div style="flex:1"><div style="font-size:13px;font-weight:500">Bench Press</div><div style="font-family:var(--font-mono);font-size:10px;color:var(--text3)">4 × 8 · 80 kg</div></div>
+            <div style="font-size:11px;color:var(--accent)">Done</div>
+          </div>
+          <div style="padding:12px 16px;display:flex;align-items:center;gap:12px">
+            <div style="width:24px;height:24px;border-radius:8px;background:var(--surface3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:10px;color:var(--accent)">2</div>
+            <div style="flex:1"><div style="font-size:13px;font-weight:500">Incline DB Press</div><div style="font-family:var(--font-mono);font-size:10px;color:var(--text3)">3 × 10 · 24 kg</div></div>
+            <div style="font-size:11px;color:var(--text3)">Next</div>
+          </div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="#C8F34A" stroke-width="1.5" width="20" height="20"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg><span style="color:var(--accent)">Today</span></div>
+        <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="#8888A0" stroke-width="1.5" width="20" height="20"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span>Plan</span></div>
+        <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="#8888A0" stroke-width="1.5" width="20" height="20"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span>Progress</span></div>
+        <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="#8888A0" stroke-width="1.5" width="20" height="20"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg><span>Me</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ SCREEN C: BODY METRICS LOG ════ -->
+  <div class="phone-wrap" id="screen-metrics">
+    <div class="screen-label">C · Body Metrics History</div>
+    <div class="screen-sublabel">Every BMI/DEXA scan logged chronologically. Delta shown between each entry.</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="status-bar"><span class="status-time">9:41</span><span class="status-icons">87%</span></div>
+      <div class="screen-content">
+        <div class="bmi-header">
+          <div class="bmi-title">Body Metrics</div>
+          <div class="bmi-subtitle">Your composition history</div>
+        </div>
+
+        <!-- Gauge card -->
+        <div class="gauge-card">
+          <div class="gauge-title">CURRENT BODY FAT % · EST. TODAY</div>
+          <div class="gauge-svg-wrap">
+            <svg width="200" height="110" viewBox="0 0 200 110">
+              <!-- Track -->
+              <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="12" stroke-linecap="round"/>
+              <!-- Zones -->
+              <path d="M 20 100 A 80 80 0 0 1 60 37" fill="none" stroke="rgba(34,197,94,0.3)" stroke-width="12" stroke-linecap="round"/>
+              <path d="M 60 37 A 80 80 0 0 1 140 37" fill="none" stroke="rgba(200,243,74,0.3)" stroke-width="12" stroke-linecap="round"/>
+              <path d="M 140 37 A 80 80 0 0 1 180 100" fill="none" stroke="rgba(239,68,68,0.25)" stroke-width="12" stroke-linecap="round"/>
+              <!-- Target marker at ~20% -->
+              <circle cx="52" cy="42" r="5" fill="var(--accent)" opacity="0.6"/>
+              <!-- Progress fill to 22.5% -->
+              <path d="M 20 100 A 80 80 0 0 1 68 31" fill="none" stroke="var(--accent)" stroke-width="12" stroke-linecap="round"/>
+              <!-- Needle dot -->
+              <circle cx="68" cy="31" r="8" fill="var(--accent)" stroke="var(--bg)" stroke-width="2"/>
+              <!-- Labels -->
+              <text x="12" y="112" fill="#4A4A60" font-size="9" font-family="JetBrains Mono">10%</text>
+              <text x="85" y="18" fill="#4A4A60" font-size="9" font-family="JetBrains Mono" text-anchor="middle">20%</text>
+              <text x="178" y="112" fill="#4A4A60" font-size="9" font-family="JetBrains Mono" text-anchor="end">35%</text>
+              <!-- Target label -->
+              <text x="35" y="32" fill="var(--accent)" font-size="8" font-family="JetBrains Mono">TARGET</text>
+            </svg>
+          </div>
+          <div class="gauge-labels">
+            <div class="gauge-label">
+              <div class="gauge-label-val" style="color:var(--text)">22.5<span style="font-size:12px;color:var(--text2)">%</span></div>
+              <div class="gauge-label-sub">Today (est.)</div>
+            </div>
+            <div class="gauge-label">
+              <div class="gauge-label-val" style="color:var(--success)">−2.5%</div>
+              <div class="gauge-label-sub">Progress</div>
+            </div>
+            <div class="gauge-label">
+              <div class="gauge-label-val" style="color:var(--accent)">20%</div>
+              <div class="gauge-label-sub">Target</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add BMI button -->
+        <div class="add-bmi-btn">+ LOG NEW SCAN RESULT</div>
+
+        <!-- Timeline -->
+        <div class="section-heading" style="margin-top:4px">Scan History</div>
+        <div class="timeline">
+
+          <div class="timeline-item">
+            <div class="timeline-dot latest">📊</div>
+            <div class="timeline-body">
+              <div class="timeline-date">6 WEEKS AGO · JAN 15 · DEXA SCAN</div>
+              <div class="timeline-card">
+                <div class="timeline-metrics">
+                  <div>
+                    <div class="t-metric-val" style="color:var(--accent)">25.0<span style="font-size:10px;color:var(--text2)">%</span></div>
+                    <div class="t-metric-label">Body fat</div>
+                  </div>
+                  <div>
+                    <div class="t-metric-val">80.2<span style="font-size:10px;color:var(--text2)">kg</span></div>
+                    <div class="t-metric-label">Weight</div>
+                  </div>
+                  <div>
+                    <div class="t-metric-val">60.2<span style="font-size:10px;color:var(--text2)">kg</span></div>
+                    <div class="t-metric-label">Lean mass</div>
+                  </div>
+                </div>
+                <div class="delta-pill" style="background:rgba(99,102,241,0.12);color:#818CF8">BASELINE · Goal set from this</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="timeline-item">
+            <div class="timeline-dot first">📏</div>
+            <div class="timeline-body">
+              <div class="timeline-date">3 MONTHS AGO · OCT 20 · BIOIMPEDANCE</div>
+              <div class="timeline-card">
+                <div class="timeline-metrics">
+                  <div>
+                    <div class="t-metric-val">27.4<span style="font-size:10px;color:var(--text2)">%</span></div>
+                    <div class="t-metric-label">Body fat</div>
+                  </div>
+                  <div>
+                    <div class="t-metric-val">81.8<span style="font-size:10px;color:var(--text2)">kg</span></div>
+                    <div class="t-metric-label">Weight</div>
+                  </div>
+                  <div>
+                    <div class="t-metric-val">59.4<span style="font-size:10px;color:var(--text2)">kg</span></div>
+                    <div class="t-metric-label">Lean mass</div>
+                  </div>
+                </div>
+                <div class="delta-pill delta-warn">Before TrainNXT</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="#8888A0" stroke-width="1.5" width="20" height="20"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg><span>Today</span></div>
+        <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="#C8F34A" stroke-width="1.5" width="20" height="20"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span style="color:var(--accent)">Progress</span></div>
+        <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="#8888A0" stroke-width="1.5" width="20" height="20"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v11m0 0H5a2 2 0 00-2 2v2a2 2 0 002 2h4M9 14h10a2 2 0 012 2v2a2 2 0 01-2 2H9"/></svg><span>Coach</span></div>
+        <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="#8888A0" stroke-width="1.5" width="20" height="20"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg><span>Me</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ SCREEN D: LOG NEW BMI SCAN ════ -->
+  <div class="phone-wrap" id="screen-bmiadd">
+    <div class="screen-label">D · Log New BMI / DEXA Scan</div>
+    <div class="screen-sublabel">User enters new scan results. AI immediately analyses the delta and updates the plan.</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="status-bar"><span class="status-time">9:41</span><span class="status-icons">87%</span></div>
+      <div class="screen-content">
+        <div class="bmi-intake-header">
+          <div class="bmi-intake-tag">📊 NEW SCAN RESULT</div>
+          <div class="bmi-intake-title">Log your latest body composition</div>
+          <div class="bmi-intake-sub">Enter what your DEXA, InBody, or tape measure shows. Claude will analyse the change.</div>
+        </div>
+
+        <!-- Photo upload option -->
+        <div class="photo-upload-option">
+          <div class="photo-upload-icon">📸</div>
+          <div>
+            <div class="photo-upload-text">Scan the report photo</div>
+            <div class="photo-upload-hint">Claude reads DEXA / InBody printouts automatically</div>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:10px;padding:0 20px;margin-bottom:12px">
+          <div style="flex:1;height:1px;background:var(--border)"></div>
+          <div style="font-size:11px;color:var(--text3)">or enter manually</div>
+          <div style="flex:1;height:1px;background:var(--border)"></div>
+        </div>
+
+        <!-- Manual entry -->
+        <div class="intake-section">
+          <div class="intake-label">Measurements</div>
+          <div class="intake-row">
+            <div class="intake-field active">
+              <div class="intake-field-label">BODY FAT %</div>
+              <div class="intake-field-val">21<span class="intake-field-unit">%</span></div>
+            </div>
+            <div class="intake-field">
+              <div class="intake-field-label">WEIGHT</div>
+              <div class="intake-field-val">79.2<span class="intake-field-unit">kg</span></div>
+            </div>
+            <div class="intake-field">
+              <div class="intake-field-label">LEAN MASS</div>
+              <div class="intake-field-val">62.6<span class="intake-field-unit">kg</span></div>
+            </div>
+            <div class="intake-field">
+              <div class="intake-field-label">FAT MASS</div>
+              <div class="intake-field-val">16.6<span class="intake-field-unit">kg</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="intake-section">
+          <div class="intake-label">Scan type</div>
+          <div class="quick-picks">
+            <div class="qpick selected">DEXA</div>
+            <div class="qpick">InBody</div>
+            <div class="qpick">Bioimpedance</div>
+            <div class="qpick">Calipers</div>
+            <div class="qpick">Navy tape</div>
+          </div>
+        </div>
+
+        <!-- AI immediate analysis -->
+        <div class="ai-analysis">
+          <div class="ai-analysis-header">
+            <div class="ai-dot"></div>
+            <div class="ai-analysis-title">Claude's analysis (live preview)</div>
+          </div>
+          <div class="ai-analysis-body">
+            Strong progress. You've dropped 4% body fat in 6 weeks — that's ahead of the typical 0.5–0.7% per week rate. Lean mass is up 2.4kg which means you're recomping, not just losing weight.
+          </div>
+          <div class="ai-analysis-highlight">→ Updating cut target to 19% (you can reach it in 4 more weeks) · Plan adjusted</div>
+        </div>
+
+        <div class="confirm-btn">SAVE SCAN RESULT</div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="#8888A0" stroke-width="1.5" width="20" height="20"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg><span>Today</span></div>
+        <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="#8888A0" stroke-width="1.5" width="20" height="20"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span>Plan</span></div>
+        <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="#C8F34A" stroke-width="1.5" width="20" height="20"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span style="color:var(--accent)">Progress</span></div>
+        <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="#8888A0" stroke-width="1.5" width="20" height="20"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg><span>Me</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ SCREEN E: GOAL DETAIL ════ -->
+  <div class="phone-wrap" id="screen-goaldetail">
+    <div class="screen-label">E · Goal Detail Page</div>
+    <div class="screen-sublabel">Full breakdown of goal progress, milestones, and next BMI alert. Reached by tapping the dashboard goal card.</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="status-bar"><span class="status-time">9:41</span><span class="status-icons">87%</span></div>
+      <div class="screen-content">
+        <div class="goal-detail-header">
+          <div class="back-btn">←</div>
+          <div class="goal-detail-title">Goal Progress</div>
+          <div class="pill pill-accent">On Track</div>
+        </div>
+
+        <!-- Big ring -->
+        <div class="big-goal-ring">
+          <div class="ring-wrap">
+            <svg width="110" height="110" viewBox="0 0 110 110">
+              <circle cx="55" cy="55" r="44" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="10"/>
+              <circle cx="55" cy="55" r="44" fill="none" stroke="var(--accent)" stroke-width="10"
+                stroke-dasharray="138 276" stroke-dashoffset="69" stroke-linecap="round"
+                transform="rotate(-90 55 55)"/>
+              <circle cx="55" cy="55" r="44" fill="none" stroke="rgba(200,243,74,0.15)" stroke-width="10"
+                stroke-dasharray="138 276" stroke-dashoffset="-69" stroke-linecap="round"
+                transform="rotate(-90 55 55)"/>
+            </svg>
+            <div class="ring-center">
+              <div class="ring-pct">50%</div>
+              <div class="ring-label">COMPLETE</div>
+            </div>
+          </div>
+          <div class="goal-breakdown">
+            <div class="gb-item">
+              <div class="gb-label">BODY FAT</div>
+              <div class="gb-vals">
+                <div class="gb-current">22.5%</div>
+                <div class="gb-target">→ 20%</div>
+              </div>
+              <div class="progress-track"><div class="progress-fill" style="width:50%;background:var(--accent)"></div></div>
+            </div>
+            <div class="gb-item">
+              <div class="gb-label">WEIGHT</div>
+              <div class="gb-vals">
+                <div class="gb-current">79.2kg</div>
+                <div class="gb-target">→ 76kg</div>
+              </div>
+              <div class="progress-track"><div class="progress-fill" style="width:45%;background:#6366F1"></div></div>
+            </div>
+            <div class="gb-item">
+              <div class="gb-label">LEAN MASS</div>
+              <div class="gb-vals">
+                <div class="gb-current">60.2kg</div>
+                <div class="gb-target">→ 62kg</div>
+              </div>
+              <div class="progress-track"><div class="progress-fill" style="width:0%;background:var(--accent3)"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Next BMI alert -->
+        <div class="next-bmi-card">
+          <div class="next-bmi-header">
+            <div class="next-bmi-title">⏰ Next body scan due in</div>
+          </div>
+          <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:8px">
+            <div class="next-bmi-countdown">3</div>
+            <div class="next-bmi-unit">days (Mar 2)</div>
+          </div>
+          <div class="next-bmi-body">Book a DEXA or InBody scan. 6 weeks is the minimum window for meaningful body composition change to show up on any test.</div>
+          <div class="next-bmi-why">📍 Why 6 weeks? Less than that and measurement noise > actual change.</div>
+        </div>
+
+        <!-- Milestone timeline -->
+        <div class="section-heading">Milestones</div>
+        <div class="milestones">
+          <div class="milestone">
+            <div class="ms-icon done">✓</div>
+            <div class="ms-info">
+              <div class="ms-name">Started the cut</div>
+              <div class="ms-detail">25% → goal set · Baseline DEXA</div>
+            </div>
+            <div class="ms-date achieved">Jan 15</div>
+          </div>
+          <div class="milestone">
+            <div class="ms-icon done">✓</div>
+            <div class="ms-info">
+              <div class="ms-name">−1% body fat</div>
+              <div class="ms-detail">First measurable drop · Week 2</div>
+            </div>
+            <div class="ms-date achieved">Jan 29</div>
+          </div>
+          <div class="milestone">
+            <div class="ms-icon done">✓</div>
+            <div class="ms-info">
+              <div class="ms-name">Halfway to goal</div>
+              <div class="ms-detail">22.5% est. · Week 6</div>
+            </div>
+            <div class="ms-date achieved">Today</div>
+          </div>
+          <div class="milestone">
+            <div class="ms-icon current">📊</div>
+            <div class="ms-info">
+              <div class="ms-name">6-week DEXA scan</div>
+              <div class="ms-detail">Confirm real progress · Book now</div>
+            </div>
+            <div class="ms-date">Mar 2</div>
+          </div>
+          <div class="milestone">
+            <div class="ms-icon upcoming" style="font-size:14px">🏁</div>
+            <div class="ms-info">
+              <div class="ms-name">Goal achieved — 20%</div>
+              <div class="ms-detail">Target · Week 12</div>
+            </div>
+            <div class="ms-date">Apr 10</div>
+          </div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="#8888A0" stroke-width="1.5" width="20" height="20"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg><span>Today</span></div>
+        <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="#8888A0" stroke-width="1.5" width="20" height="20"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span>Plan</span></div>
+        <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="#C8F34A" stroke-width="1.5" width="20" height="20"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span style="color:var(--accent)">Progress</span></div>
+        <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="#8888A0" stroke-width="1.5" width="20" height="20"><path d="M16 7a4 4 0 11-8 0 4 4 0 011 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg><span>Me</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Notes -->
+<div class="notes-panel">
+  <div class="notes-title">📐 Design decisions explained</div>
+  <div class="notes-grid">
+    <div class="note-card">
+      <div class="note-card-title">Why goal card on dashboard</div>
+      <div class="note-card-body">The goal is the reason the user opens the app. It should be the first thing they see after greeting — not buried in a progress tab. Tapping it goes to Screen E. The card shows current → target at a glance, no tap required.</div>
+    </div>
+    <div class="note-card">
+      <div class="note-card-title">Why estimated body fat</div>
+      <div class="note-card-body">Between DEXA scans, the system estimates body fat using body weight trend + session volume data. It's clearly labelled "est." — never presented as fact. Gives the user meaningful data without requiring monthly clinic visits.</div>
+    </div>
+    <div class="note-card">
+      <div class="note-card-title">BMI scan alert logic</div>
+      <div class="note-card-body">Alert fires at day 39 (1 week before 6-week mark). Science-based: 6 weeks is the minimum meaningful window for body composition change on any test. Alert explains why — not just "time to test" but "here's the reason."</div>
+    </div>
+    <div class="note-card">
+      <div class="note-card-title">Photo scan reading</div>
+      <div class="note-card-body">Claude Vision reads DEXA and InBody printout photos. Most clinics give you a printed report. User snaps a photo, Claude extracts all the numbers automatically. Removes manual entry friction completely.</div>
+    </div>
+    <div class="note-card">
+      <div class="note-card-title">AI live analysis on entry</div>
+      <div class="note-card-body">When user enters new scan data (Screen D), Claude analyses the delta in real-time before they even save. If progress is ahead of schedule, Claude tightens the target. If behind, it adjusts the calorie deficit and plan. The plan is never static.</div>
+    </div>
+    <div class="note-card">
+      <div class="note-card-title">Goal types beyond body fat</div>
+      <div class="note-card-body">The same system works for: strength goals (squat 100kg 1RM — tracked via PR table), weight goals (reach 75kg), endurance goals (run 5km — tracked via cardio logs), recomp (gain lean mass while losing fat — both tracked). Onboarding screen A routes to the right tracking type.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.phone-wrap').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.screen-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>

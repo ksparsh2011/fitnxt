@@ -1,0 +1,1467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrainNXT — UX Flow Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0D0D12;
+  --canvas: #0A0A0F;
+  --surface: #13131A;
+  --surface2: #1A1A24;
+  --surface3: #22222E;
+  --border: rgba(255,255,255,0.06);
+  --border2: rgba(255,255,255,0.11);
+  --accent: #C8F34A;
+  --accent2: #7C6EF8;
+  --accent3: #F59E0B;
+  --success: #22C55E;
+  --danger: #EF4444;
+  --text: #EEEEF5;
+  --text2: #7A7A95;
+  --text3: #3E3E55;
+  --fd: 'Syne', sans-serif;
+  --fb: 'DM Sans', sans-serif;
+  --fm: 'JetBrains Mono', monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+
+body {
+  font-family: var(--fb);
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100vh;
+}
+
+/* ── TOP BAR ── */
+.topbar {
+  height: 52px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 16px;
+  flex-shrink: 0;
+  z-index: 100;
+}
+.logo {
+  font-family: var(--fd);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--text);
+}
+.logo span { color: var(--accent); }
+.topbar-divider { width: 1px; height: 20px; background: var(--border2); }
+.topbar-label {
+  font-size: 11px;
+  color: var(--text3);
+  font-family: var(--fm);
+  letter-spacing: 0.08em;
+}
+.topbar-flow-name {
+  font-family: var(--fd);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text2);
+}
+#active-flow-name { color: var(--text); }
+
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.step-counter {
+  font-family: var(--fm);
+  font-size: 11px;
+  color: var(--text2);
+  background: var(--surface2);
+  padding: 4px 10px;
+  border-radius: 100px;
+  border: 1px solid var(--border2);
+}
+.nav-btn {
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  color: var(--text2);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: all 0.15s;
+}
+.nav-btn:hover { background: var(--surface3); color: var(--text); }
+.nav-btn.disabled { opacity: 0.2; pointer-events: none; }
+
+/* ── SIDEBAR ── */
+.layout { display: flex; flex: 1; overflow: hidden; }
+.sidebar {
+  width: 220px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+.sidebar-section {
+  padding: 12px 14px 6px;
+  font-family: var(--fm);
+  font-size: 9px;
+  color: var(--text3);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.flow-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  cursor: pointer;
+  transition: background 0.15s;
+  border-left: 2px solid transparent;
+  margin: 1px 0;
+}
+.flow-item:hover { background: var(--surface2); }
+.flow-item.active {
+  background: rgba(200,243,74,0.06);
+  border-left-color: var(--accent);
+}
+.flow-icon {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  flex-shrink: 0;
+  background: var(--surface3);
+}
+.flow-item.active .flow-icon {
+  background: rgba(200,243,74,0.12);
+}
+.flow-info { flex: 1; min-width: 0; }
+.flow-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.flow-item.active .flow-name { color: var(--text); }
+.flow-steps {
+  font-family: var(--fm);
+  font-size: 9px;
+  color: var(--text3);
+  margin-top: 1px;
+}
+
+.sidebar-legend {
+  margin-top: auto;
+  padding: 14px;
+  border-top: 1px solid var(--border);
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text3);
+  margin-bottom: 6px;
+}
+.leg-arrow { font-size: 14px; }
+
+/* ── CANVAS ── */
+.canvas {
+  flex: 1;
+  overflow: auto;
+  background: var(--canvas);
+  background-image:
+    radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 24px 24px;
+  padding: 40px 40px 120px;
+  position: relative;
+}
+
+/* ── FLOW CANVAS ── */
+.flow-canvas {
+  display: none;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0;
+  min-width: max-content;
+}
+.flow-canvas.active { display: flex; }
+
+/* ── SCREEN NODE ── */
+.screen-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  flex-shrink: 0;
+}
+.screen-node.dim .phone-frame { opacity: 0.25; }
+.screen-node.current .phone-frame {
+  box-shadow:
+    0 0 0 2px var(--accent),
+    0 20px 60px rgba(0,0,0,0.5),
+    0 0 40px rgba(200,243,74,0.12);
+}
+.phone-frame {
+  width: 180px;
+  height: 360px;
+  background: var(--surface);
+  border-radius: 24px;
+  border: 1px solid var(--border2);
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  transition: all 0.3s;
+  cursor: pointer;
+}
+.phone-frame:hover { transform: translateY(-2px); }
+.pf-notch {
+  position: absolute;
+  top: 0; left: 50%; transform: translateX(-50%);
+  width: 56px; height: 14px;
+  background: var(--bg);
+  border-radius: 0 0 10px 10px;
+  z-index: 5;
+}
+.pf-status {
+  height: 22px;
+  padding: 5px 12px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--fm);
+  font-size: 7px;
+  color: var(--text2);
+}
+.pf-content {
+  flex: 1;
+  overflow: hidden;
+}
+.pf-nav {
+  height: 38px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 4px 6px;
+}
+.pf-nav-dot {
+  width: 20px; height: 20px;
+  border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  opacity: 0.35;
+}
+.pf-nav-dot.active { opacity: 1; }
+
+/* Screen node labels */
+.node-label-wrap {
+  margin-top: 12px;
+  text-align: center;
+  width: 180px;
+}
+.node-step {
+  font-family: var(--fm);
+  font-size: 9px;
+  color: var(--text3);
+  letter-spacing: 0.1em;
+  margin-bottom: 3px;
+}
+.screen-node.current .node-step { color: var(--accent); }
+.node-name {
+  font-family: var(--fd);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text2);
+  line-height: 1.3;
+}
+.screen-node.current .node-name { color: var(--text); }
+.node-desc {
+  font-size: 10px;
+  color: var(--text3);
+  margin-top: 3px;
+  line-height: 1.4;
+}
+
+/* ── CONNECTOR ── */
+.connector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 360px;
+  flex-shrink: 0;
+  position: relative;
+}
+.conn-line {
+  position: absolute;
+  top: 50%;
+  left: 0; right: 0;
+  height: 1px;
+  background: var(--border2);
+  transform: translateY(-50%);
+}
+.conn-line.active-path { background: var(--accent); opacity: 0.5; }
+.conn-arrow {
+  width: 0; height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 8px solid var(--border2);
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.conn-arrow.active-path { border-left-color: var(--accent); opacity: 0.6; }
+.conn-label {
+  position: absolute;
+  top: calc(50% - 18px);
+  left: 0; right: 0;
+  text-align: center;
+  font-size: 8px;
+  font-family: var(--fm);
+  color: var(--text3);
+  white-space: nowrap;
+  background: var(--canvas);
+  padding: 1px 4px;
+}
+
+/* ── STEP DETAIL PANEL (bottom) ── */
+.detail-panel {
+  position: fixed;
+  bottom: 0; left: 220px; right: 0;
+  height: 80px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 28px;
+  gap: 24px;
+  z-index: 50;
+}
+.dp-screen-label {
+  font-family: var(--fm);
+  font-size: 9px;
+  color: var(--text3);
+  letter-spacing: 0.1em;
+  margin-bottom: 3px;
+}
+.dp-screen-name {
+  font-family: var(--fd);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+.dp-desc {
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 1.5;
+  max-width: 420px;
+}
+.dp-divider { width: 1px; height: 48px; background: var(--border); }
+.dp-action {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.dp-action-label { font-size: 10px; color: var(--text3); font-family: var(--fm); }
+.dp-action-val {
+  font-size: 12px;
+  color: var(--accent);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* ── MINI PHONE CONTENT STYLES ── */
+/* These are compressed versions of the full screens */
+.mini { font-size: 6px; padding: 4px 7px; }
+.mini-h { font-family: var(--fd); font-size: 9px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.mini-sub { font-size: 6px; color: var(--text2); margin-bottom: 5px; }
+.mini-card { background: var(--surface2); border: 0.5px solid var(--border); border-radius: 6px; padding: 6px; margin-bottom: 4px; }
+.mini-row { display: flex; gap: 4px; margin-bottom: 4px; }
+.mini-metric { background: var(--surface2); border: 0.5px solid var(--border); border-radius: 5px; padding: 5px; flex: 1; }
+.mini-metric-val { font-family: var(--fd); font-size: 10px; font-weight: 700; color: var(--text); }
+.mini-metric-label { font-size: 5px; color: var(--text3); }
+.mini-btn { background: var(--accent); color: #0A0A0F; font-family: var(--fd); font-size: 7px; font-weight: 700; padding: 5px 8px; border-radius: 6px; text-align: center; margin-bottom: 4px; }
+.mini-btn-outline { background: transparent; color: var(--text2); border: 0.5px solid var(--border2); font-size: 7px; padding: 4px 8px; border-radius: 6px; text-align: center; margin-bottom: 4px; }
+.mini-accent { color: var(--accent); font-family: var(--fm); font-size: 6px; }
+.mini-hero { background: var(--accent); border-radius: 8px; padding: 8px; margin-bottom: 5px; }
+.mini-hero-title { font-family: var(--fd); font-size: 11px; font-weight: 800; color: #0A0A0F; }
+.mini-hero-sub { font-size: 6px; color: rgba(0,0,0,0.5); }
+.mini-hero-btn { background: #0A0A0F; color: var(--accent); font-size: 6px; font-weight: 700; padding: 3px 6px; border-radius: 100px; display: inline-block; margin-top: 4px; }
+.mini-week { display: flex; gap: 2px; margin-bottom: 5px; }
+.mini-day { flex: 1; height: 18px; border-radius: 3px; background: var(--surface3); display: flex; align-items: center; justify-content: center; font-size: 5px; color: var(--text3); }
+.mini-day.done { background: rgba(200,243,74,0.15); color: var(--accent); }
+.mini-day.today { background: var(--surface2); color: var(--text2); border: 0.5px solid var(--border2); }
+.mini-ex { display: flex; align-items: center; gap: 4px; padding: 3px 0; border-bottom: 0.5px solid var(--border); }
+.mini-ex:last-child { border-bottom: none; }
+.mini-ex-num { width: 12px; height: 12px; border-radius: 3px; background: var(--surface3); display: flex; align-items: center; justify-content: center; font-size: 5px; color: var(--text3); flex-shrink: 0; }
+.mini-ex-num.done { background: rgba(200,243,74,0.12); color: var(--accent); }
+.mini-ex-name { font-size: 6px; font-weight: 500; color: var(--text); flex: 1; }
+.mini-ex-sets { font-size: 5px; color: var(--text3); font-family: var(--fm); }
+.mini-chat { display: flex; flex-direction: column; gap: 3px; }
+.mini-bubble-ai { background: var(--surface2); border: 0.5px solid var(--border); border-radius: 5px 5px 5px 1px; padding: 4px 5px; font-size: 6px; color: var(--text); line-height: 1.4; max-width: 85%; }
+.mini-bubble-user { background: var(--accent2); border-radius: 5px 5px 1px 5px; padding: 4px 5px; font-size: 6px; color: #fff; max-width: 80%; align-self: flex-end; }
+.mini-progress { margin-bottom: 5px; }
+.mini-prog-label { display: flex; justify-content: space-between; font-size: 5px; color: var(--text3); margin-bottom: 2px; }
+.mini-prog-track { height: 3px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; }
+.mini-prog-fill { height: 100%; border-radius: 2px; background: var(--accent); }
+.mini-goal-card { background: var(--surface2); border: 0.5px solid var(--border); border-radius: 6px; padding: 6px; margin-bottom: 4px; }
+.mini-goal-row { display: flex; gap: 4px; align-items: center; margin-bottom: 4px; }
+.mini-goal-stat { flex: 1; text-align: center; }
+.mini-goal-val { font-family: var(--fd); font-size: 9px; font-weight: 700; color: var(--text); }
+.mini-goal-val.target { color: var(--accent); }
+.mini-goal-label { font-size: 4px; color: var(--text3); }
+.mini-onboard-step { font-family: var(--fm); font-size: 5px; color: var(--accent); margin-bottom: 3px; }
+.mini-steps { display: flex; gap: 2px; margin-bottom: 5px; }
+.mini-step-dot { flex: 1; height: 2px; border-radius: 1px; background: var(--surface3); }
+.mini-step-dot.done { background: var(--accent); }
+.mini-step-dot.cur { background: rgba(200,243,74,0.4); }
+.mini-qpick { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 3px; }
+.mini-qp { background: var(--surface3); border: 0.5px solid var(--border2); border-radius: 3px; padding: 1px 4px; font-size: 5px; color: var(--text2); }
+.mini-qp.sel { background: rgba(200,243,74,0.12); border-color: rgba(200,243,74,0.3); color: var(--accent); }
+.mini-alert { background: rgba(245,158,11,0.08); border: 0.5px solid rgba(245,158,11,0.2); border-radius: 5px; padding: 4px 5px; margin-bottom: 4px; font-size: 5px; color: #FCD34D; }
+.mini-set-ctrl { background: var(--surface2); border: 0.5px solid var(--border2); border-radius: 8px; padding: 8px; margin-bottom: 4px; }
+.mini-set-row { display: flex; gap: 4px; }
+.mini-set-box { background: var(--surface3); border: 0.5px solid var(--border); border-radius: 5px; flex: 1; padding: 4px; text-align: center; }
+.mini-set-val { font-family: var(--fd); font-size: 12px; font-weight: 700; color: var(--text); }
+.mini-set-unit { font-size: 5px; color: var(--text3); }
+.mini-timer { font-family: var(--fm); font-size: 10px; color: var(--accent); text-align: center; margin: 2px 0; }
+.mini-pr { background: rgba(245,158,11,0.1); border: 0.5px solid rgba(245,158,11,0.2); border-radius: 5px; padding: 5px; text-align: center; margin-bottom: 4px; }
+.mini-pr-label { font-family: var(--fd); font-size: 11px; color: var(--accent3); }
+.mini-pr-sub { font-size: 5px; color: var(--text2); }
+.mini-gauge-wrap { display: flex; justify-content: center; margin-bottom: 5px; }
+.mini-timeline-item { display: flex; gap: 4px; margin-bottom: 5px; }
+.mini-tl-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--surface3); border: 0.5px solid var(--border2); flex-shrink: 0; }
+.mini-tl-dot.latest { background: rgba(200,243,74,0.12); border-color: rgba(200,243,74,0.3); }
+.mini-tl-body { flex: 1; background: var(--surface2); border: 0.5px solid var(--border); border-radius: 4px; padding: 3px 4px; }
+.mini-tl-date { font-size: 4px; color: var(--text3); font-family: var(--fm); }
+.mini-tl-vals { display: flex; gap: 4px; margin-top: 2px; }
+.mini-tl-val { font-family: var(--fd); font-size: 7px; font-weight: 700; color: var(--text); }
+.mini-tl-label { font-size: 4px; color: var(--text3); }
+.mini-ring-center { font-family: var(--fd); font-size: 11px; font-weight: 800; color: var(--accent); text-align: center; }
+.mini-milestone { display: flex; align-items: center; gap: 4px; padding: 3px 0; border-bottom: 0.5px solid var(--border); }
+.mini-ms-icon { font-size: 8px; flex-shrink: 0; }
+.mini-ms-name { font-size: 6px; font-weight: 500; color: var(--text); flex: 1; }
+.mini-ms-date { font-size: 5px; color: var(--text3); font-family: var(--fm); }
+.mini-ms-date.achieved { color: var(--success); }
+.mini-splash { background: linear-gradient(160deg, #0A0A0F 0%, #13131A 100%); height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px; }
+.mini-splash-logo { font-family: var(--fd); font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -1px; margin-bottom: 4px; }
+.mini-splash-logo span { color: var(--accent); }
+.mini-splash-tag { font-size: 6px; color: var(--text3); font-family: var(--fm); letter-spacing: 0.1em; margin-bottom: 20px; }
+.mini-photo-area { background: var(--surface2); border: 0.5px dashed var(--border2); border-radius: 6px; padding: 8px; display: flex; align-items: center; gap: 5px; margin-bottom: 4px; }
+.mini-ocr-result { background: rgba(99,102,241,0.08); border: 0.5px solid rgba(99,102,241,0.2); border-radius: 5px; padding: 4px; margin-bottom: 4px; }
+.mini-ocr-vals { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; margin-top: 3px; }
+.mini-ocr-val { font-family: var(--fm); font-size: 7px; color: var(--accent); }
+.mini-ocr-label { font-size: 4px; color: var(--text3); }
+.mini-summary-stat { background: var(--surface2); border: 0.5px solid var(--border); border-radius: 5px; padding: 5px; text-align: center; flex: 1; }
+.mini-ss-val { font-family: var(--fd); font-size: 12px; font-weight: 700; color: var(--accent); }
+.mini-ss-label { font-size: 4px; color: var(--text3); }
+.mini-nutri-ring { display: flex; justify-content: center; margin-bottom: 5px; }
+.mini-meal { display: flex; align-items: center; gap: 4px; padding: 3px 0; border-bottom: 0.5px solid var(--border); }
+.mini-meal:last-child { border-bottom: none; }
+.mini-meal-icon { font-size: 10px; }
+.mini-meal-info { flex: 1; }
+.mini-meal-name { font-size: 6px; font-weight: 500; color: var(--text); }
+.mini-meal-macros { font-size: 4px; color: var(--text3); font-family: var(--fm); }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="logo">Train<span>NXT</span></div>
+  <div class="topbar-divider"></div>
+  <div class="topbar-label">UX FLOW</div>
+  <div class="topbar-divider"></div>
+  <div class="topbar-flow-name" id="active-flow-name">New User Onboarding</div>
+  <div class="topbar-right">
+    <div class="step-counter" id="step-counter">Step 1 / 6</div>
+    <div class="nav-btn disabled" id="btn-prev" onclick="prevStep()">‹</div>
+    <div class="nav-btn" id="btn-next" onclick="nextStep()">›</div>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-section">User Flows</div>
+
+    <div class="flow-item active" onclick="loadFlow(0)" id="flow-0">
+      <div class="flow-icon">🌱</div>
+      <div class="flow-info">
+        <div class="flow-name">New User Onboarding</div>
+        <div class="flow-steps">7 screens</div>
+      </div>
+    </div>
+    <div class="flow-item" onclick="loadFlow(1)" id="flow-1">
+      <div class="flow-icon">🔑</div>
+      <div class="flow-info">
+        <div class="flow-name">Returning User Login</div>
+        <div class="flow-steps">3 screens</div>
+      </div>
+    </div>
+    <div class="flow-item" onclick="loadFlow(2)" id="flow-2">
+      <div class="flow-icon">🏋️</div>
+      <div class="flow-info">
+        <div class="flow-name">Daily Workout Session</div>
+        <div class="flow-steps">7 screens</div>
+      </div>
+    </div>
+    <div class="flow-item" onclick="loadFlow(3)" id="flow-3">
+      <div class="flow-icon">🧠</div>
+      <div class="flow-info">
+        <div class="flow-name">AI Coach Consult</div>
+        <div class="flow-steps">4 screens</div>
+      </div>
+    </div>
+    <div class="flow-item" onclick="loadFlow(4)" id="flow-4">
+      <div class="flow-icon">📊</div>
+      <div class="flow-info">
+        <div class="flow-name">Goal & BMI Tracking</div>
+        <div class="flow-steps">5 screens</div>
+      </div>
+    </div>
+    <div class="flow-item" onclick="loadFlow(5)" id="flow-5">
+      <div class="flow-icon">🥗</div>
+      <div class="flow-info">
+        <div class="flow-name">Nutrition Logging</div>
+        <div class="flow-steps">4 screens</div>
+      </div>
+    </div>
+    <div class="flow-item" onclick="loadFlow(6)" id="flow-6">
+      <div class="flow-icon">📸</div>
+      <div class="flow-info">
+        <div class="flow-name">Photo OCR Cardio Log</div>
+        <div class="flow-steps">4 screens</div>
+      </div>
+    </div>
+
+    <div class="sidebar-legend">
+      <div class="legend-item"><span class="leg-arrow" style="color:var(--accent)">→</span> Active path</div>
+      <div class="legend-item"><span class="leg-arrow" style="color:var(--text3)">→</span> Future screen</div>
+      <div class="legend-item" style="font-size:10px;color:var(--text3)">Click any screen to jump to it</div>
+    </div>
+  </div>
+
+  <!-- CANVAS -->
+  <div class="canvas" id="canvas">
+
+    <!-- FLOW 0: NEW USER ONBOARDING -->
+    <div class="flow-canvas active" id="f0">
+      <!-- Splash -->
+      <div class="screen-node current" id="f0-s0" onclick="goToStep(0,0)">
+        <div class="phone-frame">
+          <div class="pf-notch"></div>
+          <div class="pf-status"><span>9:41</span><span>87%</span></div>
+          <div class="pf-content" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:16px">
+            <div style="font-family:var(--fd);font-size:28px;font-weight:800;color:var(--text);letter-spacing:-1px;margin-bottom:4px">Train<span style="color:var(--accent)">NXT</span></div>
+            <div style="font-family:var(--fm);font-size:7px;color:var(--text3);letter-spacing:0.12em;margin-bottom:24px">YOUR AI TRAINER</div>
+            <div style="width:100%;background:var(--accent);color:#0A0A0F;font-family:var(--fd);font-size:10px;font-weight:800;padding:8px;border-radius:8px;text-align:center;margin-bottom:6px">GET STARTED</div>
+            <div style="width:100%;border:0.5px solid var(--border2);color:var(--text2);font-size:9px;padding:6px;border-radius:8px;text-align:center">I ALREADY HAVE AN ACCOUNT</div>
+          </div>
+        </div>
+        <div class="node-label-wrap">
+          <div class="node-step">STEP 01</div>
+          <div class="node-name">Splash / Welcome</div>
+          <div class="node-desc">First open. Two paths: new account or login.</div>
+        </div>
+      </div>
+
+      <div class="connector"><div class="conn-line active-path"></div><div class="conn-arrow active-path"></div><div class="conn-label">Tap Get Started</div></div>
+
+      <!-- Register -->
+      <div class="screen-node dim" id="f0-s1" onclick="goToStep(0,1)">
+        <div class="phone-frame">
+          <div class="pf-notch"></div>
+          <div class="pf-status"><span>9:41</span><span>87%</span></div>
+          <div class="pf-content" style="padding:12px 10px">
+            <div class="mini-h">Create account</div>
+            <div class="mini-sub">Takes 30 seconds</div>
+            <div class="mini-card"><div class="mini-sub" style="margin:0">📧 Email address</div><div style="height:10px;background:var(--surface3);border-radius:3px;margin-top:3px"></div></div>
+            <div class="mini-card"><div class="mini-sub" style="margin:0">🔑 Password</div><div style="height:10px;background:var(--surface3);border-radius:3px;margin-top:3px"></div></div>
+            <div class="mini-btn">CREATE ACCOUNT</div>
+            <div style="display:flex;align-items:center;gap:6px;margin:6px 0"><div style="flex:1;height:0.5px;background:var(--border)"></div><div style="font-size:6px;color:var(--text3)">or</div><div style="flex:1;height:0.5px;background:var(--border)"></div></div>
+            <div class="mini-card" style="display:flex;align-items:center;gap:5px"><span style="font-size:11px">🇬</span><div style="font-size:7px;color:var(--text2)">Continue with Google</div></div>
+          </div>
+        </div>
+        <div class="node-label-wrap">
+          <div class="node-step">STEP 02</div>
+          <div class="node-name">Create Account</div>
+          <div class="node-desc">Email + password or Google OAuth.</div>
+        </div>
+      </div>
+
+      <div class="connector"><div class="conn-line"></div><div class="conn-arrow"></div><div class="conn-label">Account created</div></div>
+
+      <!-- Onboarding: Basic Info -->
+      <div class="screen-node dim" id="f0-s2" onclick="goToStep(0,2)">
+        <div class="phone-frame">
+          <div class="pf-notch"></div>
+          <div class="pf-status"><span>9:42</span><span>87%</span></div>
+          <div class="pf-content" style="padding:10px">
+            <div class="mini-onboard-step">STEP 1 OF 4 · ABOUT YOU</div>
+            <div class="mini-steps">
+              <div class="mini-step-dot cur"></div><div class="mini-step-dot"></div><div class="mini-step-dot"></div><div class="mini-step-dot"></div>
+            </div>
+            <div class="mini-h">Tell me about yourself</div>
+            <div class="mini-sub">Age, height, weight to start.</div>
+            <div class="mini-row">
+              <div class="mini-card" style="flex:1;text-align:center"><div style="font-family:var(--fd);font-size:14px;font-weight:700;color:var(--text)">26</div><div style="font-size:5px;color:var(--text3)">AGE</div></div>
+              <div class="mini-card" style="flex:1;text-align:center"><div style="font-family:var(--fd);font-size:14px;font-weight:700;color:var(--text)">178</div><div style="font-size:5px;color:var(--text3)">HEIGHT cm</div></div>
+              <div class="mini-card" style="flex:1;text-align:center"><div style="font-family:var(--fd);font-size:14px;font-weight:700;color:var(--text)">80</div><div style="font-size:5px;color:var(--text3)">WEIGHT kg</div></div>
+            </div>
+            <div class="mini-sub">Biological sex (for calorie calculation)</div>
+            <div class="mini-qpick">
+              <div class="mini-qp sel">Male</div><div class="mini-qp">Female</div><div class="mini-qp">Other</div>
+            </div>
+            <div class="mini-btn" style="margin-top:8px">NEXT →</div>
+          </div>
+        </div>
+        <div class="node-label-wrap">
+          <div class="node-step">STEP 03</div>
+          <div class="node-name">Basic Info</div>
+          <div class="node-desc">Age, height, weight, sex. Powers calorie targets.</div>
+        </div>
+      </div>
+
+      <div class="connector"><div class="conn-line"></div><div class="conn-arrow"></div><div class="conn-label">Tap Next</div></div>
+
+      <!-- Onboarding: Goals + BMI -->
+      <div class="screen-node dim" id="f0-s3" onclick="goToStep(0,3)">
+        <div class="phone-frame">
+          <div class="pf-notch"></div>
+          <div class="pf-status"><span>9:43</span><span>87%</span></div>
+          <div class="pf-content" style="padding:10px">
+            <div class="mini-onboard-step">STEP 2 OF 4 · YOUR GOAL</div>
+            <div class="mini-steps">
+              <div class="mini-step-dot done"></div><div class="mini-step-dot cur"></div><div class="mini-step-dot"></div><div class="mini-step-dot"></div>
+            </div>
+            <div class="mini-h">What are you working toward?</div>
+            <div class="mini-chat" style="gap:4px">
+              <div class="mini-bubble-ai">Your primary goal right now?</div>
+              <div class="mini-bubble-user">Reduce body fat %</div>
+              <div class="mini-bubble-ai">Current body fat & target?</div>
+              <div class="mini-bubble-user">25% → want to reach 20%</div>
+              <div class="mini-bubble-ai" style="color:var(--accent)">Got it. Last body scan?</div>
+              <div class="mini-qpick" style="margin-top:2px">
+                <div class="mini-qp sel">Today / DEXA</div><div class="mini-qp">Last month</div><div class="mini-qp">Never</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="node-label-wrap">
+          <div class="node-step">STEP 04</div>
+          <div class="node-name">Goal + BMI Baseline</div>
+          <div class="node-desc">AI chat intake. Sets body fat baseline & reminders.</div>
+        </div>
+      </div>
+
+      <div class="connector"><div class="conn-line"></div><div class="conn-arrow"></div><div class="conn-label">Complete intake</div></div>
+
+      <!-- Onboarding: Current workout -->
+      <div class="screen-node dim" id="f0-s4" onclick="goToStep(0,4)">
+        <div class="phone-frame">
+          <div class="pf-notch"></div>
+          <div class="pf-status"><span>9:45</span><span>87%</span></div>
+          <div class="pf-content" style="padding:10px">
+            <div class="mini-onboard-step">STEP 3 OF 4 · CURRENT TRAINING</div>
+            <div class="mini-steps">
+              <div class="mini-step-dot done"></div><div class="mini-step-dot done"></div><div class="mini-step-dot cur"></div><div class="mini-step-dot"></div>
+            </div>
+            <div class="mini-h">Your current workout?</div>
+            <div class="mini-chat" style="gap:4px">
+              <div class="mini-bubble-ai">How many days/week do you train?</div>
+              <div class="mini-bubble-user">4 days — Push Pull Legs</div>
+              <div class="mini-bubble-ai">Training age — how long lifting?</div>
+              <div class="mini-bubble-user">3 years, consistent</div>
+              <div class="mini-bubble-ai">Any injuries or equipment limits?</div>
+              <div class="mini-bubble-user">No injuries. Full gym access.</div>
+              <div class="mini-bubble-ai" style="color:var(--accent)">Perfect. Generating your plan...</div>
+            </div>
+          </div>
+        </div>
+        <div class="node-label-wrap">
+          <div class="node-step">STEP 05</div>
+          <div class="node-name">Training History</div>
+          <div class="node-desc">Experience, schedule, injuries. Claude designs the plan.</div>
+        </div>
+      </div>
+
+      <div class="connector"><div class="conn-line"></div><div class="conn-arrow"></div><div class="conn-label">AI generates plan</div></div>
+
+      <!-- Plan ready -->
+      <div class="screen-node dim" id="f0-s5" onclick="goToStep(0,5)">
+        <div class="phone-frame">
+          <div class="pf-notch"></div>
+          <div class="pf-status"><span>9:46</span><span>87%</span></div>
+          <div class="pf-content" style="padding:10px">
+            <div class="mini-onboard-step">STEP 4 OF 4 · YOUR PLAN</div>
+            <div class="mini-steps">
+              <div class="mini-step-dot done"></div><div class="mini-step-dot done"></div><div class="mini-step-dot done"></div><div class="mini-step-dot cur"></div>
+            </div>
+            <div class="mini-h" style="color:var(--accent)">Plan ready ✓</div>
+            <div class="mini-sub">12-week cut · 4 days/week · PPL split</div>
+            <div class="mini-card">
+              <div class="mini-ex"><div class="mini-ex-num" style="background:rgba(200,243,74,0.1);color:var(--accent)">M</div><div class="mini-ex-name">Push Day</div><div class="mini-ex-sets">Bench · OHP · Fly</div></div>
+              <div class="mini-ex"><div class="mini-ex-num" style="background:rgba(99,102,241,0.1);color:#818CF8">T</div><div class="mini-ex-name">Pull Day</div><div class="mini-ex-sets">Row · Curl · Face pull</div></div>
+              <div class="mini-ex"><div class="mini-ex-num" style="background:rgba(245,158,11,0.1);color:var(--accent3)">W</div><div class="mini-ex-name">Legs Day</div><div class="mini-ex-sets">Squat · RDL · Leg press</div></div>
+              <div class="mini-ex"><div class="mini-ex-num" style="background:rgba(34,197,94,0.1);color:var(--success)">F</div><div class="mini-ex-name">Upper Day</div><div class="mini-ex-sets">Compound upper</div></div>
+            </div>
+            <div class="mini-btn">START TRAINING →</div>
+          </div>
+        </div>
+        <div class="node-label-wrap">
+          <div class="node-step">STEP 06</div>
+          <div class="node-name">Plan Ready</div>
+          <div class="node-desc">12-week mesocycle generated. User reviews and confirms.</div>
+        </div>
+      </div>
+
+      <div class="connector"><div class="conn-line"></div><div class="conn-arrow"></div><div class="conn-label">Confirm plan</div></div>
+
+      <!-- Dashboard -->
+      <div class="screen-node dim" id="f0-s6" onclick="goToStep(0,6)">
+        <div class="phone-frame">
+          <div class="pf-notch"></div>
+          <div class="pf-status"><span>9:47</span><span>87%</span></div>
+          <div class="pf-content" style="padding:10px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+              <div><div class="mini-h">Morning, Sparsh 👋</div><div class="mini-sub" style="margin:0">Monday · Day 1 · Push</div></div>
+              <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#4ADE80);display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:9px;font-weight:700;color:#0A0A0F">SK</div>
+            </div>
+            <div class="mini-goal-card">
+              <div style="font-size:5px;color:var(--text3);font-family:var(--fm);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px">YOUR GOAL</div>
+              <div class="mini-goal-row">
+                <div class="mini-goal-stat"><div class="mini-goal-val">25%</div><div class="mini-goal-label">STARTED</div></div>
+                <div style="color:var(--text3);font-size:8px">→</div>
+                <div class="mini-goal-stat"><div class="mini-goal-val">25%</div><div class="mini-goal-label">NOW</div></div>
+                <div style="color:var(--text3);font-size:8px">→</div>
+                <div class="mini-goal-stat"><div class="mini-goal-val target">20%</div><div class="mini-goal-label">TARGET</div></div>
+              </div>
+            </div>
+            <div class="mini-hero">
+              <div class="mini-hero-sub">TODAY'S FOCUS</div>
+              <div class="mini-hero-title">Push Day — Day 1</div>
+              <div class="mini-hero-btn">CHECK IN TO GYM</div>
+            </div>
+          </div>
+          <div class="pf-nav">
+            <div class="pf-nav-dot active">🏠</div>
+            <div class="pf-nav-dot">📅</div>
+            <div class="pf-nav-dot">🧠</div>
+            <div class="pf-nav-dot">👤</div>
+          </div>
+        </div>
+        <div class="node-label-wrap">
+          <div class="node-step">STEP 07</div>
+          <div class="node-name">Dashboard — First Day</div>
+          <div class="node-desc">Goal card visible day 1. Workout ready. Onboarding complete.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FLOW 1: RETURNING USER LOGIN -->
+    <div class="flow-canvas" id="f1">
+      <div class="screen-node current" id="f1-s0" onclick="goToStep(1,0)">
+        <div class="phone-frame">
+          <div class="pf-notch"></div>
+          <div class="pf-status"><span>9:41</span><span>87%</span></div>
+          <div class="pf-content" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:16px">
+            <div style="font-family:var(--fd);font-size:28px;font-weight:800;letter-spacing:-1px;margin-bottom:4px">Train<span style="color:var(--accent)">NXT</span></div>
+            <div style="font-family:var(--fm);font-size:7px;color:var(--text3);letter-spacing:0.12em;margin-bottom:24px">YOUR AI TRAINER</div>
+            <div style="width:100%;background:var(--accent);color:#0A0A0F;font-family:var(--fd);font-size:10px;font-weight:800;padding:8px;border-radius:8px;text-align:center;margin-bottom:6px">GET STARTED</div>
+            <div style="width:100%;border:0.5px solid var(--border2);color:var(--text);font-size:9px;padding:6px;border-radius:8px;text-align:center">I ALREADY HAVE AN ACCOUNT</div>
+          </div>
+        </div>
+        <div class="node-label-wrap">
+          <div class="node-step">STEP 01</div>
+          <div class="node-name">Splash Screen</div>
+          <div class="node-desc">Tap "Already have account"</div>
+        </div>
+      </div>
+      <div class="connector"><div class="conn-line active-path"></div><div class="conn-arrow active-path"></div><div class="conn-label">Tap existing acct</div></div>
+      <div class="screen-node dim" id="f1-s1" onclick="goToStep(1,1)">
+        <div class="phone-frame">
+          <div class="pf-notch"></div>
+          <div class="pf-status"><span>9:41</span><span>87%</span></div>
+          <div class="pf-content" style="padding:16px">
+            <div class="mini-h">Welcome back</div>
+            <div class="mini-sub">Sign in to continue</div>
+            <div class="mini-card"><div class="mini-sub" style="margin:0">📧 Email</div><div style="height:10px;background:rgba(200,243,74,0.05);border-radius:3px;margin-top:3px;border:0.5px solid rgba(200,243,74,0.2)"></div></div>
+            <div class="mini-card"><div class="mini-sub" style="margin:0">🔑 Password</div><div style="height:10px;background:var(--surface3);border-radius:3px;margin-top:3px"></div></div>
+            <div class="mini-btn">SIGN IN</div>
+            <div style="text-align:center;font-size:6px;color:var(--accent)">Forgot password?</div>
+            <div style="margin-top:8px;display:flex;align-items:center;gap:6px"><div style="flex:1;height:0.5px;background:var(--border)"></div><div style="font-size:6px;color:var(--text3)">or</div><div style="flex:1;height:0.5px;background:var(--border)"></div></div>
+            <div class="mini-card" style="display:flex;align-items:center;gap:5px;margin-top:6px"><span style="font-size:11px">🇬</span><div style="font-size:7px;color:var(--text2)">Continue with Google</div></div>
+          </div>
+        </div>
+        <div class="node-label-wrap">
+          <div class="node-step">STEP 02</div>
+          <div class="node-name">Login Screen</div>
+          <div class="node-desc">Email + password or Google. JWT issued on success.</div>
+        </div>
+      </div>
+      <div class="connector"><div class="conn-line"></div><div class="conn-arrow"></div><div class="conn-label">Auth success</div></div>
+      <div class="screen-node dim" id="f1-s2" onclick="goToStep(1,2)">
+        <div class="phone-frame">
+          <div class="pf-notch"></div>
+          <div class="pf-status"><span>9:41</span><span>87%</span></div>
+          <div class="pf-content" style="padding:10px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+              <div><div class="mini-h">Morning, Sparsh 👋</div><div class="mini-sub" style="margin:0">Thursday · Push · Wk 6</div></div>
+              <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#4ADE80);display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:9px;font-weight:700;color:#0A0A0F">SK</div>
+            </div>
+            <div class="mini-alert">📊 BMI check-in due in 3 days — book DEXA scan</div>
+            <div class="mini-goal-card">
+              <div class="mini-goal-row">
+                <div class="mini-goal-stat"><div class="mini-goal-val">25%</div><div class="mini-goal-label">START</div></div>
+                <div style="color:var(--text3);font-size:7px">→</div>
+                <div class="mini-goal-stat"><div class="mini-goal-val">22.5%</div><div class="mini-goal-label">NOW</div></div>
+                <div style="color:var(--text3);font-size:7px">→</div>
+                <div class="mini-goal-stat"><div class="mini-goal-val target">20%</div><div class="mini-goal-label">GOAL</div></div>
+              </div>
+              <div class="mini-prog-track" style="margin-top:4px"><div class="mini-prog-fill" style="width:50%"></div></div>
+            </div>
+            <div class="mini-hero">
+              <div class="mini-hero-sub">PUSH DAY · 4 EXERCISES</div>
+              <div class="mini-hero-title">Check In</div>
+              <div class="mini-hero-btn">CHECK IN TO GYM</div>
+            </div>
+          </div>
+          <div class="pf-nav">
+            <div class="pf-nav-dot active">🏠</div><div class="pf-nav-dot">📅</div><div class="pf-nav-dot">🧠</div><div class="pf-nav-dot">👤</div>
+          </div>
+        </div>
+        <div class="node-label-wrap">
+          <div class="node-step">STEP 03</div>
+          <div class="node-name">Dashboard</div>
+          <div class="node-desc">Goal card, BMI alert, today's workout ready.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FLOW 2: DAILY WORKOUT SESSION -->
+    <div class="flow-canvas" id="f2">
+      <div class="screen-node current" id="f2-s0" onclick="goToStep(2,0)">
+        <div class="phone-frame">
+          <div class="pf-notch"></div>
+          <div class="pf-status"><span>14:00</span><span>87%</span></div>
+          <div class="pf-content" style="padding:10px">
+            <div class="mini-h">Sparsh 👋</div>
+            <div class="mini-sub">Thursday · Push Day</div>
+            <div class="mini-week"><div class="mini-day done">M</div><div class="mini-day done">T</div><div class="mini-day done">W</div><div class="mini-day today">T</div><div class="mini-day">F</div><div class="mini-day">S</div><div class="mini-day">S</div></div>
+            <div class="mini-hero"><div class="mini-hero-sub">TODAY</div><div class="mini-hero-title">Push Day</div><div class="mini-hero-btn">CHECK IN TO GYM</div></div>
+            <div class="mini-card"><div class="mini-ex"><div class="mini-ex-num">1</div><div class="mini-ex-name">Bench Press</div><div class="mini-ex-sets">4×8</div></div><div class="mini-ex"><div class="mini-ex-num">2</div><div class="mini-ex-name">Incline DB Press</div><div class="mini-ex-sets">3×10</div></div></div>
+          </div>
+          <div class="pf-nav"><div class="pf-nav-dot active">🏠</div><div class="pf-nav-dot">📅</div><div class="pf-nav-dot">🧠</div><div class="pf-nav-dot">👤</div></div>
+        </div>
+        <div class="node-label-wrap"><div class="node-step">STEP 01</div><div class="node-name">Dashboard</div><div class="node-desc">See today's workout. Tap check in.</div></div>
+      </div>
+      <div class="connector"><div class="conn-line active-path"></div><div class="conn-arrow active-path"></div><div class="conn-label">Tap Check In</div></div>
+      <div class="screen-node dim" id="f2-s1" onclick="goToStep(2,1)">
+        <div class="phone-frame">
+          <div class="pf-notch"></div>
+          <div class="pf-status"><span style="color:var(--accent)">● LIVE</span><span>87%</span></div>
+          <div class="pf-content" style="padding:10px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px"><div class="mini-h">Push Day</div><div class="mini-timer">00:00</div></div>
+            <div class="mini-card">
+              <div class="mini-ex"><div class="mini-ex-num" style="background:rgba(200,243,74,0.1);color:var(--accent)">→</div><div class="mini-ex-name" style="color:var(--accent)">Bench Press</div><div class="mini-ex-sets">4×8 · 80kg</div></div>
+              <div class="mini-ex"><div class="mini-ex-num">2</div><div class="mini-ex-name">Incline DB Press</div><div class="mini-ex-sets">3×10</div></div>
+              <div class="mini-ex"><div class="mini-ex-num">3</div><div class="mini-ex-name">Cable Fly</div><div class="mini-ex-sets">3×12</div></div>
+              <div class="mini-ex"><div class="mini-ex-num">4</div><div class="mini-ex-name">Overhead Press</div><div class="mini-ex-sets">3×8</div></div>
+            </div>
+            <div class="mini-btn">START BENCH PRESS →</div>
+          </div>
+          <div class="pf-nav"><div class="pf-nav-dot active">🏠</div><div class="pf-nav-dot">📅</div><div class="pf-nav-dot">🧠</div><div class="pf-nav-dot">👤</div></div>
+        </div>
+        <div class="node-label-wrap"><div class="node-step">STEP 02</div><div class="node-name">Session Active</div><div class="node-desc">Timer starts. Full exercise list. Tap to begin first exercise.</div></div>
+      </div>
+      <div class="connector"><div class="conn-line"></div><div class="conn-arrow"></div><div class="conn-label">Start exercise</div></div>
+      <div class="screen-node dim" id="f2-s2" onclick="goToStep(2,2)">
+        <div class="phone-frame">
+          <div class="pf-notch"></div>
+          <div class="pf-status"><span style="color:var(--accent)">● 08:14</span><span>87%</span></div>
+          <div class="pf-content" style="padding:10px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px"><div><div class="mini-h">Bench Press</div><div class="mini-sub" style="margin:0">Set 2 of 4 · Target 8 reps</div></div><div class="mini-timer">1:45</div></div>
+            <div class="mini-set-ctrl">
+              <div class="mini-sub" style="font-family:var(--fm);font-size:5px;margin-bottom:4px">Previous: 77.5kg × 8 · RPE 7</div>
+              <div class="mini-set-row">
+                <div class="mini-set-box"><div style="font-size:5px;color:var(--text3)">WEIGHT</div><div class="mini-set-val">80</div><div class="mini-set-unit">kg</div></div>
+                <div class="mini-set-box"><div style="font-size:5px;color:var(--text3)">REPS</div><div class="mini-set-val">8</div><div class="mini-set-unit">reps</div></div>
+              </div>
+            </div>
+            <div class="mini-btn">LOG SET</div>
+            <div style="background:var(--surface2);border:0.5px solid var(--border);border-radius:5px;padding:4px 5px"><div style="display:flex;justify-content:space-between;font-size:5px;color:var(--text3);margin-bottom:2px"><span>Rest timer</span><span style="color:var(--accent)">1:45 left</span></div><div class="mini-prog-track"><div class="mini-prog-fill" style="width:35%"></div></div></div>
+          </div>
+          <div class="pf-nav"><div class="pf-nav-dot active">🏠</div><div class="pf-nav-dot">📅</div><div class="pf-nav-dot">🧠</div><div class="pf-nav-dot">👤</div></div>
+        </div>
+        <div class="node-label-wrap"><div class="node-step">STEP 03</div><div class="node-name">Set Logger</div><div class="node-desc">Log weight + reps. Rest timer auto-starts after logging.</div></div>
+      </div>
+      <div class="connector"><div class="conn-line"></div><div class="conn-arrow"></div><div class="conn-label">Set logged → PR!</div></div>
+      <div class="screen-node dim" id="f2-s3" onclick="goToStep(2,3)">
+        <div class="phone-frame">
+          <div class="pf-notch"></div>
+          <div class="pf-status"><span style="color:var(--accent)">● PR!</span><span>87%</span></div>
+          <div class="pf-content" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:16px">
+            <div style="font-size:32px;margin-bottom:6px">🏆</div>
+            <div style="font-family:var(--fd);font-size:20px;font-weight:800;color:var(--accent3);letter-spacing:-1px;text-align:center">New PR!</div>
+            <div style="font-size:8px;color:var(--text2);text-align:center;margin-top:3px;font-family:var(--fm)">BENCH PRESS · ESTIMATED 1RM</div>
+            <div style="font-family:var(--fd);font-size:32px;font-weight:800;color:var(--text);margin:8px 0">97<span style="font-size:16px;color:var(--text2)">kg</span></div>
+            <div style="font-size:7px;color:var(--text2);margin-bottom:12px">↑ +2.1kg vs previous best (94.9kg)</div>
+            <div style="width:100%;background:var(--surface3);border-radius:8px;padding:6px;text-align:center;font-size:7px;color:var(--text2)">Auto-logged to your PR history</div>
+            <div class="mini-btn" style="width:100%;margin-top:8px;font-size:9px">CONTINUE WORKOUT</div>
+          </div>
+        </div>
+        <div class="node-label-wrap"><div class="node-step">STEP 04</div><div class="node-name">PR Celebration</div><div class="node-desc">Full-screen moment. Haptic feedback. Auto-logged. Then back to session.</div></div>
+      </div>
+      <div class="connector"><div class="conn-line"></div><div class="conn-arrow"></div><div class="conn-label">All sets done</div></div>
+      <div class="screen-node dim" id="f2-s4" onclick="goToStep(2,4)">
+        <div class="phone-frame">
+          <div class="pf-notch"></div>
+          <div class="pf-status"><span style="color:var(--accent)">● 52:10</span><span>87%</span></div>
+          <div class="pf-content" style="padding:10px">
+            <div class="mini-h">All done?</div>
+            <div class="mini-sub">How did it feel?</div>
+            <div class="mini-qpick" style="margin-bottom:6px">
+              <div class="mini-qp">😴 Drained</div><div class="mini-qp sel">💪 Good</div><div class="mini-qp">⚡ Strong</div>
+            </div>
+            <div class="mini-card" style="padding:5px 8px"><div style="font-size:5px;color:var(--text3);margin-bottom:3px">Notes (optional)</div><div style="height:20px;background:var(--surface3);border-radius:3px"></div></div>
+            <div class="mini-btn">CHECKOUT & SAVE SESSION</div>
+          </div>
+        </div>
+        <div class="node-label-wrap"><div class="node-step">STEP 05</div><div class="node-name">Checkout</div><div class="node-desc">Rate fatigue, add notes. Saves session to DB.</div></div>
+      </div>
+      <div class="connector"><div class="conn-line"></div><div class="conn-arrow"></div><div class="conn-label">Session saved</div></div>
+      <div class="screen-node dim" id="f2-s5" onclick="goToStep(2,5)">
+        <div class="phone-frame">
+          <div class="pf-notch"></div>
+          <div class="pf-status"><span>15:02</span><span>87%</span></div>
+          <div class="pf-content" style="padding:10px">
+            <div class="mini-h">Session Summary</div>
+            <div class="mini-sub">Push Day · 52 min</div>
+            <div class="mini-row">
+              <div class="mini-summary-stat"><div class="mini-ss-val">8,240</div><div class="mini-ss-label">Volume (kg)</div></div>
+              <div class="mini-summary-stat"><div class="mini-ss-val">16</div><div class="mini-ss-label">Total sets</div></div>
+              <div class="mini-summary-stat"><div class="mini-ss-val" style="color:var(--accent3)">1 PR</div><div class="mini-ss-label">New PRs</div></div>
+            </div>
+            <div class="mini-card" style="background:rgba(245,158,11,0.06);border-color:rgba(245,158,11,0.2)">
+              <div style="font-size:6px;color:var(--accent3);font-weight:500;margin-bottom:3px">🏆 Personal Record</div>
+              <div style="font-size:8px;color:var(--text)">Bench Press e1RM — 97kg (+2.1kg)</div>
+            </div>
+            <div class="mini-bubble-ai" style="font-size:6px;margin-top:4px">Strong session. Volume is up 12% vs last push day. Rest 48hrs before next upper.</div>
+            <div class="mini-btn" style="margin-top:6px">BACK TO DASHBOARD</div>
+          </div>
+        </div>
+        <div class="node-label-wrap"><div class="node-step">STEP 06</div><div class="node-name">Session Summary</div><div class="node-desc">Stats, PRs, AI comment. Then back to dashboard.</div></div>
+      </div>
+    </div>
+
+    <!-- FLOW 3: AI COACH -->
+    <div class="flow-canvas" id="f3">
+      <div class="screen-node current" id="f3-s0" onclick="goToStep(3,0)">
+        <div class="phone-frame">
+          <div class="pf-notch"></div>
+          <div class="pf-status"><span>14:30</span><span>87%</span></div>
+          <div class="pf-content" style="padding:10px">
+            <div class="mini-h">Sparsh 👋</div>
+            <div class="mini-sub">Thursday · Active session</div>
+            <div class="mini-hero"><div class="mini-hero-sub">SESSION ACTIVE · 34min</div><div class="mini-hero-title">Push Day</div></div>
+            <div class="mini-card"><div style="font-size:6px;color:var(--text2);display:flex;gap:5px;align-items:center">🧠 <span>Ask your coach anything</span></div></div>
+          </div>
+          <div class="pf-nav"><div class="pf-nav-dot active">🏠</div><div class="pf-nav-dot">📅</div><div class="pf-nav-dot">🧠</div><div class="pf-nav-dot">👤</div></div>
+        </div>
+        <div class="node-label-wrap"><div class="node-step">STEP 01</div><div class="node-name">Dashboard / Session</div><div class="node-desc">User taps Coach tab.</div></div>
+      </div>
+      <div class="connector"><div class="conn-line active-path"></div><div class="conn-arrow active-path"></div><div class="conn-label">Tap Coach tab</div></div>
+      <div class="screen-node dim" id="f3-s1" onclick="goToStep(3,1)">
+        <div class="phone-frame">
+          <div class="pf-notch"></div>
+          <div class="pf-status"><span>14:33</span><span>87%</span></div>
+          <div class="pf-content" style="padding:0">
+            <div style="padding:8px 10px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:6px">
+              <div style="width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,var(--accent2),#8B5CF6);display:flex;align-items:center;justify-content:center;font-size:10px">🧠</div>
+              <div><div style="font-size:9px;font-weight:600;font-family:var(--fd)">TrainNXT Coach</div><div style="font-size:5px;color:var(--accent)">● Knows your full history</div></div>
+            </div>
+            <div style="padding:8px 10px" class="mini-chat">
+              <div class="mini-bubble-ai">Push day! Try 80kg bench today — you hit 77.5kg × 8 last Thursday. Your progression is strong for week 6.</div>
+              <div class="mini-bubble-user">My shoulder feels tight, should I still do OHP?</div>
+              <div style="height:20px;display:flex;align-items:center;gap:3px"><div style="width:4px;height:4px;border-radius:50%;background:var(--accent);animation:pulse 1s infinite"></div><div style="font-size:6px;color:var(--text3)">Coach is typing...</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="node-label-wrap"><div class="node-step">STEP 02</div><div class="node-name">AI Coach Chat</div><div class="node-desc">User asks about shoulder. Claude streams a response.</div></div>
+      </div>
+      <div class="connector"><div class="conn-line"></div><div class="conn-arrow"></div><div class="conn-label">Response received</div></div>
+      <div class="screen-node dim" id="f3-s2" onclick="goToStep(3,2)">
+        <div class="phone-frame">
+          <div class="pf-notch"></div>
+          <div class="pf-status"><span>14:34</span><span>87%</span></div>
+          <div class="pf-content" style="padding:0">
+            <div style="padding:8px 10px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:6px">
+              <div style="width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,var(--accent2),#8B5CF6);display:flex;align-items:center;justify-content:center;font-size:10px">🧠</div>
+              <div><div style="font-size:9px;font-weight:600;font-family:var(--fd)">TrainNXT Coach</div><div style="font-size:5px;color:var(--accent)">● Plan updated</div></div>
+            </div>
+            <div style="padding:8px 10px" class="mini-chat">
+              <div class="mini-bubble-user">My shoulder feels tight today</div>
+              <div class="mini-bubble-ai">Skip OHP. Replacing with lateral raises + face pulls — same delt volume, zero shoulder joint stress.</div>
+              <div style="background:rgba(99,102,241,0.08);border:0.5px solid rgba(99,102,241,0.2);border-radius:5px;padding:5px;margin-top:3px">
+                <div style="font-size:6px;color:#818CF8;font-weight:500;margin-bottom:3px">⚡ Plan Updated</div>
+                <div style="font-size:5px;color:#A5B4FC">✕ Overhead Press removed</div>
+                <div style="font-size:5px;color:#A5B4FC">✓ Cable Lateral Raise × 3 added</div>
+                <div style="font-size:5px;color:#A5B4FC">✓ Face Pull × 3 added</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="node-label-wrap"><div class="node-step">STEP 03</div><div class="node-name">Plan Modified</div><div class="node-desc">Claude modifies today's session. Shows inline diff card.</div></div>
+      </div>
+      <div class="connector"><div class="conn-line"></div><div class="conn-arrow"></div><div class="conn-label">View updated plan</div></div>
+      <div class="screen-node dim" id="f3-s3" onclick="goToStep(3,3)">
+        <div class="phone-frame">
+          <div class="pf-notch"></div>
+          <div class="pf-status"><span style="color:var(--accent)">● LIVE</span><span>87%</span></div>
+          <div class="pf-content" style="padding:10px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px"><div class="mini-h">Push Day</div><div class="mini-timer">34:15</div></div>
+            <div class="mini-card">
+              <div class="mini-ex"><div class="mini-ex-num done">✓</div><div class="mini-ex-name">Bench Press</div><div class="mini-ex-sets">Done · PR 🏆</div></div>
+              <div class="mini-ex"><div class="mini-ex-num" style="color:var(--accent);background:rgba(200,243,74,0.1)">→</div><div class="mini-ex-name" style="color:var(--accent)">Incline DB Press</div><div class="mini-ex-sets">Next</div></div>
+              <div class="mini-ex"><div class="mini-ex-num">3</div><div class="mini-ex-name">Cable Fly</div><div class="mini-ex-sets">3×12</div></div>
+              <div class="mini-ex"><div class="mini-ex-num" style="background:rgba(34,197,94,0.1);color:var(--success)">+</div><div class="mini-ex-name">Lateral Raise</div><div class="mini-ex-sets">3×15 · ADDED</div></div>
+              <div class="mini-ex"><div class="mini-ex-num" style="background:rgba(34,197,94,0.1);color:var(--success)">+</div><div class="mini-ex-name">Face Pull</div><div class="mini-ex-sets">3×15 · ADDED</div></div>
+            </div>
+          </div>
+          <div class="pf-nav"><div class="pf-nav-dot active">🏠</div><div class="pf-nav-dot">📅</div><div class="pf-nav-dot">🧠</div><div class="pf-nav-dot">👤</div></div>
+        </div>
+        <div class="node-label-wrap"><div class="node-step">STEP 04</div><div class="node-name">Updated Session</div><div class="node-desc">Modified plan live in session. Additions clearly marked.</div></div>
+      </div>
+    </div>
+
+    <!-- FLOW 4: GOAL + BMI TRACKING -->
+    <div class="flow-canvas" id="f4">
+      <div class="screen-node current" id="f4-s0" onclick="goToStep(4,0)">
+        <div class="phone-frame">
+          <div class="pf-notch"></div>
+          <div class="pf-status"><span>9:41</span><span>87%</span></div>
+          <div class="pf-content" style="padding:10px">
+            <div class="mini-h">Morning 👋</div>
+            <div class="mini-alert">📊 BMI check-in due in 3 days — book a DEXA scan</div>
+            <div class="mini-goal-card">
+              <div class="mini-goal-row">
+                <div class="mini-goal-stat"><div class="mini-goal-val">25%</div><div class="mini-goal-label">START</div></div>
+                <div style="color:var(--text3);font-size:7px">→</div>
+                <div class="mini-goal-stat"><div class="mini-goal-val">22.5%</div><div class="mini-goal-label">NOW</div></div>
+                <div style="color:var(--text3);font-size:7px">→</div>
+                <div class="mini-goal-stat"><div class="mini-goal-val target">20%</div><div class="mini-goal-label">TARGET</div></div>
+              </div>
+              <div class="mini-prog-track" style="margin-top:4px"><div class="mini-prog-fill" style="width:50%"></div></div>
+              <div style="font-size:5px;color:var(--text3);text-align:right;margin-top:3px;font-family:var(--fm)">Tap for full detail →</div>
+            </div>
+          </div>
+          <div class="pf-nav"><div class="pf-nav-dot active">🏠</div><div class="pf-nav-dot">📅</div><div class="pf-nav-dot">🧠</div><div class="pf-nav-dot">👤</div></div>
+        </div>
+        <div class="node-label-wrap"><div class="node-step">STEP 01</div><div class="node-name">Dashboard</div><div class="node-desc">Goal card + BMI alert visible. Tap goal card or alert.</div></div>
+      </div>
+      <div class="connector"><div class="conn-line active-path"></div><div class="conn-arrow active-path"></div><div class="conn-label">Tap goal card</div></div>
+      <div class="screen-node dim" id="f4-s1" onclick="goToStep(4,1)">
+        <div class="phone-frame">
+          <div class="pf-notch"></div>
+          <div class="pf-status"><span>9:42</span><span>87%</span></div>
+          <div class="pf-content" style="padding:10px">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+              <div style="width:20px;height:20px;border-radius:6px;background:var(--surface2);border:0.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:9px">←</div>
+              <div class="mini-h" style="margin:0">Goal Progress</div>
+              <div class="mini-qp sel" style="margin-left:auto">On Track</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;background:var(--surface2);border:0.5px solid var(--border);border-radius:8px;padding:10px;margin-bottom:6px">
+              <div style="position:relative"><svg width="60" height="60" viewBox="0 0 60 60"><circle cx="30" cy="30" r="24" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="6"/><circle cx="30" cy="30" r="24" fill="none" stroke="var(--accent)" stroke-width="6" stroke-dasharray="75 151" stroke-dashoffset="38" stroke-linecap="round" transform="rotate(-90 30 30)"/></svg><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:var(--fd);font-size:11px;font-weight:800;color:var(--accent)">50%</div></div>
+              <div style="flex:1">
+                <div class="mini-progress"><div class="mini-prog-label"><span>Body fat</span><span style="color:var(--accent)">20%</span></div><div class="mini-prog-track"><div class="mini-prog-fill" style="width:50%"></div></div></div>
+                <div class="mini-progress"><div class="mini-prog-label"><span>Weight</span><span>76kg</span></div><div class="mini-prog-track"><div class="mini-prog-fill" style="width:45%;background:var(--accent2)"></div></div></div>
+              </div>
+            </div>
+            <div style="background:rgba(245,158,11,0.06);border:0.5px solid rgba(245,158,11,0.18);border-radius:6px;padding:6px;margin-bottom:4px"><div style="font-size:6px;color:#FCD34D">⏰ Next BMI scan due in <strong>3 days</strong></div><div style="font-size:5px;color:rgba(252,211,77,0.7);margin-top:2px">6 weeks = minimum for meaningful DEXA change</div></div>
+            <div class="mini-milestone"><div class="mini-ms-icon">✓</div><div class="mini-ms-name">Started the cut</div><div class="mini-ms-date achieved">Jan 15</div></div>
+            <div class="mini-milestone"><div class="mini-ms-icon">✓</div><div class="mini-ms-name">Halfway — 22.5%</div><div class="mini-ms-date achieved">Today</div></div>
+            <div class="mini-milestone"><div class="mini-ms-icon">📊</div><div class="mini-ms-name">6-week DEXA scan</div><div class="mini-ms-date">Mar 2</div></div>
+          </div>
+        </div>
+        <div class="node-label-wrap"><div class="node-step">STEP 02</div><div class="node-name">Goal Detail</div><div class="node-desc">Progress ring, milestone timeline, next BMI countdown.</div></div>
+      </div>
+      <div class="connector"><div class="conn-line"></div><div class="conn-arrow"></div><div class="conn-label">Tap Log BMI</div></div>
+      <div class="screen-node dim" id="f4-s2" onclick="goToStep(4,2)">
+        <div class="phone-frame">
+          <div class="pf-notch"></div>
+          <div class="pf-status"><span>9:44</span><span>87%</span></div>
+          <div class="pf-content" style="padding:10px">
+            <div class="mini-h">Log New Scan</div>
+            <div class="mini-sub">Enter results or scan the report photo</div>
+            <div class="mini-photo-area"><div style="font-size:14px">📸</div><div><div style="font-size:7px;color:var(--text2)">Scan DEXA / InBody report</div><div style="font-size:5px;color:var(--text3)">Claude reads the printout automatically</div></div></div>
+            <div style="text-align:center;font-size:6px;color:var(--text3);margin:4px 0">— or enter manually —</div>
+            <div class="mini-row">
+              <div class="mini-card" style="flex:1;text-align:center;border-color:rgba(200,243,74,0.3)"><div style="font-size:5px;color:var(--accent);margin-bottom:2px">BODY FAT %</div><div style="font-family:var(--fd);font-size:14px;font-weight:700;color:var(--text)">21%</div></div>
+              <div class="mini-card" style="flex:1;text-align:center"><div style="font-size:5px;color:var(--text3);margin-bottom:2px">WEIGHT</div><div style="font-family:var(--fd);font-size:14px;font-weight:700;color:var(--text)">79.2</div></div>
+            </div>
+            <div class="mini-btn">SAVE RESULT</div>
+          </div>
+        </div>
+        <div class="node-label-wrap"><div class="node-step">STEP 03</div><div class="node-name">Log New BMI Scan</div><div class="node-desc">Photo or manual entry. Claude reads DEXA printouts via Vision.</div></div>
+      </div>
+      <div class="connector"><div class="conn-line"></div><div class="conn-arrow"></div><div class="conn-label">Claude analyses</div></div>
+      <div class="screen-node dim" id="f4-s3" onclick="goToStep(4,3)">
+        <div class="phone-frame">
+          <div class="pf-notch"></div>
+          <div class="pf-status"><span>9:45</span><span>87%</span></div>
+          <div class="pf-content" style="padding:10px">
+            <div class="mini-h" style="color:var(--success)">Scan Saved ✓</div>
+            <div class="mini-sub">Claude's analysis</div>
+            <div class="mini-ocr-result" style="margin-bottom:6px">
+              <div style="font-size:5px;color:#818CF8;margin-bottom:3px">🧠 AI ANALYSIS</div>
+              <div style="font-size:7px;color:#A5B4FC;line-height:1.5">Strong progress. 4% drop in 6 weeks — ahead of typical 0.5-0.7%/week. Lean mass is UP 2.4kg. You're recomposing.</div>
+              <div style="font-size:6px;color:var(--accent);margin-top:4px">→ Target updated: 19% (achievable in 4 more weeks)</div>
+            </div>
+            <div class="mini-goal-card">
+              <div class="mini-goal-row">
+                <div class="mini-goal-stat"><div class="mini-goal-val">25%</div><div class="mini-goal-label">START</div></div>
+                <div style="color:var(--text3);font-size:7px">→</div>
+                <div class="mini-goal-stat"><div class="mini-goal-val" style="color:var(--success)">21%</div><div class="mini-goal-label">NOW</div></div>
+                <div style="color:var(--text3);font-size:7px">→</div>
+                <div class="mini-goal-stat"><div class="mini-goal-val target">19%</div><div class="mini-goal-label">NEW TARGET</div></div>
+              </div>
+              <div class="mini-prog-track" style="margin-top:4px"><div class="mini-prog-fill" style="width:67%"></div></div>
+            </div>
+            <div class="mini-btn">BACK TO DASHBOARD</div>
+          </div>
+        </div>
+        <div class="node-label-wrap"><div class="node-step">STEP 04</div><div class="node-name">Analysis + Updated Goal</div><div class="node-desc">Claude reviews delta, tightens target, updates plan. All automatic.</div></div>
+      </div>
+    </div>
+
+    <!-- FLOW 5: NUTRITION -->
+    <div class="flow-canvas" id="f5">
+      <div class="screen-node current" id="f5-s0" onclick="goToStep(5,0)">
+        <div class="phone-frame">
+          <div class="pf-notch"></div>
+          <div class="pf-status"><span>13:00</span><span>87%</span></div>
+          <div class="pf-content" style="padding:10px">
+            <div class="mini-h">Nutrition</div>
+            <div class="mini-sub">Thursday · Training day</div>
+            <div style="display:flex;justify-content:center;margin-bottom:6px">
+              <svg width="80" height="80" viewBox="0 0 80 80"><circle cx="40" cy="40" r="32" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="8"/><circle cx="40" cy="40" r="32" fill="none" stroke="var(--accent)" stroke-width="8" stroke-dasharray="126 201" stroke-dashoffset="50" stroke-linecap="round" transform="rotate(-90 40 40)"/><circle cx="40" cy="40" r="22" fill="none" stroke="var(--accent2)" stroke-width="7" stroke-dasharray="87 138" stroke-dashoffset="35" stroke-linecap="round" transform="rotate(-90 40 40)"/><text x="40" y="44" text-anchor="middle" fill="var(--text)" font-size="11" font-family="Syne" font-weight="700">85%</text></svg>
+            </div>
+            <div class="mini-card">
+              <div class="mini-meal"><div class="mini-meal-icon">🍳</div><div class="mini-meal-info"><div class="mini-meal-name">Breakfast</div><div class="mini-meal-macros">620 kcal · P:38g C:72g F:14g</div></div></div>
+              <div class="mini-meal"><div class="mini-meal-icon">🍱</div><div class="mini-meal-info"><div class="mini-meal-name">Lunch</div><div class="mini-meal-macros">780 kcal · P:45g C:96g F:18g</div></div></div>
+            </div>
+          </div>
+          <div class="pf-nav"><div class="pf-nav-dot">🏠</div><div class="pf-nav-dot active">🥗</div><div class="pf-nav-dot">🧠</div><div class="pf-nav-dot">👤</div></div>
+        </div>
+        <div class="node-label-wrap"><div class="node-step">STEP 01</div><div class="node-name">Nutrition Dashboard</div><div class="node-desc">Daily macro ring, meals logged. Tap to add meal.</div></div>
+      </div>
+      <div class="connector"><div class="conn-line active-path"></div><div class="conn-arrow active-path"></div><div class="conn-label">Tap + Log Meal</div></div>
+      <div class="screen-node dim" id="f5-s1" onclick="goToStep(5,1)">
+        <div class="phone-frame">
+          <div class="pf-notch"></div>
+          <div class="pf-status"><span>15:30</span><span>87%</span></div>
+          <div class="pf-content" style="padding:10px">
+            <div class="mini-h">What did you eat?</div>
+            <div class="mini-sub">Type naturally — Claude estimates macros</div>
+            <div class="mini-card" style="border-color:rgba(200,243,74,0.3);padding:8px">
+              <div style="font-size:8px;color:var(--text);line-height:1.5">dal rice, curd and a banana after gym<span style="animation:pulse 1s infinite;color:var(--accent)">|</span></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;margin-bottom:6px"><div style="width:5px;height:5px;border-radius:50%;background:var(--accent2)"></div><div style="font-size:6px;color:var(--text2)">Estimating...</div></div>
+            <div style="background:rgba(99,102,241,0.06);border:0.5px solid rgba(99,102,241,0.2);border-radius:6px;padding:6px">
+              <div style="font-size:5px;color:#818CF8;margin-bottom:3px">Identified items</div>
+              <div style="display:flex;gap:4px;flex-wrap:wrap"><div class="mini-qp">Dal ~150g</div><div class="mini-qp">Rice ~200g</div><div class="mini-qp">Curd ~100g</div><div class="mini-qp">Banana 1</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="node-label-wrap"><div class="node-step">STEP 02</div><div class="node-name">Natural Language Input</div><div class="node-desc">Type freely. Claude parses food items and quantities in real time.</div></div>
+      </div>
+      <div class="connector"><div class="conn-line"></div><div class="conn-arrow"></div><div class="conn-label">Claude estimates</div></div>
+      <div class="screen-node dim" id="f5-s2" onclick="goToStep(5,2)">
+        <div class="phone-frame">
+          <div class="pf-notch"></div>
+          <div class="pf-status"><span>15:31</span><span>87%</span></div>
+          <div class="pf-content" style="padding:10px">
+            <div class="mini-h">Meal breakdown</div>
+            <div class="mini-sub">Post-workout · Confirm or edit</div>
+            <div class="mini-row">
+              <div class="mini-metric"><div class="mini-metric-val" style="color:var(--accent)">840</div><div class="mini-metric-label">kcal</div></div>
+              <div class="mini-metric"><div class="mini-metric-val">52<span style="font-size:7px">g</span></div><div class="mini-metric-label">Protein</div></div>
+              <div class="mini-metric"><div class="mini-metric-val">118<span style="font-size:7px">g</span></div><div class="mini-metric-label">Carbs</div></div>
+              <div class="mini-metric"><div class="mini-metric-val">16<span style="font-size:7px">g</span></div><div class="mini-metric-label">Fat</div></div>
+            </div>
+            <div class="mini-card" style="padding:6px">
+              <div class="mini-meal"><div class="mini-meal-icon">🍛</div><div class="mini-meal-info"><div class="mini-meal-name">Dal rice</div><div class="mini-meal-macros">~350g est · 480kcal · P:24g</div></div></div>
+              <div class="mini-meal"><div class="mini-meal-icon">🥛</div><div class="mini-meal-info"><div class="mini-meal-name">Curd</div><div class="mini-meal-macros">~100g · 98kcal · P:11g</div></div></div>
+              <div class="mini-meal"><div class="mini-meal-icon">🍌</div><div class="mini-meal-info"><div class="mini-meal-name">Banana</div><div class="mini-meal-macros">~120g · 107kcal · C:27g</div></div></div>
+            </div>
+            <div class="mini-btn">CONFIRM & LOG</div>
+          </div>
+        </div>
+        <div class="node-label-wrap"><div class="node-step">STEP 03</div><div class="node-name">Macro Breakdown</div><div class="node-desc">User reviews estimated macros per item. Can edit quantities.</div></div>
+      </div>
+      <div class="connector"><div class="conn-line"></div><div class="conn-arrow"></div><div class="conn-label">Confirm</div></div>
+      <div class="screen-node dim" id="f5-s3" onclick="goToStep(5,3)">
+        <div class="phone-frame">
+          <div class="pf-notch"></div>
+          <div class="pf-status"><span>15:31</span><span>87%</span></div>
+          <div class="pf-content" style="padding:10px">
+            <div class="mini-h">Today's total</div>
+            <div class="mini-sub">Updated after logging</div>
+            <div style="display:flex;justify-content:center;margin-bottom:6px">
+              <svg width="80" height="80" viewBox="0 0 80 80"><circle cx="40" cy="40" r="32" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="8"/><circle cx="40" cy="40" r="32" fill="none" stroke="var(--accent)" stroke-width="8" stroke-dasharray="168 201" stroke-dashoffset="50" stroke-linecap="round" transform="rotate(-90 40 40)"/><circle cx="40" cy="40" r="22" fill="none" stroke="var(--accent2)" stroke-width="7" stroke-dasharray="115 138" stroke-dashoffset="35" stroke-linecap="round" transform="rotate(-90 40 40)"/><text x="40" y="44" text-anchor="middle" fill="var(--accent)" font-size="11" font-family="Syne" font-weight="700">97%</text></svg>
+            </div>
+            <div class="mini-bubble-ai" style="font-size:6px">Nearly at your protein target. One more snack (30g whey) puts you at 100%. Calories on track — good day.</div>
+            <div class="mini-card" style="margin-top:6px">
+              <div class="mini-meal"><div class="mini-meal-icon">🍳</div><div class="mini-meal-info"><div class="mini-meal-name">Breakfast</div><div class="mini-meal-macros">620 kcal · P:38g</div></div></div>
+              <div class="mini-meal"><div class="mini-meal-icon">🍱</div><div class="mini-meal-info"><div class="mini-meal-name">Lunch</div><div class="mini-meal-macros">780 kcal · P:45g</div></div></div>
+              <div class="mini-meal"><div class="mini-meal-icon">🍛</div><div class="mini-meal-info"><div class="mini-meal-name">Post-workout</div><div class="mini-meal-macros">840 kcal · P:52g</div></div></div>
+            </div>
+          </div>
+          <div class="pf-nav"><div class="pf-nav-dot">🏠</div><div class="pf-nav-dot active">🥗</div><div class="pf-nav-dot">🧠</div><div class="pf-nav-dot">👤</div></div>
+        </div>
+        <div class="node-label-wrap"><div class="node-step">STEP 04</div><div class="node-name">Updated Nutrition</div><div class="node-desc">Ring updates. Claude gives a daily summary note. Loop continues.</div></div>
+      </div>
+    </div>
+
+    <!-- FLOW 6: PHOTO OCR -->
+    <div class="flow-canvas" id="f6">
+      <div class="screen-node current" id="f6-s0" onclick="goToStep(6,0)">
+        <div class="phone-frame">
+          <div class="pf-notch"></div>
+          <div class="pf-status"><span style="color:var(--accent)">● 48:30</span><span>87%</span></div>
+          <div class="pf-content" style="padding:10px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px"><div class="mini-h">Session</div><div class="mini-timer">48:30</div></div>
+            <div class="mini-card"><div class="mini-ex"><div class="mini-ex-num done">✓</div><div class="mini-ex-name">Bench · Incline · Fly</div><div class="mini-ex-sets">Done</div></div><div class="mini-ex"><div class="mini-ex-num" style="background:rgba(200,243,74,0.1);color:var(--accent)">→</div><div class="mini-ex-name" style="color:var(--accent)">Treadmill cardio</div><div class="mini-ex-sets">Log from photo</div></div></div>
+            <div class="mini-btn">📸 LOG FROM PHOTO</div>
+          </div>
+          <div class="pf-nav"><div class="pf-nav-dot active">🏠</div><div class="pf-nav-dot">📅</div><div class="pf-nav-dot">🧠</div><div class="pf-nav-dot">👤</div></div>
+        </div>
+        <div class="node-label-wrap"><div class="node-step">STEP 01</div><div class="node-name">Session — Cardio</div><div class="node-desc">Weights done. Tap "Log from photo" for cardio.</div></div>
+      </div>
+      <div class="connector"><div class="conn-line active-path"></div><div class="conn-arrow active-path"></div><div class="conn-label">Tap Log from photo</div></div>
+      <div class="screen-node dim" id="f6-s1" onclick="goToStep(6,1)">
+        <div class="phone-frame">
+          <div class="pf-notch"></div>
+          <div class="pf-status"><span>15:20</span><span>87%</span></div>
+          <div class="pf-content" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:16px;background:var(--bg)">
+            <div style="width:120px;height:80px;background:var(--surface2);border:0.5px dashed var(--border2);border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:24px">📷</div>
+            <div style="font-family:var(--fd);font-size:11px;font-weight:700;text-align:center;margin-bottom:4px">Point at machine screen</div>
+            <div style="font-size:7px;color:var(--text2);text-align:center">Treadmill, bike, elliptical displays supported</div>
+          </div>
+        </div>
+        <div class="node-label-wrap"><div class="node-step">STEP 02</div><div class="node-name">Camera Capture</div><div class="node-desc">Native camera opens. User snaps treadmill display.</div></div>
+      </div>
+      <div class="connector"><div class="conn-line"></div><div class="conn-arrow"></div><div class="conn-label">Photo captured</div></div>
+      <div class="screen-node dim" id="f6-s2" onclick="goToStep(6,2)">
+        <div class="phone-frame">
+          <div class="pf-notch"></div>
+          <div class="pf-status"><span>15:20</span><span>87%</span></div>
+          <div class="pf-content" style="padding:10px">
+            <div class="mini-h">Reading machine...</div>
+            <div class="mini-sub">Claude Vision is extracting data</div>
+            <div style="height:60px;background:var(--surface2);border:0.5px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:6px;font-size:24px">🏃</div>
+            <div style="display:flex;gap:5px;align-items:center;margin-bottom:6px"><div style="width:5px;height:5px;border-radius:50%;background:var(--accent2);animation:pulse 1s infinite"></div><div style="font-size:6px;color:var(--text2)">Analysing display...</div></div>
+            <div class="mini-ocr-result">
+              <div style="font-size:5px;color:#818CF8;margin-bottom:4px">EXTRACTED DATA</div>
+              <div class="mini-ocr-vals">
+                <div><div class="mini-ocr-val">287</div><div class="mini-ocr-label">kcal burned</div></div>
+                <div><div class="mini-ocr-val">32 min</div><div class="mini-ocr-label">duration</div></div>
+                <div><div class="mini-ocr-val">4.2 km</div><div class="mini-ocr-label">distance</div></div>
+                <div><div class="mini-ocr-val">141 bpm</div><div class="mini-ocr-label">avg HR</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="node-label-wrap"><div class="node-step">STEP 03</div><div class="node-name">OCR Processing</div><div class="node-desc">Claude Vision reads display. Async job, SSE pushes result back.</div></div>
+      </div>
+      <div class="connector"><div class="conn-line"></div><div class="conn-arrow"></div><div class="conn-label">User confirms</div></div>
+      <div class="screen-node dim" id="f6-s3" onclick="goToStep(6,3)">
+        <div class="phone-frame">
+          <div class="pf-notch"></div>
+          <div class="pf-status"><span style="color:var(--accent)">● LIVE</span><span>87%</span></div>
+          <div class="pf-content" style="padding:10px">
+            <div class="mini-h">Cardio Logged ✓</div>
+            <div class="mini-sub">Treadmill · 32 min</div>
+            <div class="mini-row">
+              <div class="mini-metric"><div class="mini-metric-val" style="color:var(--danger)">287</div><div class="mini-metric-label">kcal</div></div>
+              <div class="mini-metric"><div class="mini-metric-val">4.2</div><div class="mini-metric-label">km</div></div>
+              <div class="mini-metric"><div class="mini-metric-val">141</div><div class="mini-metric-label">avg bpm</div></div>
+            </div>
+            <div class="mini-bubble-ai" style="font-size:6px;margin-bottom:6px">Good cardio. 287 kcal burned. You're 18g short of protein today — have a whey shake before bed.</div>
+            <div class="mini-card"><div class="mini-ex"><div class="mini-ex-num done">✓</div><div class="mini-ex-name">Bench / Incline / Fly / OHP</div><div class="mini-ex-sets">Weights done</div></div><div class="mini-ex"><div class="mini-ex-num done">✓</div><div class="mini-ex-name">Treadmill cardio</div><div class="mini-ex-sets">287kcal · 32min</div></div></div>
+            <div class="mini-btn" style="font-size:7px">CHECKOUT SESSION</div>
+          </div>
+        </div>
+        <div class="node-label-wrap"><div class="node-step">STEP 04</div><div class="node-name">Cardio Saved</div><div class="node-desc">Auto-populated in session. AI nutrition note. Continue to checkout.</div></div>
+      </div>
+    </div>
+
+  </div><!-- end canvas -->
+
+</div><!-- end layout -->
+
+<!-- DETAIL PANEL -->
+<div class="detail-panel">
+  <div>
+    <div class="dp-screen-label" id="dp-step">STEP 01 / 07</div>
+    <div class="dp-screen-name" id="dp-name">Splash / Welcome</div>
+  </div>
+  <div class="dp-divider"></div>
+  <div class="dp-desc" id="dp-desc">First screen a new user sees. Two clear paths: create an account or sign in. No clutter, no marketing copy — straight to action.</div>
+  <div class="dp-divider"></div>
+  <div class="dp-action">
+    <div class="dp-action-label">TRIGGER ACTION</div>
+    <div class="dp-action-val" id="dp-action">→ Tap "Get Started"</div>
+  </div>
+</div>
+
+<script>
+const flows = [
+  {
+    name: 'New User Onboarding',
+    steps: [
+      { name: 'Splash / Welcome', desc: 'First screen a new user sees. Two clear paths: create an account or sign in. No clutter — straight to action.', action: 'Tap "Get Started"' },
+      { name: 'Create Account', desc: 'Email + password registration or Google OAuth. JWT tokens issued on success. Account created in the background.', action: 'Complete registration' },
+      { name: 'Basic Info', desc: 'Age, height, weight, biological sex. Powers TDEE calculation and calorie targets. Stored in user_profiles table.', action: 'Fill in details, tap Next' },
+      { name: 'Goal + BMI Baseline', desc: 'AI chat intake. User states body fat % and target. Claude sets baseline date and schedules the first BMI reminder (6 weeks from now).', action: 'Complete AI chat intake' },
+      { name: 'Training History', desc: 'Experience level, weekly schedule, injuries, equipment. Claude uses this to generate a periodized mesocycle (not a generic program).', action: 'Complete questions' },
+      { name: 'Plan Ready', desc: 'Claude generates full 12-week plan. User reviews all training days before confirming. This is the last onboarding screen.', action: 'Tap "Start Training"' },
+      { name: 'Dashboard — Day 1', desc: 'Goal card visible immediately. Today\'s workout shown. BMI baseline logged. User is fully onboarded. All future logins skip to this screen.', action: 'Onboarding complete' },
+    ]
+  },
+  {
+    name: 'Returning User Login',
+    steps: [
+      { name: 'Splash Screen', desc: 'App opens. Returning user taps "I already have an account." New users tap "Get Started" (goes to onboarding flow).', action: 'Tap "Already have account"' },
+      { name: 'Login Screen', desc: 'Email + password or Google OAuth. On success: JWT access token + refresh token issued. Redirects to dashboard.', action: 'Enter credentials, sign in' },
+      { name: 'Dashboard', desc: 'Goal card shows current vs target. BMI alert fires if 6-week window is approaching. Today\'s workout ready. Session timer starts on check-in.', action: 'Tap "Check In"' },
+    ]
+  },
+  {
+    name: 'Daily Workout Session',
+    steps: [
+      { name: 'Dashboard', desc: "See today's planned workout, week progress, and goal card. Check-in button is the primary CTA.", action: 'Tap "Check In to Gym"' },
+      { name: 'Session Active', desc: 'Check-in recorded with timestamp. Timer starts. Full exercise list shown with planned sets, reps, and weights from the current plan.', action: 'Tap first exercise to begin' },
+      { name: 'Set Logger', desc: 'Log weight + reps with large touch targets (gym-safe). Previous session shown as ghost reference. Rest timer auto-starts after logging.', action: 'Log sets, repeat' },
+      { name: 'PR Celebration', desc: 'When estimated 1RM exceeds previous best (detected by DB trigger), full-screen PR moment fires. Haptic feedback. Auto-logged. Then returns to session.', action: 'Tap "Continue Workout"' },
+      { name: 'Checkout', desc: 'Rate fatigue (1–10), add notes. Triggers session.completed event which updates AI context cache and nutrition targets.', action: 'Tap "Checkout & Save"' },
+      { name: 'Session Summary', desc: 'Total volume, sets, PRs, duration. AI drops a short comment on performance. Sets next workout context for the coach.', action: 'Tap "Back to Dashboard"' },
+    ]
+  },
+  {
+    name: 'AI Coach Consult',
+    steps: [
+      { name: 'Dashboard / Session', desc: 'User is on the dashboard or inside an active session. They tap the Coach tab to ask a question mid-workout.', action: 'Tap Coach tab' },
+      { name: 'AI Coach Chat', desc: 'Claude has full context: user profile, goals, last 7 days of training, today\'s session. User asks about shoulder pain. Claude streams a response.', action: 'Type question, send' },
+      { name: 'Plan Modified', desc: 'Claude removes OHP, adds lateral raises + face pulls. Shows an inline "Plan Updated" diff card. Changes are immediately applied to today\'s session.', action: 'Review changes' },
+      { name: 'Updated Session', desc: 'Back in session view. Modified exercises clearly marked (+). Removed exercises gone. Session continues with the adjusted plan.', action: 'Continue logging sets' },
+    ]
+  },
+  {
+    name: 'Goal & BMI Tracking',
+    steps: [
+      { name: 'Dashboard', desc: 'Goal card shows current progress. Amber BMI alert fires 7 days before 6-week window closes. Both are tappable entry points.', action: 'Tap goal card or BMI alert' },
+      { name: 'Goal Detail', desc: 'Progress ring (% complete), per-metric progress bars, milestone timeline, next BMI countdown with scientific explanation.', action: 'Tap "Log New Scan"' },
+      { name: 'Log New BMI Scan', desc: 'Two paths: snap a photo of DEXA/InBody printout (Claude Vision reads it), or enter manually. Photo OCR is the primary recommended path.', action: 'Enter results, tap Save' },
+      { name: 'Analysis + Updated Goal', desc: 'Claude analyses the delta from baseline. If ahead of schedule, tightens the target. Updates calorie deficit, plan intensity. Goal card on dashboard updates immediately.', action: 'Tap "Back to Dashboard"' },
+    ]
+  },
+  {
+    name: 'Nutrition Logging',
+    steps: [
+      { name: 'Nutrition Dashboard', desc: 'Daily macro ring shows progress. Meals logged below. Claude note at bottom if close to targets. Tap + to add a meal.', action: 'Tap "+ Log Meal"' },
+      { name: 'Natural Language Input', desc: 'Single text field. User types freely: "dal rice, curd and a banana after gym." Claude parses food items and quantities in real time as user types (debounced 1.5s).', action: 'Type meal description' },
+      { name: 'Macro Breakdown', desc: 'Estimated kcal, protein, carbs, fat. Per-item breakdown shown. User can tap any item to adjust the gram estimate. Confidence level shown (high/medium/low).', action: 'Review and confirm' },
+      { name: 'Updated Nutrition', desc: 'Macro ring updates. Today\'s meal list grows. Claude drops a short note: "18g short of protein — have a whey shake." Loop continues for next meal.', action: 'Log another meal or exit' },
+    ]
+  },
+  {
+    name: 'Photo OCR Cardio Log',
+    steps: [
+      { name: 'Session — Cardio', desc: "Weights section done. Treadmill is next on the plan. User taps 'Log from photo' instead of manual entry.", action: 'Tap "Log from Photo"' },
+      { name: 'Camera Capture', desc: 'Native camera opens directly (capture mode, not gallery — forces live photo). User points at machine screen and shoots.', action: 'Take photo of display' },
+      { name: 'OCR Processing', desc: 'Photo uploaded to S3. BullMQ job enqueues OCR task. Claude Vision extracts: duration, kcal, distance, HR. SSE pushes result to client (~5–8 seconds).', action: 'Review extracted data, confirm' },
+      { name: 'Cardio Saved', desc: 'Auto-populated in session log. Claude gives nutrition note based on calories burned vs daily target. User continues to checkout.', action: 'Proceed to checkout' },
+    ]
+  },
+];
+
+let currentFlow = 0;
+let currentStep = 0;
+
+function loadFlow(idx) {
+  document.querySelectorAll('.flow-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('flow-' + idx).classList.add('active');
+  document.querySelectorAll('.flow-canvas').forEach(el => el.classList.remove('active'));
+  document.getElementById('f' + idx).classList.add('active');
+  currentFlow = idx;
+  currentStep = 0;
+  document.getElementById('active-flow-name').textContent = flows[idx].name;
+  updateStep();
+}
+
+function goToStep(flowIdx, stepIdx) {
+  if (flowIdx !== currentFlow) return;
+  currentStep = stepIdx;
+  updateStep();
+}
+
+function prevStep() {
+  if (currentStep > 0) { currentStep--; updateStep(); }
+}
+
+function nextStep() {
+  const total = flows[currentFlow].steps.length;
+  if (currentStep < total - 1) { currentStep++; updateStep(); }
+}
+
+function updateStep() {
+  const flow = flows[currentFlow];
+  const total = flow.steps.length;
+  const step = flow.steps[currentStep];
+  const fEl = document.getElementById('f' + currentFlow);
+
+  fEl.querySelectorAll('.screen-node').forEach((el, i) => {
+    el.classList.toggle('current', i === currentStep);
+    el.classList.toggle('dim', i !== currentStep);
+  });
+  fEl.querySelectorAll('.conn-line, .conn-arrow').forEach((el, i) => {
+    const connIdx = Math.floor(i / 2);
+    el.classList.toggle('active-path', connIdx < currentStep);
+  });
+
+  document.getElementById('dp-step').textContent = `STEP ${String(currentStep + 1).padStart(2,'0')} / ${String(total).padStart(2,'0')}`;
+  document.getElementById('dp-name').textContent = step.name;
+  document.getElementById('dp-desc').textContent = step.desc;
+  document.getElementById('dp-action').textContent = '→ ' + step.action;
+  document.getElementById('step-counter').textContent = `Step ${currentStep + 1} / ${total}`;
+  document.getElementById('btn-prev').classList.toggle('disabled', currentStep === 0);
+  document.getElementById('btn-next').classList.toggle('disabled', currentStep === total - 1);
+}
+
+updateStep();
+</script>
+</body>
+</html>
