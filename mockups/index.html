@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>fitNXT — App Screen Map</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#06060D;--s:#0D0D1A;--s2:#141426;--s3:#1C1C32;
+  --b:rgba(255,255,255,.055);--b2:rgba(255,255,255,.10);
+  --v:#A78BFA;--vd:#7C3AED;--vt:rgba(124,58,237,.12);--vb:rgba(167,139,250,.22);
+  --c:#F97066;--cd:#C4361A;--ct:rgba(249,112,102,.12);--cb:rgba(249,112,102,.22);
+  --g:#FCD34D;--gt:rgba(252,211,77,.10);--gb:rgba(252,211,77,.22);
+  --ok:#4ADE80;--t1:#EEEEF8;--t2:#76768E;--t3:#36364E;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--t1);min-height:100vh;padding:40px;}
+h1{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;background:linear-gradient(135deg,var(--v),var(--c));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.tagline{color:var(--t2);font-size:14px;margin-top:4px;}
+header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:40px;padding-bottom:32px;border-bottom:1px solid var(--b);}
+.legend{display:flex;gap:16px;align-items:center;flex-wrap:wrap;}
+.leg{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--t2);}
+.leg-dot{width:12px;height:12px;border-radius:50%;}
+.nav-links{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:32px;}
+.nav-link{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:999px;background:var(--s2);border:1px solid var(--b);color:var(--t2);font-size:12px;font-weight:500;text-decoration:none;transition:all .15s;cursor:pointer;}
+.nav-link:hover{color:var(--t1);border-color:var(--b2);}
+.nav-link.v{background:var(--vt);border-color:var(--vb);color:var(--v);}
+.nav-link.c{background:var(--ct);border-color:var(--cb);color:var(--c);}
+.nav-link.gold{background:var(--gt);border-color:var(--gb);color:var(--g);}
+
+/* Flow map */
+.flow-map{position:relative;padding:20px 0;}
+.flow-section{margin-bottom:48px;}
+.flow-section-label{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);margin-bottom:16px;}
+.flow-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.flow-node{
+  display:flex;flex-direction:column;align-items:flex-start;
+  padding:16px 20px;border-radius:16px;min-width:160px;max-width:200px;
+  border:1px solid var(--b);background:var(--s2);
+  text-decoration:none;color:var(--t1);
+  transition:all .2s;cursor:pointer;
+  position:relative;
+}
+.flow-node:hover{transform:translateY(-2px);border-color:var(--b2);}
+.flow-node.v{background:var(--vt);border-color:var(--vb);}
+.flow-node.c{background:var(--ct);border-color:var(--cb);}
+.flow-node.gold{background:var(--gt);border-color:var(--gb);}
+.flow-node.auth{background:rgba(167,139,250,.08);border-color:var(--vb);}
+.node-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--t3);margin-bottom:6px;}
+.node-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:4px;}
+.node-desc{font-size:11px;color:var(--t2);line-height:1.5;}
+.node-tag{
+  display:inline-block;margin-top:8px;padding:2px 8px;
+  border-radius:999px;font-size:10px;font-weight:500;
+}
+.tag-v{background:var(--vt);color:var(--v);border:1px solid var(--vb);}
+.tag-c{background:var(--ct);color:var(--c);border:1px solid var(--cb);}
+.tag-g{background:var(--gt);color:var(--g);border:1px solid var(--gb);}
+.tag-n{background:var(--s3);color:var(--t2);border:1px solid var(--b);}
+
+.arrow{color:var(--t3);font-size:20px;flex-shrink:0;}
+.arrow-v{color:var(--t3);font-size:20px;flex-shrink:0;align-self:center;}
+.arrow-down{display:flex;flex-direction:column;align-items:center;color:var(--t3);padding:0 8px;gap:0;}
+
+.divider{border:none;border-top:1px solid var(--b);margin:40px 0;}
+
+/* Summary grid */
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:24px;}
+.summary-card{
+  padding:16px;border-radius:14px;background:var(--s2);border:1px solid var(--b);
+}
+.summary-num{font-family:'JetBrains Mono',monospace;font-size:32px;font-weight:500;line-height:1;}
+.summary-label{font-size:12px;color:var(--t2);margin-top:4px;}
+
+/* Connector lines using pseudo-elements - shown via a big SVG overlay */
+.connector-wrapper{position:relative;}
+
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>fitNXT</h1>
+    <p class="tagline">App Screen Map · All flows, all screens, all connections</p>
+  </div>
+  <div class="legend">
+    <div class="leg"><div class="leg-dot" style="background:var(--v)"></div>Violet — AI / Intelligence</div>
+    <div class="leg"><div class="leg-dot" style="background:var(--c)"></div>Coral — Intensity / Workout</div>
+    <div class="leg"><div class="leg-dot" style="background:var(--g)"></div>Gold — Achievement only</div>
+    <div class="leg"><div class="leg-dot" style="background:var(--t3)"></div>Neutral</div>
+  </div>
+</header>
+
+<!-- Navigation links -->
+<div class="nav-links">
+  <a class="nav-link" href="01-auth.html">01 · Auth Flow</a>
+  <a class="nav-link" href="02-today.html">02 · Today / Home</a>
+  <a class="nav-link c" href="03-session.html">03 · Workout Session</a>
+  <a class="nav-link v" href="04-coach.html">04 · AI Coach</a>
+  <a class="nav-link" href="05-progress.html">05 · Progress</a>
+  <a class="nav-link" href="06-plan.html">06 · Training Plan</a>
+  <a class="nav-link" href="07-profile.html">07 · Profile</a>
+  <a class="nav-link gold" href="08-overlays.html">08 · Overlays & States</a>
+</div>
+
+<!-- Auth Flow -->
+<div class="flow-section">
+  <div class="flow-section-label">Auth Flow — entry point for new & returning users</div>
+  <div class="flow-row">
+    <a class="flow-node auth" href="01-auth.html">
+      <div class="node-num">01</div>
+      <div class="node-name">Splash</div>
+      <div class="node-desc">Brand intro, full-screen violet glow</div>
+      <span class="node-tag tag-v">Violet</span>
+    </a>
+    <div class="arrow">→</div>
+    <a class="flow-node auth" href="01-auth.html">
+      <div class="node-num">02–04</div>
+      <div class="node-name">Onboarding</div>
+      <div class="node-desc">3 value-prop slides with skip</div>
+      <span class="node-tag tag-v">Violet</span>
+    </a>
+    <div class="arrow">→</div>
+    <a class="flow-node auth" href="01-auth.html">
+      <div class="node-num">05</div>
+      <div class="node-name">Login</div>
+      <div class="node-desc">Email + password, Google OAuth</div>
+      <span class="node-tag tag-v">Violet</span>
+    </a>
+    <div class="arrow">↔</div>
+    <a class="flow-node auth" href="01-auth.html">
+      <div class="node-num">06</div>
+      <div class="node-name">Sign Up</div>
+      <div class="node-desc">Name, email, password, terms</div>
+      <span class="node-tag tag-v">Violet</span>
+    </a>
+    <div class="arrow">→</div>
+    <a class="flow-node auth" href="01-auth.html">
+      <div class="node-num">07</div>
+      <div class="node-name">Goal Setup</div>
+      <div class="node-desc">Primary goal selection cards</div>
+      <span class="node-tag tag-v">Violet</span>
+    </a>
+    <div class="arrow">→</div>
+    <a class="flow-node auth" href="01-auth.html">
+      <div class="node-num">08</div>
+      <div class="node-name">Experience</div>
+      <div class="node-desc">Training level + weekly frequency</div>
+      <span class="node-tag tag-v">Violet</span>
+    </a>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- Main App -->
+<div class="flow-section">
+  <div class="flow-section-label">Main App — bottom nav primary destinations</div>
+  <div class="flow-row">
+    <a class="flow-node" href="02-today.html">
+      <div class="node-num">09–10</div>
+      <div class="node-name">Today / Home</div>
+      <div class="node-desc">Greeting, workout CTA, AI insights, macros, history</div>
+      <span class="node-tag tag-v">Violet + Coral CTA</span>
+    </a>
+    <div class="arrow">→</div>
+    <a class="flow-node c" href="03-session.html">
+      <div class="node-num">11–15</div>
+      <div class="node-name">Workout Session</div>
+      <div class="node-desc">Exercise list → Set Logger → Rest Timer → Complete</div>
+      <span class="node-tag tag-c">Coral</span>
+    </a>
+    <div class="arrow">→</div>
+    <a class="flow-node gold" href="08-overlays.html">
+      <div class="node-num">16</div>
+      <div class="node-name">PR Celebration</div>
+      <div class="node-desc">Gold overlay on new personal record</div>
+      <span class="node-tag tag-g">Gold — once per screen</span>
+    </a>
+  </div>
+</div>
+
+<!-- Bottom nav destinations -->
+<div class="flow-section">
+  <div class="flow-section-label">Bottom nav destinations</div>
+  <div class="flow-row">
+    <a class="flow-node v" href="04-coach.html">
+      <div class="node-num">17–19</div>
+      <div class="node-name">AI Coach</div>
+      <div class="node-desc">Meso overview, recs, AI chat conversation</div>
+      <span class="node-tag tag-v">Violet</span>
+    </a>
+    <div class="arrow">·</div>
+    <a class="flow-node v" href="05-progress.html">
+      <div class="node-num">20–22</div>
+      <div class="node-name">Progress</div>
+      <div class="node-desc">Volume charts, PR log, body metrics</div>
+      <span class="node-tag tag-v">Violet</span>
+    </a>
+    <div class="arrow">·</div>
+    <a class="flow-node v" href="06-plan.html">
+      <div class="node-num">23–25</div>
+      <div class="node-name">Training Plan</div>
+      <div class="node-desc">Mesocycle calendar, weekly view, workout template</div>
+      <span class="node-tag tag-v">Violet</span>
+    </a>
+    <div class="arrow">·</div>
+    <a class="flow-node" href="07-profile.html">
+      <div class="node-num">26–28</div>
+      <div class="node-name">Profile</div>
+      <div class="node-desc">Stats, achievements, settings, body metrics edit</div>
+      <span class="node-tag tag-n">Neutral</span>
+    </a>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- Overlays & Modals -->
+<div class="flow-section">
+  <div class="flow-section-label">Overlays, modals & special states (appear over any screen)</div>
+  <div class="flow-row">
+    <a class="flow-node gold" href="08-overlays.html">
+      <div class="node-num">29</div>
+      <div class="node-name">PR Celebration</div>
+      <div class="node-desc">Confetti + gold badge + haptic</div>
+      <span class="node-tag tag-g">Gold</span>
+    </a>
+    <div class="arrow">·</div>
+    <a class="flow-node" href="08-overlays.html">
+      <div class="node-num">30</div>
+      <div class="node-name">Add Exercise</div>
+      <div class="node-desc">Search + filter exercise modal</div>
+      <span class="node-tag tag-n">Sheet</span>
+    </a>
+    <div class="arrow">·</div>
+    <a class="flow-node" href="08-overlays.html">
+      <div class="node-num">31</div>
+      <div class="node-name">Empty States</div>
+      <div class="node-desc">No workouts, no data yet</div>
+      <span class="node-tag tag-n">Neutral</span>
+    </a>
+    <div class="arrow">·</div>
+    <a class="flow-node" href="08-overlays.html">
+      <div class="node-num">32</div>
+      <div class="node-name">Nutrition Log</div>
+      <div class="node-desc">Quick macro entry bottom sheet</div>
+      <span class="node-tag tag-n">Sheet</span>
+    </a>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- Summary -->
+<div style="margin-bottom:8px;font-family:'Syne',sans-serif;font-size:16px;font-weight:700;">Screen inventory</div>
+<div class="summary-grid">
+  <div class="summary-card">
+    <div class="summary-num" style="color:var(--t1)">32</div>
+    <div class="summary-label">Total unique screens</div>
+  </div>
+  <div class="summary-card">
+    <div class="summary-num" style="color:var(--v)">8</div>
+    <div class="summary-label">Auth & onboarding screens</div>
+  </div>
+  <div class="summary-card">
+    <div class="summary-num" style="color:var(--c)">5</div>
+    <div class="summary-label">Workout session screens</div>
+  </div>
+  <div class="summary-card">
+    <div class="summary-num" style="color:var(--v)">12</div>
+    <div class="summary-label">Main app screens</div>
+  </div>
+  <div class="summary-card">
+    <div class="summary-num" style="color:var(--g)">4</div>
+    <div class="summary-label">Overlay & special states</div>
+  </div>
+  <div class="summary-card">
+    <div class="summary-num" style="color:var(--t1)">3</div>
+    <div class="summary-label">Design tokens: violet · coral · gold</div>
+  </div>
+</div>
+
+<div style="margin-top:40px;font-size:12px;color:var(--t3);border-top:1px solid var(--b);padding-top:24px;">
+  fitNXT design system v1.0 · Ignite palette · All screens are dark-mode default · See design-system/MASTER.md for token values
+</div>
+
+</body>
+</html>

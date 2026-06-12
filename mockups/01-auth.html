@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>fitNXT · Auth Flow</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#06060D;--s:#0D0D1A;--s2:#141426;--s3:#1C1C32;--s4:#23233C;
+  --b:rgba(255,255,255,.055);--b2:rgba(255,255,255,.10);
+  --v:#A78BFA;--vd:#7C3AED;--vt:rgba(124,58,237,.12);--vb:rgba(167,139,250,.22);
+  --c:#F97066;--ct:rgba(249,112,102,.12);--cb:rgba(249,112,102,.22);
+  --g:#FCD34D;--ok:#4ADE80;--err:#EF4444;
+  --t1:#EEEEF8;--t2:#76768E;--t3:#36364E;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0A0A14;font-family:'DM Sans',sans-serif;color:var(--t1);padding:40px;min-height:100vh;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.page-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;}
+.page-sub{color:var(--t2);font-size:13px;margin-bottom:32px;padding-left:2px;}
+.nav-links{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:40px;}
+.nav-link{display:inline-flex;align-items:center;padding:6px 14px;border-radius:999px;background:var(--s2);border:1px solid var(--b);color:var(--t2);font-size:12px;text-decoration:none;transition:all .15s;}
+.nav-link:hover{color:var(--t1);border-color:var(--b2);}
+.nav-link.active{background:var(--vt);border-color:var(--vb);color:var(--v);}
+.screens{display:flex;align-items:flex-start;gap:20px;overflow-x:auto;padding-bottom:40px;}
+.screen-col{display:flex;flex-direction:column;align-items:center;gap:12px;flex-shrink:0;}
+.screen-name{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--t2);}
+.arrow{color:var(--t3);font-size:22px;padding-top:440px;flex-shrink:0;}
+
+/* Phone */
+.phone{width:390px;height:844px;background:var(--bg);border-radius:44px;overflow:hidden;position:relative;border:1px solid var(--b);box-shadow:0 0 0 8px rgba(255,255,255,.015),0 48px 100px rgba(0,0,0,.8);}
+.di{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:126px;height:37px;background:#000;border-radius:20px;z-index:10;}
+.sb{position:relative;height:54px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 28px 8px;}
+.time{font-size:15px;font-weight:600;}
+.status-icons{display:flex;align-items:center;gap:5px;opacity:.9;}
+
+/* ── SCREEN 1: SPLASH ── */
+.splash{
+  height:844px;
+  background:radial-gradient(ellipse 80% 60% at 50% 40%,rgba(124,58,237,.35) 0%,transparent 70%),
+    radial-gradient(ellipse 50% 40% at 80% 80%,rgba(167,139,250,.12) 0%,transparent 60%),
+    var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 32px;
+}
+.splash-logo{font-family:'Syne',sans-serif;font-size:52px;font-weight:800;letter-spacing:-2px;line-height:1;margin-bottom:12px;}
+.splash-logo span{color:var(--v);}
+.splash-tagline{font-size:15px;color:var(--t2);text-align:center;line-height:1.6;max-width:240px;margin-bottom:64px;}
+.splash-btn{width:100%;padding:16px;border-radius:999px;background:var(--v);border:none;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;color:var(--bg);cursor:pointer;}
+.splash-link{margin-top:16px;font-size:14px;color:var(--t2);}
+.splash-link span{color:var(--v);}
+.splash-orb{width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(124,58,237,.4) 0%,transparent 70%);margin-bottom:40px;position:relative;display:flex;align-items:center;justify-content:center;}
+.orb-ring{position:absolute;border-radius:50%;border:1px solid rgba(167,139,250,.2);}
+
+/* ── SCREEN 2: ONBOARDING ── */
+.onboard{height:790px;padding:0 24px 32px;display:flex;flex-direction:column;}
+.ob-progress{display:flex;gap:6px;justify-content:center;padding:16px 0;}
+.ob-dot{height:4px;border-radius:2px;background:var(--b2);transition:all .3s;}
+.ob-dot.active{background:var(--v);width:24px;}
+.ob-dot:not(.active){width:8px;}
+.ob-skip{margin-left:auto;padding:8px 16px;background:transparent;border:none;color:var(--t2);font-size:13px;cursor:pointer;}
+.ob-illus{flex:1;display:flex;align-items:center;justify-content:center;position:relative;}
+.ob-title{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;line-height:1.2;text-align:center;margin-bottom:12px;}
+.ob-desc{font-size:14px;color:var(--t2);text-align:center;line-height:1.7;margin-bottom:32px;}
+.ob-btn{width:100%;padding:15px;border-radius:999px;background:var(--v);border:none;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;color:var(--bg);cursor:pointer;}
+
+/* ── SCREEN 3: LOGIN ── */
+.auth-screen{height:790px;padding:0 24px 32px;display:flex;flex-direction:column;overflow:hidden;}
+.auth-back{display:flex;align-items:center;gap:8px;color:var(--t2);font-size:14px;padding:12px 0;cursor:pointer;}
+.auth-title{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;margin-top:8px;margin-bottom:4px;}
+.auth-sub{font-size:14px;color:var(--t2);margin-bottom:32px;}
+.input-group{margin-bottom:16px;}
+.input-label{font-size:13px;font-weight:500;color:var(--t1);margin-bottom:6px;display:block;}
+.input-field{
+  width:100%;height:52px;background:var(--s2);border:1px solid var(--b);border-radius:14px;
+  padding:0 16px;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--t1);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.input-placeholder{color:var(--t3);}
+.input-eye{color:var(--t2);}
+.auth-forgot{text-align:right;font-size:13px;color:var(--v);margin-bottom:24px;cursor:pointer;}
+.auth-btn{width:100%;padding:15px;border-radius:999px;background:var(--v);border:none;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;color:var(--bg);cursor:pointer;margin-bottom:20px;}
+.divider-row{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.div-line{flex:1;height:1px;background:var(--b);}
+.div-text{font-size:12px;color:var(--t3);}
+.google-btn{
+  width:100%;height:52px;background:var(--s2);border:1px solid var(--b2);border-radius:14px;
+  display:flex;align-items:center;justify-content:center;gap:10px;font-size:14px;font-weight:500;cursor:pointer;margin-bottom:24px;
+}
+.auth-footer{text-align:center;font-size:14px;color:var(--t2);margin-top:auto;}
+.auth-footer span{color:var(--v);}
+
+/* ── SCREEN 4: SIGN UP ── */
+/* reuses auth-screen styles */
+
+/* ── SCREEN 5: GOAL SETUP ── */
+.goal-screen{height:790px;padding:24px;display:flex;flex-direction:column;}
+.goal-step{font-size:12px;color:var(--t3);margin-bottom:8px;}
+.goal-title{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;line-height:1.2;margin-bottom:8px;}
+.goal-sub{font-size:14px;color:var(--t2);margin-bottom:28px;}
+.goal-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:1;}
+.goal-card{
+  border-radius:20px;padding:20px 16px;border:1px solid var(--b);background:var(--s2);
+  display:flex;flex-direction:column;align-items:flex-start;gap:8px;cursor:pointer;transition:all .2s;
+}
+.goal-card.selected{background:var(--vt);border-color:var(--vb);}
+.goal-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;}
+.goal-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;line-height:1.2;}
+.goal-desc{font-size:11px;color:var(--t2);line-height:1.4;}
+.goal-continue{
+  margin-top:20px;width:100%;padding:15px;border-radius:999px;background:var(--v);border:none;
+  font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;color:var(--bg);cursor:pointer;
+}
+
+/* ── SCREEN 6: EXPERIENCE ── */
+.exp-screen{height:790px;padding:24px;display:flex;flex-direction:column;}
+.exp-title{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;line-height:1.2;margin-bottom:8px;}
+.exp-sub{font-size:14px;color:var(--t2);margin-bottom:28px;}
+.exp-list{display:flex;flex-direction:column;gap:10px;flex:1;}
+.exp-item{
+  padding:18px 20px;border-radius:18px;background:var(--s2);border:1px solid var(--b);
+  display:flex;align-items:center;gap:16px;cursor:pointer;transition:all .2s;
+}
+.exp-item.selected{background:var(--vt);border-color:var(--vb);}
+.exp-num{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:500;color:var(--v);width:32px;}
+.exp-info{}
+.exp-name{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;}
+.exp-range{font-size:12px;color:var(--t2);margin-top:2px;}
+.exp-btn{margin-top:20px;width:100%;padding:15px;border-radius:999px;background:var(--v);border:none;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;color:var(--bg);cursor:pointer;}
+
+svg.status-icon{width:16px;height:16px;fill:currentColor;}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="page-title">01 · Auth Flow</div>
+  <a href="index.html" style="font-size:13px;color:var(--t2);text-decoration:none;">← App Map</a>
+</div>
+<p class="page-sub">New user journey from first launch through goal setup. Violet accent throughout — this is the intelligence layer.</p>
+
+<div class="nav-links">
+  <a class="nav-link active" href="01-auth.html">01 · Auth</a>
+  <a class="nav-link" href="02-today.html">02 · Today</a>
+  <a class="nav-link" href="03-session.html">03 · Session</a>
+  <a class="nav-link" href="04-coach.html">04 · Coach</a>
+  <a class="nav-link" href="05-progress.html">05 · Progress</a>
+  <a class="nav-link" href="06-plan.html">06 · Plan</a>
+  <a class="nav-link" href="07-profile.html">07 · Profile</a>
+  <a class="nav-link" href="08-overlays.html">08 · Overlays</a>
+</div>
+
+<div class="screens">
+
+  <!-- SCREEN 1: SPLASH -->
+  <div class="screen-col">
+    <div class="screen-name">Splash</div>
+    <div class="phone">
+      <div class="di"></div>
+      <div class="splash">
+        <!-- Glow orb -->
+        <div class="splash-orb">
+          <div class="orb-ring" style="width:100%;height:100%;"></div>
+          <div class="orb-ring" style="width:140%;height:140%;opacity:.4;"></div>
+          <!-- Dumbbell icon -->
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--v)" stroke-width="1.6" stroke-linecap="round">
+            <path d="M6.5 6.5h11M6.5 17.5h11M4 8.5v7M8 6v12M16 6v12M20 8.5v7"/>
+          </svg>
+        </div>
+        <div class="splash-logo">fit<span>NXT</span></div>
+        <div class="splash-tagline">AI-powered performance intelligence for serious athletes</div>
+        <button class="splash-btn">Get started</button>
+        <div class="splash-link">Already have an account? <span>Sign in</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow">→</div>
+
+  <!-- SCREEN 2: ONBOARDING SLIDE 1 -->
+  <div class="screen-col">
+    <div class="screen-name">Onboarding · 1/3</div>
+    <div class="phone">
+      <div class="di"></div>
+      <div class="sb"><span class="time">9:41</span><div class="status-icons"><svg class="status-icon" viewBox="0 0 16 16"><path d="M1 10.5h2v2H1v-2zm3-3h2v5H4v-5zm3-3h2v8H7v-8zm3-3h2v11h-2V1.5z" opacity=".9"/></svg><svg class="status-icon" viewBox="0 0 16 16"><path d="M8 2C4.7 2 1.8 3.3 0 5.5l1.5 1.5c1.4-1.7 3.6-2.8 6-2.8 2.4 0 4.6 1.1 6 2.8L15 5.5C13.2 3.3 10.3 2 8 2zM8 6c-1.7 0-3.2.7-4.3 1.8L5 9c.8-.8 1.9-1.3 3-1.3s2.2.5 3 1.3l1.3-1.2C11.2 6.7 9.7 6 8 6zm0 4c-.7 0-1.3.3-1.8.7L8 12.5l1.8-1.8C9.3 10.3 8.7 10 8 10z" opacity=".9"/></svg><svg class="status-icon" viewBox="0 0 16 16"><rect x="1" y="4.5" width="12" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="2" y="5.5" width="8" height="5" rx=".5" fill="currentColor"/><path d="M14 7.5v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div></div>
+      <div class="onboard">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div class="ob-progress">
+            <div class="ob-dot active"></div><div class="ob-dot"></div><div class="ob-dot"></div>
+          </div>
+          <button class="ob-skip">Skip</button>
+        </div>
+        <div class="ob-illus">
+          <!-- AI brain illustration -->
+          <div style="position:relative;width:200px;height:200px;">
+            <div style="position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,rgba(124,58,237,.25) 0%,transparent 70%);"></div>
+            <svg width="200" height="200" viewBox="0 0 200 200" fill="none">
+              <!-- Brain circuit -->
+              <circle cx="100" cy="100" r="70" stroke="rgba(167,139,250,.15)" stroke-width="1"/>
+              <circle cx="100" cy="100" r="50" stroke="rgba(167,139,250,.2)" stroke-width="1"/>
+              <circle cx="100" cy="100" r="30" stroke="rgba(167,139,250,.3)" stroke-width="1"/>
+              <!-- Nodes -->
+              <circle cx="100" cy="30" r="5" fill="var(--v)" opacity=".9"/>
+              <circle cx="160" cy="70" r="5" fill="var(--v)" opacity=".7"/>
+              <circle cx="160" cy="130" r="5" fill="var(--v)" opacity=".5"/>
+              <circle cx="100" cy="170" r="5" fill="var(--v)" opacity=".7"/>
+              <circle cx="40" cy="130" r="5" fill="var(--v)" opacity=".5"/>
+              <circle cx="40" cy="70" r="5" fill="var(--v)" opacity=".7"/>
+              <!-- Connection lines -->
+              <line x1="100" y1="30" x2="160" y2="70" stroke="var(--v)" stroke-width=".8" opacity=".4"/>
+              <line x1="160" y1="70" x2="160" y2="130" stroke="var(--v)" stroke-width=".8" opacity=".3"/>
+              <line x1="40" y1="70" x2="40" y2="130" stroke="var(--v)" stroke-width=".8" opacity=".3"/>
+              <line x1="40" y1="70" x2="100" y2="30" stroke="var(--v)" stroke-width=".8" opacity=".4"/>
+              <!-- Center icon -->
+              <path d="M90 95h20M100 85v20M95 90l10 10M105 90l-10 10" stroke="var(--v)" stroke-width="2" stroke-linecap="round" opacity=".8"/>
+              <circle cx="100" cy="100" r="8" fill="rgba(124,58,237,.3)" stroke="var(--v)" stroke-width="1.5"/>
+            </svg>
+          </div>
+        </div>
+        <div class="ob-title">Your AI coach<br>learns your rhythm</div>
+        <div class="ob-desc">fitNXT analyzes your training history and adapts your program in real time — so every session moves you forward.</div>
+        <button class="ob-btn">Next</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow">→</div>
+
+  <!-- SCREEN 3: ONBOARDING SLIDE 2 -->
+  <div class="screen-col">
+    <div class="screen-name">Onboarding · 2/3</div>
+    <div class="phone">
+      <div class="di"></div>
+      <div class="sb"><span class="time">9:41</span><div class="status-icons"><svg class="status-icon" viewBox="0 0 16 16"><path d="M1 10.5h2v2H1v-2zm3-3h2v5H4v-5zm3-3h2v8H7v-8zm3-3h2v11h-2V1.5z" opacity=".9"/></svg><svg class="status-icon" viewBox="0 0 16 16"><path d="M8 2C4.7 2 1.8 3.3 0 5.5l1.5 1.5c1.4-1.7 3.6-2.8 6-2.8 2.4 0 4.6 1.1 6 2.8L15 5.5C13.2 3.3 10.3 2 8 2zM8 6c-1.7 0-3.2.7-4.3 1.8L5 9c.8-.8 1.9-1.3 3-1.3s2.2.5 3 1.3l1.3-1.2C11.2 6.7 9.7 6 8 6zm0 4c-.7 0-1.3.3-1.8.7L8 12.5l1.8-1.8C9.3 10.3 8.7 10 8 10z" opacity=".9"/></svg><svg class="status-icon" viewBox="0 0 16 16"><rect x="1" y="4.5" width="12" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="2" y="5.5" width="8" height="5" rx=".5" fill="currentColor"/><path d="M14 7.5v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div></div>
+      <div class="onboard">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div class="ob-progress"><div class="ob-dot"></div><div class="ob-dot active"></div><div class="ob-dot"></div></div>
+          <button class="ob-skip">Skip</button>
+        </div>
+        <div class="ob-illus">
+          <div style="position:relative;width:220px;">
+            <!-- Workout card illustration -->
+            <div style="background:radial-gradient(ellipse 80% 60% at 80% 20%,rgba(249,112,102,.3) 0%,transparent 60%),linear-gradient(160deg,#1E0B08 0%,#3D150E 50%,#6B1E12 100%);border-radius:24px;padding:20px;position:relative;overflow:hidden;">
+              <div style="font-size:10px;color:rgba(249,112,102,.7);margin-bottom:6px;">BENCH PRESS</div>
+              <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#fff;">Set 3<span style="font-size:14px;color:rgba(255,255,255,.5);font-family:'DM Sans',sans-serif;"> of 5</span></div>
+              <!-- Mini ring -->
+              <svg width="80" height="80" style="position:absolute;right:12px;top:12px;" viewBox="0 0 80 80">
+                <circle cx="40" cy="40" r="30" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="6"/>
+                <circle cx="40" cy="40" r="30" fill="none" stroke="var(--c)" stroke-width="6" stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="70" transform="rotate(-90 40 40)"/>
+              </svg>
+              <div style="margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:22px;color:#fff;">135 lb × 8</div>
+              <div style="margin-top:12px;background:var(--c);border-radius:12px;padding:10px;text-align:center;font-size:13px;font-weight:600;color:#fff;">LOG SET</div>
+            </div>
+          </div>
+        </div>
+        <div class="ob-title">Log sets in<br>under 3 seconds</div>
+        <div class="ob-desc">Quick-entry set logging with smart weight suggestions based on your history. No fumbling between exercises.</div>
+        <button class="ob-btn">Next</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow">→</div>
+
+  <!-- SCREEN 4: LOGIN -->
+  <div class="screen-col">
+    <div class="screen-name">Login</div>
+    <div class="phone">
+      <div class="di"></div>
+      <div class="sb"><span class="time">9:41</span><div class="status-icons"><svg class="status-icon" viewBox="0 0 16 16"><path d="M1 10.5h2v2H1v-2zm3-3h2v5H4v-5zm3-3h2v8H7v-8zm3-3h2v11h-2V1.5z" opacity=".9"/></svg><svg class="status-icon" viewBox="0 0 16 16"><path d="M8 2C4.7 2 1.8 3.3 0 5.5l1.5 1.5c1.4-1.7 3.6-2.8 6-2.8 2.4 0 4.6 1.1 6 2.8L15 5.5C13.2 3.3 10.3 2 8 2zM8 6c-1.7 0-3.2.7-4.3 1.8L5 9c.8-.8 1.9-1.3 3-1.3s2.2.5 3 1.3l1.3-1.2C11.2 6.7 9.7 6 8 6zm0 4c-.7 0-1.3.3-1.8.7L8 12.5l1.8-1.8C9.3 10.3 8.7 10 8 10z" opacity=".9"/></svg><svg class="status-icon" viewBox="0 0 16 16"><rect x="1" y="4.5" width="12" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="2" y="5.5" width="8" height="5" rx=".5" fill="currentColor"/><path d="M14 7.5v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div></div>
+      <div class="auth-screen">
+        <div class="auth-back">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+          Back
+        </div>
+        <!-- Subtle glow -->
+        <div style="position:absolute;top:100px;left:50%;transform:translateX(-50%);width:200px;height:200px;background:radial-gradient(circle,rgba(124,58,237,.15) 0%,transparent 70%);pointer-events:none;"></div>
+        <div class="auth-title">Welcome back</div>
+        <div class="auth-sub">Sign in to your account</div>
+        <div class="input-group">
+          <label class="input-label">Email</label>
+          <div class="input-field"><span class="input-placeholder">you@example.com</span></div>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Password</label>
+          <div class="input-field">
+            <span class="input-placeholder">••••••••</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+        </div>
+        <div class="auth-forgot">Forgot password?</div>
+        <button class="auth-btn">Sign in</button>
+        <div class="divider-row"><div class="div-line"></div><span class="div-text">or</span><div class="div-line"></div></div>
+        <div class="google-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+          Continue with Google
+        </div>
+        <div class="auth-footer" style="margin-top:auto;">Don't have an account? <span>Sign up</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow">→</div>
+
+  <!-- SCREEN 5: GOAL SETUP -->
+  <div class="screen-col">
+    <div class="screen-name">Goal Setup</div>
+    <div class="phone">
+      <div class="di"></div>
+      <div class="sb"><span class="time">9:41</span><div class="status-icons"><svg class="status-icon" viewBox="0 0 16 16"><path d="M1 10.5h2v2H1v-2zm3-3h2v5H4v-5zm3-3h2v8H7v-8zm3-3h2v11h-2V1.5z" opacity=".9"/></svg><svg class="status-icon" viewBox="0 0 16 16"><path d="M8 2C4.7 2 1.8 3.3 0 5.5l1.5 1.5c1.4-1.7 3.6-2.8 6-2.8 2.4 0 4.6 1.1 6 2.8L15 5.5C13.2 3.3 10.3 2 8 2zM8 6c-1.7 0-3.2.7-4.3 1.8L5 9c.8-.8 1.9-1.3 3-1.3s2.2.5 3 1.3l1.3-1.2C11.2 6.7 9.7 6 8 6zm0 4c-.7 0-1.3.3-1.8.7L8 12.5l1.8-1.8C9.3 10.3 8.7 10 8 10z" opacity=".9"/></svg><svg class="status-icon" viewBox="0 0 16 16"><rect x="1" y="4.5" width="12" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="2" y="5.5" width="8" height="5" rx=".5" fill="currentColor"/><path d="M14 7.5v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div></div>
+      <div class="goal-screen">
+        <div class="goal-step">Step 1 of 3</div>
+        <!-- Step progress bar -->
+        <div style="display:flex;gap:4px;margin-bottom:24px;">
+          <div style="flex:1;height:3px;background:var(--v);border-radius:2px;"></div>
+          <div style="flex:1;height:3px;background:var(--b);border-radius:2px;"></div>
+          <div style="flex:1;height:3px;background:var(--b);border-radius:2px;"></div>
+        </div>
+        <div class="goal-title">What's your primary goal?</div>
+        <div class="goal-sub">We'll build your first mesocycle around this.</div>
+        <div class="goal-grid">
+          <div class="goal-card selected">
+            <div class="goal-icon" style="background:var(--vt);">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--v)" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/></svg>
+            </div>
+            <div class="goal-name">Build Muscle</div>
+            <div class="goal-desc">Hypertrophy-focused programming</div>
+          </div>
+          <div class="goal-card">
+            <div class="goal-icon" style="background:var(--ct);">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--c)" stroke-width="1.8" stroke-linecap="round"><path d="M12 2L8 10H2l6 5-2 7 6-4 6 4-2-7 6-5h-6L12 2z"/></svg>
+            </div>
+            <div class="goal-name">Gain Strength</div>
+            <div class="goal-desc">Powerlifting periodisation</div>
+          </div>
+          <div class="goal-card">
+            <div class="goal-icon" style="background:rgba(74,222,128,.1);">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="1.8" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg>
+            </div>
+            <div class="goal-name">Lose Fat</div>
+            <div class="goal-desc">Maintain muscle in deficit</div>
+          </div>
+          <div class="goal-card">
+            <div class="goal-icon" style="background:var(--s3);">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--t2)" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+            </div>
+            <div class="goal-name">General Fitness</div>
+            <div class="goal-desc">Well-rounded training</div>
+          </div>
+        </div>
+        <button class="goal-continue">Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow">→</div>
+
+  <!-- SCREEN 6: EXPERIENCE LEVEL -->
+  <div class="screen-col">
+    <div class="screen-name">Experience Level</div>
+    <div class="phone">
+      <div class="di"></div>
+      <div class="sb"><span class="time">9:41</span><div class="status-icons"><svg class="status-icon" viewBox="0 0 16 16"><path d="M1 10.5h2v2H1v-2zm3-3h2v5H4v-5zm3-3h2v8H7v-8zm3-3h2v11h-2V1.5z" opacity=".9"/></svg><svg class="status-icon" viewBox="0 0 16 16"><path d="M8 2C4.7 2 1.8 3.3 0 5.5l1.5 1.5c1.4-1.7 3.6-2.8 6-2.8 2.4 0 4.6 1.1 6 2.8L15 5.5C13.2 3.3 10.3 2 8 2zM8 6c-1.7 0-3.2.7-4.3 1.8L5 9c.8-.8 1.9-1.3 3-1.3s2.2.5 3 1.3l1.3-1.2C11.2 6.7 9.7 6 8 6zm0 4c-.7 0-1.3.3-1.8.7L8 12.5l1.8-1.8C9.3 10.3 8.7 10 8 10z" opacity=".9"/></svg><svg class="status-icon" viewBox="0 0 16 16"><rect x="1" y="4.5" width="12" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="2" y="5.5" width="8" height="5" rx=".5" fill="currentColor"/><path d="M14 7.5v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div></div>
+      <div class="exp-screen">
+        <div style="font-size:12px;color:var(--t3);margin-bottom:8px;">Step 2 of 3</div>
+        <div style="display:flex;gap:4px;margin-bottom:24px;">
+          <div style="flex:1;height:3px;background:var(--v);border-radius:2px;"></div>
+          <div style="flex:1;height:3px;background:var(--v);border-radius:2px;"></div>
+          <div style="flex:1;height:3px;background:var(--b);border-radius:2px;"></div>
+        </div>
+        <div class="exp-title">How long have you been lifting?</div>
+        <div class="exp-sub">This calibrates your starting weights and progression rate.</div>
+        <div class="exp-list">
+          <div class="exp-item">
+            <div class="exp-num">01</div>
+            <div class="exp-info">
+              <div class="exp-name">Beginner</div>
+              <div class="exp-range">Less than 1 year</div>
+            </div>
+          </div>
+          <div class="exp-item selected">
+            <div class="exp-num" style="color:var(--v)">02</div>
+            <div class="exp-info">
+              <div class="exp-name">Intermediate</div>
+              <div class="exp-range">1–3 years consistent training</div>
+            </div>
+            <!-- Check -->
+            <div style="margin-left:auto;width:24px;height:24px;border-radius:50%;background:var(--v);display:flex;align-items:center;justify-content:center;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bg)" stroke-width="3" stroke-linecap="round"><polyline points="20,6 9,17 4,12"/></svg>
+            </div>
+          </div>
+          <div class="exp-item">
+            <div class="exp-num">03</div>
+            <div class="exp-info">
+              <div class="exp-name">Advanced</div>
+              <div class="exp-range">3–6 years, nearing genetic ceiling</div>
+            </div>
+          </div>
+          <div class="exp-item">
+            <div class="exp-num">04</div>
+            <div class="exp-info">
+              <div class="exp-name">Elite</div>
+              <div class="exp-range">Competitive, 6+ years</div>
+            </div>
+          </div>
+        </div>
+        <button class="exp-btn">Finish setup</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div style="font-size:12px;color:var(--t3);border-top:1px solid var(--b);padding-top:20px;margin-top:8px;">
+  Auth flow — 6 screens · Violet accent throughout · Google OAuth on login screen · Step progress bar on goal + experience screens
+</div>
+
+</body>
+</html>

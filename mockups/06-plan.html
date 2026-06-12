@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>fitNXT · Training Plan</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#06060D;--s:#0D0D1A;--s2:#141426;--s3:#1C1C32;
+  --b:rgba(255,255,255,.055);--b2:rgba(255,255,255,.10);
+  --v:#A78BFA;--vd:#7C3AED;--vt:rgba(124,58,237,.12);--vb:rgba(167,139,250,.22);
+  --c:#F97066;--ct:rgba(249,112,102,.12);--cb:rgba(249,112,102,.22);
+  --g:#FCD34D;--ok:#4ADE80;--t1:#EEEEF8;--t2:#76768E;--t3:#36364E;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0A0A14;font-family:'DM Sans',sans-serif;color:var(--t1);padding:40px;min-height:100vh;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.page-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;}
+.page-sub{color:var(--t2);font-size:13px;margin-bottom:28px;}
+.nav-links{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:40px;}
+.nav-link{display:inline-flex;align-items:center;padding:6px 14px;border-radius:999px;background:var(--s2);border:1px solid var(--b);color:var(--t2);font-size:12px;text-decoration:none;}
+.nav-link.active{background:var(--vt);border-color:var(--vb);color:var(--v);}
+.screens{display:flex;align-items:flex-start;gap:28px;overflow-x:auto;padding-bottom:40px;}
+.screen-col{display:flex;flex-direction:column;align-items:center;gap:12px;flex-shrink:0;}
+.screen-name{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--t2);}
+.phone{width:390px;height:844px;background:var(--bg);border-radius:44px;overflow:hidden;position:relative;border:1px solid var(--b);box-shadow:0 0 0 8px rgba(255,255,255,.015),0 48px 100px rgba(0,0,0,.8);}
+.di{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:126px;height:37px;background:#000;border-radius:20px;z-index:10;}
+.sb{position:relative;height:54px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 28px 8px;}
+.time{font-size:15px;font-weight:600;}
+.si{display:flex;align-items:center;gap:5px;opacity:.9;}
+svg.ic{width:16px;height:16px;fill:currentColor;}
+.bnav{position:absolute;bottom:0;left:0;right:0;height:84px;background:rgba(13,13,26,.85);backdrop-filter:blur(20px);border-top:1px solid var(--b);display:flex;align-items:flex-start;justify-content:space-around;padding-top:10px;}
+.ni{display:flex;flex-direction:column;align-items:center;gap:3px;width:64px;opacity:.3;}
+.ni.av{opacity:1;color:var(--v);}
+.ni svg{width:24px;height:24px;}
+.ni span{font-size:10px;font-weight:500;}
+.card{background:var(--s2);border:1px solid var(--b);border-radius:16px;padding:14px 16px;}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;font-size:11px;font-weight:500;}
+.pv{background:var(--vt);border:1px solid var(--vb);color:var(--v);}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="page-title">06 · Training Plan</div>
+  <a href="index.html" style="font-size:13px;color:var(--t2);text-decoration:none;">← App Map</a>
+</div>
+<p class="page-sub">Violet accent throughout. Mesocycle calendar, weekly schedule, and workout template detail.</p>
+
+<div class="nav-links">
+  <a class="nav-link" href="01-auth.html">01 · Auth</a>
+  <a class="nav-link" href="02-today.html">02 · Today</a>
+  <a class="nav-link" href="03-session.html">03 · Session</a>
+  <a class="nav-link" href="04-coach.html">04 · Coach</a>
+  <a class="nav-link" href="05-progress.html">05 · Progress</a>
+  <a class="nav-link active" href="06-plan.html">06 · Plan</a>
+  <a class="nav-link" href="07-profile.html">07 · Profile</a>
+  <a class="nav-link" href="08-overlays.html">08 · Overlays</a>
+</div>
+
+<div class="screens">
+
+  <!-- SCREEN 1: TRAINING PLAN -->
+  <div class="screen-col">
+    <div class="screen-name">Mesocycle Overview</div>
+    <div class="phone">
+      <div class="di"></div>
+      <div class="sb"><span class="time">9:41</span><div class="si"><svg class="ic" viewBox="0 0 16 16"><path d="M1 10.5h2v2H1v-2zm3-3h2v5H4v-5zm3-3h2v8H7v-8zm3-3h2v11h-2V1.5z"/></svg><svg class="ic" viewBox="0 0 16 16"><path d="M8 2C4.7 2 1.8 3.3 0 5.5l1.5 1.5C2.9 5.3 5.1 4.2 7.5 4.2s4.6 1.1 6 2.8L15 5.5C13.2 3.3 10.3 2 8 2z"/></svg><svg class="ic" viewBox="0 0 16 16"><rect x="1" y="4.5" width="12" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="2" y="5.5" width="8" height="5" rx=".5" fill="currentColor"/><path d="M14 7.5v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div></div>
+
+      <div style="padding:0 20px;height:706px;overflow:hidden;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;">Plan</div>
+          <div style="font-size:13px;color:var(--v);cursor:pointer;">New meso</div>
+        </div>
+        <div style="margin-bottom:14px;"><div class="pill pv">AI-generated · Week 3 of 8</div></div>
+
+        <!-- Active meso card -->
+        <div style="border-radius:20px;padding:20px;margin-bottom:14px;background:radial-gradient(ellipse 80% 60% at 90% 0%,rgba(167,139,250,.35) 0%,transparent 60%),var(--s3);border:1px solid var(--vb);">
+          <div style="font-size:11px;color:var(--v);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">ACTIVE MESOCYCLE</div>
+          <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:2px;">PPL Hypertrophy</div>
+          <div style="font-size:13px;color:var(--t2);margin-bottom:14px;">Push · Pull · Legs · 6 days/week</div>
+          <!-- 8-week calendar -->
+          <div style="display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin-bottom:12px;">
+            <!-- Wk 1 done -->
+            <div style="text-align:center;"><div style="font-size:9px;color:var(--t3);margin-bottom:3px;">W1</div><div style="height:28px;border-radius:6px;background:rgba(74,222,128,.2);border:1px solid rgba(74,222,128,.3);display:flex;align-items:center;justify-content:center;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="3"><polyline points="20,6 9,17 4,12"/></svg></div></div>
+            <!-- Wk 2 done -->
+            <div style="text-align:center;"><div style="font-size:9px;color:var(--t3);margin-bottom:3px;">W2</div><div style="height:28px;border-radius:6px;background:rgba(74,222,128,.2);border:1px solid rgba(74,222,128,.3);display:flex;align-items:center;justify-content:center;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="3"><polyline points="20,6 9,17 4,12"/></svg></div></div>
+            <!-- Wk 3 active -->
+            <div style="text-align:center;"><div style="font-size:9px;color:var(--v);margin-bottom:3px;font-weight:600;">W3</div><div style="height:28px;border-radius:6px;background:var(--v);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:var(--bg);">NOW</div></div>
+            <!-- Wk 4-8 upcoming -->
+            <div style="text-align:center;"><div style="font-size:9px;color:var(--t3);margin-bottom:3px;">W4</div><div style="height:28px;border-radius:6px;background:var(--b);"></div></div>
+            <div style="text-align:center;"><div style="font-size:9px;color:var(--t3);margin-bottom:3px;">W5</div><div style="height:28px;border-radius:6px;background:var(--b);"></div></div>
+            <div style="text-align:center;"><div style="font-size:9px;color:var(--t3);margin-bottom:3px;">W6</div><div style="height:28px;border-radius:6px;background:var(--b);"></div></div>
+            <div style="text-align:center;"><div style="font-size:9px;color:var(--t3);margin-bottom:3px;">W7</div><div style="height:28px;border-radius:6px;background:var(--b);"></div></div>
+            <div style="text-align:center;"><div style="font-size:9px;color:var(--t3);margin-bottom:3px;">DL</div><div style="height:28px;border-radius:6px;background:rgba(252,211,77,.1);border:1px dashed rgba(252,211,77,.3);"></div></div>
+          </div>
+          <div style="display:flex;gap:16px;">
+            <div><div style="font-family:'JetBrains Mono',monospace;font-size:18px;">37%</div><div style="font-size:10px;color:var(--t2);">Complete</div></div>
+            <div><div style="font-family:'JetBrains Mono',monospace;font-size:18px;">W8</div><div style="font-size:10px;color:var(--t2);">Deload</div></div>
+            <div><div style="font-family:'JetBrains Mono',monospace;font-size:18px;">Aug 4</div><div style="font-size:10px;color:var(--t2);">End date</div></div>
+          </div>
+        </div>
+
+        <!-- Weekly split -->
+        <div style="font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;">This week</div>
+
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div class="card" style="display:flex;align-items:center;gap:12px;background:rgba(74,222,128,.05);border-color:rgba(74,222,128,.15);">
+            <div style="width:36px;height:36px;border-radius:10px;background:rgba(74,222,128,.15);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--ok);flex-shrink:0;">MON</div>
+            <div style="flex:1;"><div style="font-size:14px;font-weight:500;">Push A</div><div style="font-size:12px;color:var(--t2);">Chest · Shoulders · Triceps</div></div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+          </div>
+
+          <div class="card" style="display:flex;align-items:center;gap:12px;">
+            <div style="width:36px;height:36px;border-radius:10px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--t2);flex-shrink:0;">TUE</div>
+            <div style="flex:1;"><div style="font-size:14px;font-weight:500;">Pull B</div><div style="font-size:12px;color:var(--t2);">Back · Biceps · Rear delts</div></div>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="1.8"><polyline points="9,18 15,12 9,6"/></svg>
+          </div>
+
+          <div class="card" style="display:flex;align-items:center;gap:12px;">
+            <div style="width:36px;height:36px;border-radius:10px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--t2);flex-shrink:0;">WED</div>
+            <div style="flex:1;"><div style="font-size:14px;font-weight:500;">Legs A</div><div style="font-size:12px;color:var(--t2);">Quads · Hamstrings · Calves</div></div>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="1.8"><polyline points="9,18 15,12 9,6"/></svg>
+          </div>
+
+          <div class="card" style="display:flex;align-items:center;gap:12px;border-color:var(--vb);background:var(--vt);">
+            <div style="width:36px;height:36px;border-radius:10px;background:var(--vt);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--v);flex-shrink:0;">THU</div>
+            <div style="flex:1;"><div style="font-size:14px;font-weight:500;color:var(--v);">Rest</div><div style="font-size:12px;color:var(--t2);">Recovery day · AI-recommended</div></div>
+          </div>
+
+          <div class="card" style="display:flex;align-items:center;gap:12px;">
+            <div style="width:36px;height:36px;border-radius:10px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--t2);flex-shrink:0;">FRI</div>
+            <div style="flex:1;"><div style="font-size:14px;font-weight:500;">Push B</div><div style="font-size:12px;color:var(--t2);">Chest · Shoulders · Triceps</div></div>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="1.8"><polyline points="9,18 15,12 9,6"/></svg>
+          </div>
+
+          <div class="card" style="display:flex;align-items:center;gap:12px;">
+            <div style="width:36px;height:36px;border-radius:10px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--t2);flex-shrink:0;">SAT</div>
+            <div style="flex:1;"><div style="font-size:14px;font-weight:500;">Pull A</div><div style="font-size:12px;color:var(--t2);">Back · Biceps</div></div>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="1.8"><polyline points="9,18 15,12 9,6"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="bnav">
+        <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Today</span></div>
+        <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span>Train</span></div>
+        <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Coach</span></div>
+        <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg><span>Progress</span></div>
+        <div class="ni av"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Plan</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 2: WORKOUT TEMPLATE DETAIL -->
+  <div class="screen-col">
+    <div class="screen-name">Workout Template</div>
+    <div class="phone">
+      <div class="di"></div>
+      <div class="sb"><span class="time">9:41</span><div class="si"><svg class="ic" viewBox="0 0 16 16"><path d="M1 10.5h2v2H1v-2zm3-3h2v5H4v-5zm3-3h2v8H7v-8zm3-3h2v11h-2V1.5z"/></svg><svg class="ic" viewBox="0 0 16 16"><path d="M8 2C4.7 2 1.8 3.3 0 5.5l1.5 1.5C2.9 5.3 5.1 4.2 7.5 4.2s4.6 1.1 6 2.8L15 5.5C13.2 3.3 10.3 2 8 2z"/></svg><svg class="ic" viewBox="0 0 16 16"><rect x="1" y="4.5" width="12" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="2" y="5.5" width="8" height="5" rx=".5" fill="currentColor"/><path d="M14 7.5v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div></div>
+
+      <div style="padding:0 20px;height:706px;overflow:hidden;">
+        <!-- Header -->
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--t2)" stroke-width="1.8"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+          <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;">Push A</div>
+          <div style="margin-left:auto;"><div class="pill pv" style="font-size:10px;padding:3px 10px;">Week 3</div></div>
+        </div>
+        <div style="font-size:13px;color:var(--t2);margin-bottom:16px;padding-left:36px;">Chest · Shoulders · Triceps · ~55 min</div>
+
+        <!-- Volume indicators -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">
+          <div class="card" style="text-align:center;padding:10px 8px;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:16px;color:var(--t1);">6</div>
+            <div style="font-size:10px;color:var(--t2);">Exercises</div>
+          </div>
+          <div class="card" style="text-align:center;padding:10px 8px;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:16px;color:var(--t1);">22</div>
+            <div style="font-size:10px;color:var(--t2);">Total sets</div>
+          </div>
+          <div class="card" style="text-align:center;padding:10px 8px;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:16px;color:var(--v);">+4%</div>
+            <div style="font-size:10px;color:var(--t2);">vs Wk2</div>
+          </div>
+        </div>
+
+        <!-- Exercise list -->
+        <div style="font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;">Exercises</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+
+          <div class="card">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+              <div style="width:28px;height:28px;border-radius:8px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--t2);">1</div>
+              <div style="flex:1;font-size:14px;font-weight:600;">Bench Press</div>
+              <div style="font-size:12px;color:var(--t2);">Primary</div>
+            </div>
+            <div style="display:flex;gap:16px;padding-left:40px;">
+              <div><div style="font-family:'JetBrains Mono',monospace;font-size:15px;color:var(--t1);">4</div><div style="font-size:10px;color:var(--t2);">Sets</div></div>
+              <div><div style="font-family:'JetBrains Mono',monospace;font-size:15px;color:var(--t1);">6–8</div><div style="font-size:10px;color:var(--t2);">Reps</div></div>
+              <div><div style="font-family:'JetBrains Mono',monospace;font-size:15px;color:var(--t1);">135</div><div style="font-size:10px;color:var(--t2);">lb last</div></div>
+              <div><div style="font-family:'JetBrains Mono',monospace;font-size:15px;color:var(--t1);">2:00</div><div style="font-size:10px;color:var(--t2);">Rest</div></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+              <div style="width:28px;height:28px;border-radius:8px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--t2);">2</div>
+              <div style="flex:1;font-size:14px;font-weight:600;">Incline DB Press</div>
+              <div style="font-size:12px;color:var(--t2);">Primary</div>
+            </div>
+            <div style="display:flex;gap:16px;padding-left:40px;">
+              <div><div style="font-family:'JetBrains Mono',monospace;font-size:15px;">4</div><div style="font-size:10px;color:var(--t2);">Sets</div></div>
+              <div><div style="font-family:'JetBrains Mono',monospace;font-size:15px;">8–10</div><div style="font-size:10px;color:var(--t2);">Reps</div></div>
+              <div><div style="font-family:'JetBrains Mono',monospace;font-size:15px;">65</div><div style="font-size:10px;color:var(--t2);">lb last</div></div>
+              <div><div style="font-family:'JetBrains Mono',monospace;font-size:15px;">1:30</div><div style="font-size:10px;color:var(--t2);">Rest</div></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+              <div style="width:28px;height:28px;border-radius:8px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--t2);">3</div>
+              <div style="flex:1;font-size:14px;font-weight:600;">OHP</div>
+              <div style="font-size:12px;color:var(--t2);">Secondary</div>
+            </div>
+            <div style="display:flex;gap:16px;padding-left:40px;">
+              <div><div style="font-family:'JetBrains Mono',monospace;font-size:15px;">4</div><div style="font-size:10px;color:var(--t2);">Sets</div></div>
+              <div><div style="font-family:'JetBrains Mono',monospace;font-size:15px;">8–10</div><div style="font-size:10px;color:var(--t2);">Reps</div></div>
+              <div><div style="font-family:'JetBrains Mono',monospace;font-size:15px;">85</div><div style="font-size:10px;color:var(--t2);">lb last</div></div>
+              <div><div style="font-family:'JetBrains Mono',monospace;font-size:15px;">2:00</div><div style="font-size:10px;color:var(--t2);">Rest</div></div>
+            </div>
+          </div>
+
+          <div class="card" style="opacity:.8;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div style="width:28px;height:28px;border-radius:8px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--t2);">4</div>
+              <div style="flex:1;font-size:14px;font-weight:500;">Lateral Raises</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--t2);">4×15</div>
+            </div>
+          </div>
+
+          <div class="card" style="opacity:.8;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div style="width:28px;height:28px;border-radius:8px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--t2);">5</div>
+              <div style="flex:1;font-size:14px;font-weight:500;">Tricep Pushdowns</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--t2);">3×12</div>
+            </div>
+          </div>
+
+          <div class="card" style="opacity:.8;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div style="width:28px;height:28px;border-radius:8px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--t2);">6</div>
+              <div style="flex:1;font-size:14px;font-weight:500;">Skull Crushers</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--t2);">3×10</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Start button -->
+        <div style="padding:16px 0 0;">
+          <button style="width:100%;height:52px;border-radius:16px;background:var(--c);border:none;font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:#fff;cursor:pointer;">Start Push A</button>
+        </div>
+      </div>
+
+      <div class="bnav">
+        <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Today</span></div>
+        <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span>Train</span></div>
+        <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Coach</span></div>
+        <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg><span>Progress</span></div>
+        <div class="ni av"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Plan</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div style="font-size:12px;color:var(--t3);border-top:1px solid var(--b);padding-top:20px;">
+  Plan · Violet for meso card and AI-recommended rest day · Coral for the Start Workout button on template · 2 screens shown
+</div>
+</body>
+</html>

@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>fitNXT · Workout Session</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#06060D;--s:#0D0D1A;--s2:#141426;--s3:#1C1C32;--s4:#23233C;
+  --b:rgba(255,255,255,.055);--b2:rgba(255,255,255,.10);
+  --v:#A78BFA;--vd:#7C3AED;--vt:rgba(124,58,237,.12);--vb:rgba(167,139,250,.22);
+  --c:#F97066;--cd:#C4361A;--ct:rgba(249,112,102,.12);--cb:rgba(249,112,102,.22);
+  --g:#FCD34D;--gt:rgba(252,211,77,.10);--gb:rgba(252,211,77,.22);
+  --ok:#4ADE80;--err:#EF4444;--t1:#EEEEF8;--t2:#76768E;--t3:#36364E;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0A0A14;font-family:'DM Sans',sans-serif;color:var(--t1);padding:40px;min-height:100vh;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.page-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;}
+.page-sub{color:var(--t2);font-size:13px;margin-bottom:28px;}
+.nav-links{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:40px;}
+.nav-link{display:inline-flex;align-items:center;padding:6px 14px;border-radius:999px;background:var(--s2);border:1px solid var(--b);color:var(--t2);font-size:12px;text-decoration:none;}
+.nav-link.active{background:var(--ct);border-color:var(--cb);color:var(--c);}
+.screens{display:flex;align-items:flex-start;gap:20px;overflow-x:auto;padding-bottom:40px;}
+.screen-col{display:flex;flex-direction:column;align-items:center;gap:12px;flex-shrink:0;}
+.screen-name{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--t2);}
+.arrow{color:var(--t3);font-size:22px;padding-top:440px;flex-shrink:0;}
+.phone{width:390px;height:844px;background:var(--bg);border-radius:44px;overflow:hidden;position:relative;border:1px solid var(--b);box-shadow:0 0 0 8px rgba(255,255,255,.015),0 48px 100px rgba(0,0,0,.8),0 0 80px rgba(249,112,102,.08);}
+.di{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:126px;height:37px;background:#000;border-radius:20px;z-index:10;}
+.sb{position:relative;height:54px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 28px 8px;}
+.time{font-size:15px;font-weight:600;}
+.si{display:flex;align-items:center;gap:5px;opacity:.9;}
+svg.ic{width:16px;height:16px;fill:currentColor;}
+.bnav{position:absolute;bottom:0;left:0;right:0;height:84px;background:rgba(13,13,26,.85);backdrop-filter:blur(20px);border-top:1px solid var(--b);display:flex;align-items:flex-start;justify-content:space-around;padding-top:10px;}
+.ni{display:flex;flex-direction:column;align-items:center;gap:3px;width:64px;opacity:.3;}
+.ni.ac{opacity:1;color:var(--c);}
+.ni svg{width:24px;height:24px;}
+.ni span{font-size:10px;font-weight:500;}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;font-size:11px;font-weight:500;}
+.pc{background:var(--ct);border:1px solid var(--cb);color:var(--c);}
+.pg{background:var(--gt);border:1px solid var(--gb);color:var(--g);}
+.card{background:var(--s2);border:1px solid var(--b);border-radius:16px;padding:14px 16px;}
+@keyframes pd{0%,100%{opacity:1;}50%{opacity:.4;}}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="page-title">03 · Workout Session</div>
+  <a href="index.html" style="font-size:13px;color:var(--t2);text-decoration:none;">← App Map</a>
+</div>
+<p class="page-sub">Full coral ownership — ring, timer, LOG SET button, active Train tab. Five screens covering the complete session flow.</p>
+
+<div class="nav-links">
+  <a class="nav-link" href="01-auth.html">01 · Auth</a>
+  <a class="nav-link" href="02-today.html">02 · Today</a>
+  <a class="nav-link active" href="03-session.html">03 · Session</a>
+  <a class="nav-link" href="04-coach.html">04 · Coach</a>
+  <a class="nav-link" href="05-progress.html">05 · Progress</a>
+  <a class="nav-link" href="06-plan.html">06 · Plan</a>
+  <a class="nav-link" href="07-profile.html">07 · Profile</a>
+  <a class="nav-link" href="08-overlays.html">08 · Overlays</a>
+</div>
+
+<div class="screens">
+
+  <!-- SCREEN 1: WORKOUT OVERVIEW -->
+  <div class="screen-col">
+    <div class="screen-name">Workout Overview</div>
+    <div class="phone">
+      <div class="di"></div>
+      <div class="sb"><span class="time">9:41</span><div class="si"><svg class="ic" viewBox="0 0 16 16"><path d="M1 10.5h2v2H1v-2zm3-3h2v5H4v-5zm3-3h2v8H7v-8zm3-3h2v11h-2V1.5z"/></svg><svg class="ic" viewBox="0 0 16 16"><path d="M8 2C4.7 2 1.8 3.3 0 5.5l1.5 1.5C2.9 5.3 5.1 4.2 7.5 4.2s4.6 1.1 6 2.8L15 5.5C13.2 3.3 10.3 2 8 2z"/></svg><svg class="ic" viewBox="0 0 16 16"><rect x="1" y="4.5" width="12" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="2" y="5.5" width="8" height="5" rx=".5" fill="currentColor"/><path d="M14 7.5v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div></div>
+
+      <div style="padding:0 20px;height:706px;overflow:hidden;">
+        <!-- Header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--t2)" stroke-width="1.8"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+          <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;">Push A</div>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--t2)" stroke-width="1.8"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+        </div>
+        <div style="font-size:12px;color:var(--t2);text-align:center;margin-bottom:20px;">Week 3 · Day 1 · Upper Push</div>
+
+        <!-- Session timer (running) -->
+        <div style="background:var(--ct);border:1px solid var(--cb);border-radius:14px;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--c);animation:pd 2s ease infinite;"></div>
+            <span style="font-size:13px;font-weight:500;color:var(--c);">Session Active</span>
+          </div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:16px;color:var(--c);">00:00</div>
+        </div>
+        <!-- Exercise list -->
+        <div style="display:flex;flex-direction:column;gap:8px;">
+
+          <!-- Ex 1 - active -->
+          <div style="background:var(--ct);border:1px solid var(--cb);border-radius:16px;padding:14px 16px;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div style="width:32px;height:32px;border-radius:8px;background:var(--c);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:500;color:#fff;flex-shrink:0;">1</div>
+              <div style="flex:1;">
+                <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;">Bench Press</div>
+                <div style="font-size:12px;color:var(--c);">4×8 · 135 lb suggested</div>
+              </div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--c);">0/4</div>
+            </div>
+          </div>
+
+          <!-- Ex 2-6 -->
+          <div class="card" style="display:flex;align-items:center;gap:12px;">
+            <div style="width:32px;height:32px;border-radius:8px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--t2);flex-shrink:0;">2</div>
+            <div style="flex:1;"><div style="font-size:15px;font-weight:500;">Incline DB Press</div><div style="font-size:12px;color:var(--t2);">4×10 · 50 lb suggested</div></div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--t3);">0/4</div>
+          </div>
+
+          <div class="card" style="display:flex;align-items:center;gap:12px;">
+            <div style="width:32px;height:32px;border-radius:8px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--t2);flex-shrink:0;">3</div>
+            <div style="flex:1;"><div style="font-size:15px;font-weight:500;">OHP</div><div style="font-size:12px;color:var(--t2);">4×8 · 85 lb suggested</div></div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--t3);">0/4</div>
+          </div>
+
+          <div class="card" style="display:flex;align-items:center;gap:12px;">
+            <div style="width:32px;height:32px;border-radius:8px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--t2);flex-shrink:0;">4</div>
+            <div style="flex:1;"><div style="font-size:15px;font-weight:500;">Lateral Raises</div><div style="font-size:12px;color:var(--t2);">4×15 · 20 lb suggested</div></div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--t3);">0/4</div>
+          </div>
+
+          <div class="card" style="display:flex;align-items:center;gap:12px;">
+            <div style="width:32px;height:32px;border-radius:8px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--t2);flex-shrink:0;">5</div>
+            <div style="flex:1;"><div style="font-size:15px;font-weight:500;">Tricep Pushdowns</div><div style="font-size:12px;color:var(--t2);">3×12 · 50 lb suggested</div></div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--t3);">0/3</div>
+          </div>
+
+          <div class="card" style="display:flex;align-items:center;gap:12px;">
+            <div style="width:32px;height:32px;border-radius:8px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--t2);flex-shrink:0;">6</div>
+            <div style="flex:1;"><div style="font-size:15px;font-weight:500;">Skull Crushers</div><div style="font-size:12px;color:var(--t2);">3×10 · 65 lb suggested</div></div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--t3);">0/3</div>
+          </div>
+
+          <!-- Add exercise -->
+          <div style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border:1px dashed var(--b2);border-radius:14px;color:var(--t2);font-size:14px;cursor:pointer;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add exercise
+          </div>
+        </div>
+      </div>
+
+      <div class="bnav">
+        <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Today</span></div>
+        <div class="ni ac"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span>Train</span></div>
+        <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span>Coach</span></div>
+        <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg><span>Progress</span></div>
+        <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg><span>Profile</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow">→</div>
+
+  <!-- SCREEN 2: ACTIVE SET LOGGER -->
+  <div class="screen-col">
+    <div class="screen-name">Active Set Logger</div>
+    <div class="phone">
+      <div class="di"></div>
+      <div class="sb"><span class="time">9:54</span><div class="si"><svg class="ic" viewBox="0 0 16 16"><path d="M1 10.5h2v2H1v-2zm3-3h2v5H4v-5zm3-3h2v8H7v-8zm3-3h2v11h-2V1.5z"/></svg><svg class="ic" viewBox="0 0 16 16"><path d="M8 2C4.7 2 1.8 3.3 0 5.5l1.5 1.5C2.9 5.3 5.1 4.2 7.5 4.2s4.6 1.1 6 2.8L15 5.5C13.2 3.3 10.3 2 8 2z"/></svg><svg class="ic" viewBox="0 0 16 16"><rect x="1" y="4.5" width="12" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="2" y="5.5" width="8" height="5" rx=".5" fill="currentColor"/><path d="M14 7.5v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div></div>
+
+      <!-- Coral ambient glow -->
+      <div style="position:absolute;top:100px;left:50%;transform:translateX(-50%);width:280px;height:280px;background:radial-gradient(circle,rgba(249,112,102,.12) 0%,transparent 70%);pointer-events:none;z-index:0;"></div>
+
+      <div style="padding:0 24px;height:706px;position:relative;z-index:1;">
+        <!-- Header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--t2)" stroke-width="1.8"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--c);">13:24</div>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--t2)" stroke-width="1.8"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+        </div>
+
+        <!-- Exercise name -->
+        <div style="text-align:center;margin-bottom:4px;">
+          <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;">Bench Press</div>
+          <div style="font-size:13px;color:var(--t2);">Set <span style="font-family:'JetBrains Mono',monospace;color:var(--c);">3</span> of 4</div>
+        </div>
+
+        <!-- Progress ring -->
+        <div style="display:flex;justify-content:center;margin:20px 0;">
+          <div style="position:relative;width:200px;height:200px;display:flex;align-items:center;justify-content:center;">
+            <svg width="200" height="200" viewBox="0 0 200 200" style="position:absolute;top:0;left:0;">
+              <!-- Track -->
+              <circle cx="100" cy="100" r="85" fill="none" stroke="var(--s3)" stroke-width="12"/>
+              <!-- Set tick marks (4 sets, evenly spaced) -->
+              <circle cx="100" cy="15" r="5" fill="var(--s4)"/>
+              <circle cx="185" cy="100" r="5" fill="var(--s4)"/>
+              <circle cx="100" cy="185" r="5" fill="var(--s4)"/>
+              <circle cx="15" cy="100" r="5" fill="var(--s4)"/>
+              <!-- Progress (3/4 = 75%) — sets done -->
+              <defs><linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#C4361A"/><stop offset="100%" style="stop-color:#F97066"/></linearGradient></defs>
+              <circle cx="100" cy="100" r="85" fill="none" stroke="url(#rg)" stroke-width="12" stroke-linecap="round"
+                stroke-dasharray="534.1" stroke-dashoffset="133.5" transform="rotate(-90 100 100)"/>
+              <!-- Completed set ticks -->
+              <circle cx="100" cy="15" r="5" fill="var(--c)"/>
+              <circle cx="185" cy="100" r="5" fill="var(--c)"/>
+              <circle cx="100" cy="185" r="5" fill="var(--c)"/>
+            </svg>
+            <!-- Center display -->
+            <div style="text-align:center;">
+              <div style="font-family:'JetBrains Mono',monospace;font-size:36px;font-weight:500;color:var(--t1);line-height:1;">135</div>
+              <div style="font-size:13px;color:var(--t2);">lb</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:500;color:var(--c);line-height:1;margin-top:4px;">×8</div>
+              <div style="font-size:11px;color:var(--t2);">reps</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Weight stepper -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div style="font-size:12px;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;">Weight</div>
+          <div style="display:flex;align-items:center;gap:0;">
+            <button style="width:48px;height:48px;border-radius:14px 0 0 14px;background:var(--s3);border:1px solid var(--b);color:var(--t1);font-size:22px;cursor:pointer;">−</button>
+            <div style="width:88px;height:48px;background:var(--s2);border-top:1px solid var(--b);border-bottom:1px solid var(--b);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:500;">135 lb</div>
+            <button style="width:48px;height:48px;border-radius:0 14px 14px 0;background:var(--s3);border:1px solid var(--b);color:var(--t1);font-size:22px;cursor:pointer;">+</button>
+          </div>
+        </div>
+
+        <!-- Reps stepper -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+          <div style="font-size:12px;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;">Reps</div>
+          <div style="display:flex;align-items:center;">
+            <button style="width:48px;height:48px;border-radius:14px 0 0 14px;background:var(--s3);border:1px solid var(--b);color:var(--t1);font-size:22px;cursor:pointer;">−</button>
+            <div style="width:88px;height:48px;background:var(--s2);border-top:1px solid var(--b);border-bottom:1px solid var(--b);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:500;">8</div>
+            <button style="width:48px;height:48px;border-radius:0 14px 14px 0;background:var(--s3);border:1px solid var(--b);color:var(--t1);font-size:22px;cursor:pointer;">+</button>
+          </div>
+        </div>
+
+        <!-- LOG SET button -->
+        <button style="width:100%;height:56px;border-radius:16px;background:var(--c);border:none;font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:#fff;cursor:pointer;letter-spacing:.02em;margin-bottom:16px;">LOG SET</button>
+
+        <!-- Previous sets -->
+        <div style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Previous sets</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;background:var(--s2);border-radius:10px;padding:10px 14px;">
+            <div style="font-size:13px;color:var(--t2);">Set 1</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--ok);">135 lb × 8 ✓</div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;background:var(--s2);border-radius:10px;padding:10px 14px;">
+            <div style="font-size:13px;color:var(--t2);">Set 2</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--ok);">135 lb × 8 ✓</div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;background:var(--ct);border:1px solid var(--cb);border-radius:10px;padding:10px 14px;">
+            <div style="font-size:13px;color:var(--c);">Set 3</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--c);">135 lb × 8 →</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bnav">
+        <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Today</span></div>
+        <div class="ni ac"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span>Train</span></div>
+        <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span>Coach</span></div>
+        <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg><span>Progress</span></div>
+        <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg><span>Profile</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow">→</div>
+
+  <!-- SCREEN 3: REST TIMER -->
+  <div class="screen-col">
+    <div class="screen-name">Rest Timer</div>
+    <div class="phone">
+      <div class="di"></div>
+      <div class="sb"><span class="time">9:55</span><div class="si"><svg class="ic" viewBox="0 0 16 16"><path d="M1 10.5h2v2H1v-2zm3-3h2v5H4v-5zm3-3h2v8H7v-8zm3-3h2v11h-2V1.5z"/></svg><svg class="ic" viewBox="0 0 16 16"><path d="M8 2C4.7 2 1.8 3.3 0 5.5l1.5 1.5C2.9 5.3 5.1 4.2 7.5 4.2s4.6 1.1 6 2.8L15 5.5C13.2 3.3 10.3 2 8 2z"/></svg><svg class="ic" viewBox="0 0 16 16"><rect x="1" y="4.5" width="12" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="2" y="5.5" width="8" height="5" rx=".5" fill="currentColor"/><path d="M14 7.5v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div></div>
+
+      <div style="padding:0 28px;height:706px;display:flex;flex-direction:column;align-items:center;">
+        <!-- Set logged confirmation -->
+        <div style="display:flex;align-items:center;gap:8px;margin:16px 0;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.2);border-radius:999px;padding:8px 16px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+          <span style="font-size:13px;color:var(--ok);font-weight:500;">Set 3 logged</span>
+        </div>
+
+        <!-- What was just logged -->
+        <div style="text-align:center;margin-bottom:12px;">
+          <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:2px;">Bench Press</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:15px;color:var(--t2);">135 lb × 8 reps</div>
+        </div>
+
+        <!-- Big timer -->
+        <div style="text-align:center;margin:32px 0;">
+          <div style="font-size:12px;color:var(--t2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;">Rest</div>
+          <div style="font-family:'Syne',sans-serif;font-size:80px;font-weight:800;color:var(--c);line-height:1;letter-spacing:-3px;">1:45</div>
+          <div style="font-size:13px;color:var(--t2);margin-top:8px;">of 2:00</div>
+        </div>
+
+        <!-- Rest progress arc -->
+        <svg width="220" height="220" viewBox="0 0 220 220" style="margin:-20px auto;">
+          <circle cx="110" cy="110" r="95" fill="none" stroke="var(--s3)" stroke-width="8"/>
+          <circle cx="110" cy="110" r="95" fill="none" stroke="var(--c)" stroke-width="8" stroke-linecap="round"
+            stroke-dasharray="596.9" stroke-dashoffset="149.2" transform="rotate(-90 110 110)" opacity=".4"/>
+        </svg>
+
+        <div style="display:flex;gap:12px;margin-top:32px;width:100%;">
+          <button style="flex:1;height:48px;border-radius:14px;background:var(--s2);border:1px solid var(--b);color:var(--t2);font-size:14px;font-weight:500;cursor:pointer;">+30s</button>
+          <button style="flex:1;height:48px;border-radius:14px;background:var(--ct);border:1px solid var(--cb);color:var(--c);font-size:14px;font-weight:500;cursor:pointer;">Skip Rest</button>
+        </div>
+
+        <!-- Next set preview -->
+        <div style="margin-top:24px;width:100%;background:var(--s2);border:1px solid var(--b);border-radius:14px;padding:14px 16px;">
+          <div style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Up next</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="font-size:14px;font-weight:500;">Set 4 of 4</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--t2);">135 lb × 8</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bnav">
+        <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Today</span></div>
+        <div class="ni ac"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span>Train</span></div>
+        <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span>Coach</span></div>
+        <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg><span>Progress</span></div>
+        <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg><span>Profile</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow">→</div>
+
+  <!-- SCREEN 4: WORKOUT COMPLETE -->
+  <div class="screen-col">
+    <div class="screen-name">Workout Complete</div>
+    <div class="phone">
+      <div class="di"></div>
+      <div class="sb"><span class="time">10:44</span><div class="si"><svg class="ic" viewBox="0 0 16 16"><path d="M1 10.5h2v2H1v-2zm3-3h2v5H4v-5zm3-3h2v8H7v-8zm3-3h2v11h-2V1.5z"/></svg><svg class="ic" viewBox="0 0 16 16"><path d="M8 2C4.7 2 1.8 3.3 0 5.5l1.5 1.5C2.9 5.3 5.1 4.2 7.5 4.2s4.6 1.1 6 2.8L15 5.5C13.2 3.3 10.3 2 8 2z"/></svg><svg class="ic" viewBox="0 0 16 16"><rect x="1" y="4.5" width="12" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="2" y="5.5" width="12" height="5" rx=".5" fill="currentColor"/></svg></div></div>
+
+      <!-- Gold confetti dots (decorative) -->
+      <div style="position:absolute;top:60px;left:40px;width:8px;height:8px;border-radius:50%;background:var(--g);opacity:.6;"></div>
+      <div style="position:absolute;top:80px;right:60px;width:6px;height:6px;border-radius:50%;background:var(--c);opacity:.5;"></div>
+      <div style="position:absolute;top:120px;left:70px;width:5px;height:5px;border-radius:50%;background:var(--v);opacity:.4;"></div>
+      <div style="position:absolute;top:100px;right:80px;width:7px;height:7px;border-radius:2px;background:var(--g);opacity:.5;"></div>
+
+      <div style="padding:0 24px;height:706px;display:flex;flex-direction:column;align-items:center;text-align:center;">
+        <!-- Trophy icon -->
+        <div style="margin-top:32px;width:80px;height:80px;border-radius:24px;background:var(--gt);border:1px solid var(--gb);display:flex;align-items:center;justify-content:center;margin-bottom:20px;">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--g)" stroke-width="1.6" stroke-linecap="round"><path d="M8 21h8M12 17v4M17 3H7a2 2 0 0 0-2 2v3c0 3.9 3.1 7 7 7s7-3.1 7-7V5a2 2 0 0 0-2-2z"/><path d="M5 7H3a2 2 0 0 0-2 2v1a4 4 0 0 0 4 4M19 7h2a2 2 0 0 1 2 2v1a4 4 0 0 1-4 4"/></svg>
+        </div>
+
+        <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;margin-bottom:6px;">Push A — Done!</div>
+        <div style="font-size:14px;color:var(--t2);margin-bottom:32px;">Week 3, Day 1 · 6 exercises</div>
+
+        <!-- Big stats -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;margin-bottom:20px;">
+          <div class="card" style="text-align:center;padding:16px;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:500;color:var(--t1);">63<span style="font-size:14px;color:var(--t2);font-family:'DM Sans',sans-serif;">m</span></div>
+            <div style="font-size:11px;color:var(--t2);text-transform:uppercase;letter-spacing:.04em;margin-top:4px;">Duration</div>
+          </div>
+          <div class="card" style="text-align:center;padding:16px;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:500;color:var(--t1);">11.8K</div>
+            <div style="font-size:11px;color:var(--t2);text-transform:uppercase;letter-spacing:.04em;margin-top:4px;">Volume</div>
+          </div>
+          <div class="card" style="text-align:center;padding:16px;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:500;color:var(--t1);">22</div>
+            <div style="font-size:11px;color:var(--t2);text-transform:uppercase;letter-spacing:.04em;margin-top:4px;">Total sets</div>
+          </div>
+          <div style="background:var(--gt);border:1px solid var(--gb);border-radius:16px;padding:16px;text-align:center;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:500;color:var(--g);">1</div>
+            <div style="font-size:11px;color:var(--g);text-transform:uppercase;letter-spacing:.04em;margin-top:4px;">New PR</div>
+          </div>
+        </div>
+
+        <!-- PR card -->
+        <div style="background:var(--gt);border:1px solid var(--gb);border-radius:18px;padding:16px;width:100%;margin-bottom:24px;display:flex;align-items:center;gap:12px;">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--g)" stroke-width="1.8"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2z"/></svg>
+          <div style="text-align:left;">
+            <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--g);">Personal Record</div>
+            <div style="font-size:13px;color:var(--t2);">Bench Press · 145 lb × 6 reps</div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div style="display:flex;gap:10px;width:100%;">
+          <button style="flex:1;height:52px;border-radius:16px;background:var(--s2);border:1px solid var(--b);color:var(--t1);font-size:15px;font-weight:500;cursor:pointer;">Share</button>
+          <button style="flex:2;height:52px;border-radius:16px;background:var(--v);border:none;color:var(--bg);font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;">Done</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div style="font-size:12px;color:var(--t3);border-top:1px solid var(--b);padding-top:20px;">
+  Session flow · Coral throughout · Train tab active (coral) during session · Gold appears only on PR complete card
+</div>
+</body>
+</html>

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>fitNXT · Today / Home</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#06060D;--s:#0D0D1A;--s2:#141426;--s3:#1C1C32;--s4:#23233C;
+  --b:rgba(255,255,255,.055);--b2:rgba(255,255,255,.10);
+  --v:#A78BFA;--vd:#7C3AED;--vt:rgba(124,58,237,.12);--vb:rgba(167,139,250,.22);
+  --c:#F97066;--cd:#C4361A;--ct:rgba(249,112,102,.12);--cb:rgba(249,112,102,.22);
+  --g:#FCD34D;--gt:rgba(252,211,77,.10);--gb:rgba(252,211,77,.22);
+  --ok:#4ADE80;--err:#EF4444;--t1:#EEEEF8;--t2:#76768E;--t3:#36364E;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0A0A14;font-family:'DM Sans',sans-serif;color:var(--t1);padding:40px;min-height:100vh;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.page-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;}
+.page-sub{color:var(--t2);font-size:13px;margin-bottom:28px;}
+.nav-links{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:40px;}
+.nav-link{display:inline-flex;align-items:center;padding:6px 14px;border-radius:999px;background:var(--s2);border:1px solid var(--b);color:var(--t2);font-size:12px;text-decoration:none;}
+.nav-link.active{background:var(--vt);border-color:var(--vb);color:var(--v);}
+.screens{display:flex;align-items:flex-start;gap:32px;overflow-x:auto;padding-bottom:40px;}
+.screen-col{display:flex;flex-direction:column;align-items:center;gap:12px;flex-shrink:0;}
+.screen-name{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--t2);}
+.phone{width:390px;height:844px;background:var(--bg);border-radius:44px;overflow:hidden;position:relative;border:1px solid var(--b);box-shadow:0 0 0 8px rgba(255,255,255,.015),0 48px 100px rgba(0,0,0,.8);}
+.di{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:126px;height:37px;background:#000;border-radius:20px;z-index:10;}
+.sb{position:relative;height:54px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 28px 8px;}
+.time{font-size:15px;font-weight:600;}
+.si{display:flex;align-items:center;gap:5px;opacity:.9;}
+svg.ic{width:16px;height:16px;fill:currentColor;}
+.content{height:706px;overflow:hidden;padding:0 20px;position:relative;}
+.bnav{position:absolute;bottom:0;left:0;right:0;height:84px;background:rgba(13,13,26,.85);backdrop-filter:blur(20px);border-top:1px solid var(--b);display:flex;align-items:flex-start;justify-content:space-around;padding-top:10px;}
+.ni{display:flex;flex-direction:column;align-items:center;gap:3px;width:64px;opacity:.3;}
+.ni.av{opacity:1;color:var(--v);}
+.ni svg{width:24px;height:24px;}
+.ni span{font-size:10px;font-weight:500;}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;font-size:11px;font-weight:500;}
+.pv{background:var(--vt);border:1px solid var(--vb);color:var(--v);}
+.pg{background:var(--gt);border:1px solid var(--gb);color:var(--g);}
+.pdot{width:6px;height:6px;border-radius:50%;background:currentColor;animation:pd 2s ease infinite;}
+@keyframes pd{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(.8);}}
+.card{background:var(--s2);border:1px solid var(--b);border-radius:16px;padding:14px 16px;}
+.mbar-bg{height:5px;border-radius:3px;background:var(--b2);overflow:hidden;margin-top:4px;}
+.mbar-fill{height:100%;border-radius:3px;}
+.hist-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--b);}
+.hist-item:last-child{border-bottom:none;}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="page-title">02 · Today / Home</div>
+  <a href="index.html" style="font-size:13px;color:var(--t2);text-decoration:none;">← App Map</a>
+</div>
+<p class="page-sub">Daily anchor screen. Violet owns AI insights + nav. Coral owns the workout CTA card. Two states: pre-workout and post-workout.</p>
+
+<div class="nav-links">
+  <a class="nav-link" href="01-auth.html">01 · Auth</a>
+  <a class="nav-link active" href="02-today.html">02 · Today</a>
+  <a class="nav-link" href="03-session.html">03 · Session</a>
+  <a class="nav-link" href="04-coach.html">04 · Coach</a>
+  <a class="nav-link" href="05-progress.html">05 · Progress</a>
+  <a class="nav-link" href="06-plan.html">06 · Plan</a>
+  <a class="nav-link" href="07-profile.html">07 · Profile</a>
+  <a class="nav-link" href="08-overlays.html">08 · Overlays</a>
+</div>
+
+<div class="screens">
+
+  <!-- PRE-WORKOUT -->
+  <div class="screen-col">
+    <div class="screen-name">Pre-workout · Morning</div>
+    <div class="phone">
+      <div class="di"></div>
+      <div class="sb"><span class="time">9:41</span><div class="si"><svg class="ic" viewBox="0 0 16 16"><path d="M1 10.5h2v2H1v-2zm3-3h2v5H4v-5zm3-3h2v8H7v-8zm3-3h2v11h-2V1.5z"/></svg><svg class="ic" viewBox="0 0 16 16"><path d="M8 2C4.7 2 1.8 3.3 0 5.5l1.5 1.5C2.9 5.3 5.1 4.2 7.5 4.2s4.6 1.1 6 2.8L15 5.5C13.2 3.3 10.3 2 8 2z"/></svg><svg class="ic" viewBox="0 0 16 16"><rect x="1" y="4.5" width="12" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="2" y="5.5" width="8" height="5" rx=".5" fill="currentColor"/><path d="M14 7.5v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div></div>
+
+      <div style="position:absolute;top:0;right:-40px;width:240px;height:240px;background:radial-gradient(circle,rgba(124,58,237,.12) 0%,transparent 70%);pointer-events:none;z-index:1;"></div>
+
+      <div class="content" style="padding-top:8px;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px;">
+          <div>
+            <div style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;line-height:1.15;">Good morning,<br>Sid</div>
+            <div style="font-size:13px;color:var(--t2);margin-top:4px;">Monday · Jun 12 · Week 3 of 8</div>
+          </div>
+          <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--vd),var(--c));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:16px;flex-shrink:0;">S</div>
+        </div>
+
+        <div style="margin:12px 0;">
+          <div class="pill pv"><div class="pdot"></div>Upper push day · 6 exercises planned</div>
+        </div>
+
+        <!-- Ember workout card -->
+        <div style="border-radius:20px;padding:20px;margin-bottom:14px;background:radial-gradient(ellipse 70% 60% at 90% 10%,#F97066 0%,rgba(196,54,26,.8) 45%,transparent 75%),linear-gradient(160deg,#1E0B08 0%,#3D150E 50%,#6B1E12 100%);position:relative;overflow:hidden;">
+          <div style="font-size:11px;color:rgba(249,112,102,.8);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">TODAY'S WORKOUT</div>
+          <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#fff;margin-bottom:4px;">Push A</div>
+          <div style="font-size:13px;color:rgba(255,255,255,.6);margin-bottom:16px;">6 exercises · ~55 min · Chest, Shoulders, Triceps</div>
+          <div style="display:flex;gap:20px;margin-bottom:18px;">
+            <div><div style="font-family:'JetBrains Mono',monospace;font-size:18px;color:#fff;">5</div><div style="font-size:10px;color:rgba(255,255,255,.5);">sets avg</div></div>
+            <div><div style="font-family:'JetBrains Mono',monospace;font-size:18px;color:#fff;">6</div><div style="font-size:10px;color:rgba(255,255,255,.5);">exercises</div></div>
+            <div><div style="font-family:'JetBrains Mono',monospace;font-size:18px;color:#fff;">55</div><div style="font-size:10px;color:rgba(255,255,255,.5);">min est.</div></div>
+          </div>
+          <button style="background:#F97066;border:none;color:#fff;border-radius:14px;padding:13px 24px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;width:100%;">Start Workout</button>
+        </div>
+
+        <!-- Quick stats -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;">
+          <div class="card" style="text-align:center;padding:12px 8px;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:500;color:var(--v);">12</div>
+            <div style="font-size:10px;color:var(--t2);text-transform:uppercase;letter-spacing:.04em;margin-top:2px;">Day streak</div>
+          </div>
+          <div class="card" style="text-align:center;padding:12px 8px;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:500;color:var(--t1);">8.2K</div>
+            <div style="font-size:10px;color:var(--t2);text-transform:uppercase;letter-spacing:.04em;margin-top:2px;">Wk volume</div>
+          </div>
+          <div class="card" style="text-align:center;padding:12px 8px;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:500;color:var(--g);">2</div>
+            <div style="font-size:10px;color:var(--t2);text-transform:uppercase;letter-spacing:.04em;margin-top:2px;">PRs this wk</div>
+          </div>
+        </div>
+
+        <!-- Macros -->
+        <div class="card" style="margin-bottom:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;">Macros Today</div>
+            <div style="font-size:12px;color:var(--v);cursor:pointer;">Log food</div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:15px;">1,840 <span style="font-size:11px;color:var(--t2);font-family:'DM Sans',sans-serif;">/ 2,600 kcal</span></div>
+            <div style="font-size:12px;color:var(--t2);">71%</div>
+          </div>
+          <div class="mbar-bg" style="margin-bottom:10px;"><div class="mbar-fill" style="width:71%;background:linear-gradient(90deg,var(--v),var(--c));"></div></div>
+          <div style="display:flex;gap:8px;">
+            <div style="flex:1;"><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--t2);margin-bottom:3px;"><span>Protein</span><span style="font-family:'JetBrains Mono',monospace;color:var(--t1);">145g</span></div><div class="mbar-bg"><div class="mbar-fill" style="width:68%;background:var(--v);"></div></div></div>
+            <div style="flex:1;"><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--t2);margin-bottom:3px;"><span>Carbs</span><span style="font-family:'JetBrains Mono',monospace;color:var(--t1);">210g</span></div><div class="mbar-bg"><div class="mbar-fill" style="width:74%;background:var(--c);"></div></div></div>
+            <div style="flex:1;"><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--t2);margin-bottom:3px;"><span>Fat</span><span style="font-family:'JetBrains Mono',monospace;color:var(--t1);">48g</span></div><div class="mbar-bg"><div class="mbar-fill" style="width:60%;background:var(--g);opacity:.8;"></div></div></div>
+          </div>
+        </div>
+
+        <!-- Recent -->
+        <div style="font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Recent</div>
+        <div class="card">
+          <div class="hist-item">
+            <div style="width:36px;height:36px;border-radius:10px;background:var(--ct);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--c)" stroke-width="1.8"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+            <div style="flex:1;"><div style="font-size:14px;font-weight:500;">Pull B</div><div style="font-size:12px;color:var(--t2);">Sat · 62 min · 11,400 kg</div></div>
+            <div class="pill pg" style="font-size:10px;padding:3px 8px;">PR</div>
+          </div>
+          <div class="hist-item">
+            <div style="width:36px;height:36px;border-radius:10px;background:var(--ct);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--c)" stroke-width="1.8"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+            <div style="flex:1;"><div style="font-size:14px;font-weight:500;">Push A</div><div style="font-size:12px;color:var(--t2);">Thu · 58 min · 10,900 kg</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bnav">
+        <div class="ni av"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span>Today</span></div>
+        <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span>Train</span></div>
+        <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span>Coach</span></div>
+        <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg><span>Progress</span></div>
+        <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg><span>Profile</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- POST-WORKOUT -->
+  <div class="screen-col">
+    <div class="screen-name">Post-workout · Evening</div>
+    <div class="phone">
+      <div class="di"></div>
+      <div class="sb"><span class="time">6:14</span><div class="si"><svg class="ic" viewBox="0 0 16 16"><path d="M1 10.5h2v2H1v-2zm3-3h2v5H4v-5zm3-3h2v8H7v-8zm3-3h2v11h-2V1.5z"/></svg><svg class="ic" viewBox="0 0 16 16"><path d="M8 2C4.7 2 1.8 3.3 0 5.5l1.5 1.5C2.9 5.3 5.1 4.2 7.5 4.2s4.6 1.1 6 2.8L15 5.5C13.2 3.3 10.3 2 8 2z"/></svg><svg class="ic" viewBox="0 0 16 16"><rect x="1" y="4.5" width="12" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="2" y="5.5" width="12" height="5" rx=".5" fill="currentColor"/></svg></div></div>
+
+      <div class="content" style="padding-top:8px;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px;">
+          <div>
+            <div style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;line-height:1.15;">Crushed it,<br>Sid</div>
+            <div style="font-size:13px;color:var(--t2);margin-top:4px;">Monday · Jun 12 · Push A complete</div>
+          </div>
+          <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--vd),var(--c));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:16px;flex-shrink:0;">S</div>
+        </div>
+
+        <div style="margin:12px 0;display:flex;gap:8px;flex-wrap:wrap;">
+          <div class="pill pg"><div class="pdot"></div>Bench PR · 145 lb</div>
+          <div class="pill pv"><div class="pdot"></div>Recovery: 82</div>
+        </div>
+
+        <!-- Completed card -->
+        <div style="background:var(--s2);border:1px solid rgba(74,222,128,.2);border-radius:20px;padding:18px;margin-bottom:14px;position:relative;overflow:hidden;">
+          <div style="position:absolute;top:0;left:0;right:0;height:2px;background:var(--ok);"></div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+            <div style="width:32px;height:32px;border-radius:50%;background:rgba(74,222,128,.15);display:flex;align-items:center;justify-content:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg></div>
+            <div><div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;">Push A — Done</div><div style="font-size:12px;color:var(--t2);">Completed at 5:58 PM</div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+            <div style="text-align:center;"><div style="font-family:'JetBrains Mono',monospace;font-size:18px;color:var(--t1);">58<span style="font-size:11px;color:var(--t2);font-family:'DM Sans',sans-serif;">m</span></div><div style="font-size:10px;color:var(--t2);">Duration</div></div>
+            <div style="text-align:center;"><div style="font-family:'JetBrains Mono',monospace;font-size:18px;color:var(--t1);">11.2K</div><div style="font-size:10px;color:var(--t2);">Volume</div></div>
+            <div style="text-align:center;"><div style="font-family:'JetBrains Mono',monospace;font-size:18px;color:var(--g);">1</div><div style="font-size:10px;color:var(--t2);">New PR</div></div>
+          </div>
+        </div>
+
+        <!-- AI insight -->
+        <div style="background:var(--vt);border:1px solid var(--vb);border-radius:16px;padding:16px;margin-bottom:14px;">
+          <div style="display:flex;align-items:flex-start;gap:10px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--v)" stroke-width="1.8" style="flex-shrink:0;margin-top:1px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <div>
+              <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--v);margin-bottom:4px;">AI Recovery Insight</div>
+              <div style="font-size:13px;color:var(--t1);line-height:1.5;">Sleep 7–8 hrs tonight. Pull B tomorrow is optimal — biceps had full rest since Saturday.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tomorrow -->
+        <div style="font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Tomorrow</div>
+        <div class="card" style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+          <div style="width:40px;height:40px;border-radius:12px;background:var(--ct);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--c)" stroke-width="1.8"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:600;">Pull B</div><div style="font-size:12px;color:var(--t2);">Back, Biceps · 6 exercises · ~60 min</div></div>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="1.8"><polyline points="9,18 15,12 9,6"/></svg>
+        </div>
+
+        <!-- Macros -->
+        <div style="font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Macros</div>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px;"><div style="font-family:'JetBrains Mono',monospace;font-size:15px;">2,280 <span style="font-size:11px;color:var(--t2);font-family:'DM Sans',sans-serif;">/ 2,600 kcal</span></div><div style="font-size:12px;color:var(--t2);">88%</div></div>
+          <div class="mbar-bg"><div class="mbar-fill" style="width:88%;background:linear-gradient(90deg,var(--v),var(--c));"></div></div>
+        </div>
+      </div>
+
+      <div class="bnav">
+        <div class="ni av"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span>Today</span></div>
+        <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span>Train</span></div>
+        <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span>Coach</span></div>
+        <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg><span>Progress</span></div>
+        <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg><span>Profile</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div style="font-size:12px;color:var(--t3);border-top:1px solid var(--b);padding-top:20px;">
+  Today screen · Violet nav + AI pill · Coral ember workout CTA · Gold for PR badge only · 2 states shown
+</div>
+</body>
+</html>

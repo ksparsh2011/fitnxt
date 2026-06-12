@@ -1,0 +1,1745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>fitNXT — Overlays & Modals</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #06060D;
+    --surface: #0F0F1A;
+    --surface-2: #161625;
+    --surface-3: #1E1E30;
+    --surface-4: #26263C;
+    --violet: #A78BFA;
+    --violet-deep: #7C6AF7;
+    --violet-tint: rgba(167,139,250,0.12);
+    --violet-border: rgba(167,139,250,0.25);
+    --violet-glow: rgba(167,139,250,0.35);
+    --coral: #F97066;
+    --coral-deep: #E85A3A;
+    --coral-tint: rgba(249,112,102,0.12);
+    --coral-border: rgba(249,112,102,0.25);
+    --gold: #FCD34D;
+    --gold-tint: rgba(252,211,77,0.12);
+    --gold-border: rgba(252,211,77,0.3);
+    --gold-glow: rgba(252,211,77,0.4);
+    --success: #4ADE80;
+    --danger: #F87171;
+    --t1: rgba(255,255,255,0.95);
+    --t2: rgba(255,255,255,0.6);
+    --t3: rgba(255,255,255,0.35);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0A0A14;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--t1);
+    min-height: 100vh;
+    padding: 40px 24px 60px;
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--t1);
+    margin-bottom: 8px;
+  }
+
+  .subtitle {
+    color: var(--t2);
+    font-size: 15px;
+    margin-bottom: 48px;
+  }
+
+  .section-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--t3);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    margin-top: 56px;
+  }
+
+  .section-label:first-of-type { margin-top: 0; }
+
+  .frames-row {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    margin-bottom: 0;
+  }
+
+  /* Phone frame */
+  .phone {
+    width: 390px;
+    height: 844px;
+    background: var(--bg);
+    border-radius: 44px;
+    border: 1.5px solid rgba(255,255,255,0.08);
+    overflow: hidden;
+    position: relative;
+    flex-shrink: 0;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.7);
+  }
+
+  .phone.gold-glow { box-shadow: 0 0 60px rgba(252,211,77,0.2), 0 32px 80px rgba(0,0,0,0.7); }
+  .phone.violet-glow { box-shadow: 0 0 60px rgba(167,139,250,0.2), 0 32px 80px rgba(0,0,0,0.7); }
+  .phone.coral-glow { box-shadow: 0 0 60px rgba(249,112,102,0.2), 0 32px 80px rgba(0,0,0,0.7); }
+
+  /* Dynamic Island */
+  .dynamic-island {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 126px;
+    height: 37px;
+    background: #000;
+    border-radius: 20px;
+    z-index: 50;
+  }
+
+  /* Status bar */
+  .status-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 59px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 0 28px 8px;
+    z-index: 40;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--t1);
+  }
+
+  .status-icons {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* Screen content area */
+  .screen {
+    position: absolute;
+    top: 59px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+  }
+
+  /* ============================================
+     PR CELEBRATION OVERLAY
+     ============================================ */
+  .pr-bg {
+    position: absolute;
+    inset: 0;
+    background: var(--bg);
+  }
+
+  .pr-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  .pr-sheet {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--surface);
+    border-radius: 28px 28px 0 0;
+    border-top: 1px solid var(--gold-border);
+    padding: 0 0 40px;
+    overflow: hidden;
+  }
+
+  .pr-sheet-handle {
+    width: 36px;
+    height: 4px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 2px;
+    margin: 12px auto 0;
+  }
+
+  .pr-gold-glow-bg {
+    position: absolute;
+    top: -60px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 300px;
+    height: 200px;
+    background: radial-gradient(ellipse, rgba(252,211,77,0.25) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .pr-content {
+    padding: 24px 24px 0;
+    text-align: center;
+    position: relative;
+  }
+
+  .pr-trophy-wrap {
+    width: 80px;
+    height: 80px;
+    background: var(--gold-tint);
+    border: 1.5px solid var(--gold-border);
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+  }
+
+  .pr-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--gold);
+    margin-bottom: 6px;
+  }
+
+  .pr-sub {
+    font-size: 14px;
+    color: var(--t2);
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+
+  .pr-record-card {
+    background: var(--gold-tint);
+    border: 1.5px solid var(--gold-border);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 16px;
+    text-align: left;
+  }
+
+  .pr-record-label {
+    font-size: 12px;
+    color: var(--gold);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .pr-record-exercise {
+    font-family: 'Syne', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--t1);
+    margin-bottom: 12px;
+  }
+
+  .pr-record-stats {
+    display: flex;
+    gap: 16px;
+  }
+
+  .pr-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .pr-stat-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--gold);
+  }
+
+  .pr-stat-label {
+    font-size: 11px;
+    color: var(--t2);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .pr-prev {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--t3);
+  }
+
+  .pr-prev-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--t2);
+  }
+
+  .pr-streak-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--gold-tint);
+    border: 1px solid var(--gold-border);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 13px;
+    color: var(--gold);
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+
+  .pr-actions {
+    display: flex;
+    gap: 12px;
+    padding: 0 24px;
+  }
+
+  .btn-ghost-gold {
+    flex: 1;
+    height: 52px;
+    background: var(--gold-tint);
+    border: 1.5px solid var(--gold-border);
+    border-radius: 14px;
+    color: var(--gold);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+  }
+
+  .btn-gold {
+    flex: 2;
+    height: 52px;
+    background: var(--gold);
+    border-radius: 14px;
+    color: #1A1400;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+  }
+
+  /* Confetti dots */
+  .confetti-dot {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    opacity: 0.7;
+  }
+
+  /* ============================================
+     ADD EXERCISE MODAL (Bottom Sheet)
+     ============================================ */
+  .sheet-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+
+  .bottom-sheet {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--surface);
+    border-radius: 28px 28px 0 0;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    padding-bottom: 32px;
+  }
+
+  .sheet-handle {
+    width: 36px;
+    height: 4px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 2px;
+    margin: 12px auto 0;
+  }
+
+  .sheet-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px 12px;
+  }
+
+  .sheet-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--t1);
+  }
+
+  .sheet-close {
+    width: 32px;
+    height: 32px;
+    background: var(--surface-3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--t2);
+  }
+
+  .search-wrap {
+    padding: 0 20px 12px;
+  }
+
+  .search-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface-3);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 0 14px;
+    height: 44px;
+  }
+
+  .search-input-text {
+    font-size: 15px;
+    color: var(--t2);
+  }
+
+  .filter-pills {
+    display: flex;
+    gap: 8px;
+    padding: 0 20px 12px;
+    overflow-x: auto;
+  }
+
+  .filter-pill {
+    flex-shrink: 0;
+    height: 32px;
+    padding: 0 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
+
+  .filter-pill.active {
+    background: var(--violet-tint);
+    border: 1px solid var(--violet-border);
+    color: var(--violet);
+  }
+
+  .filter-pill.inactive {
+    background: var(--surface-3);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: var(--t2);
+  }
+
+  .exercise-list {
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .exercise-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .exercise-row:hover, .exercise-row.selected {
+    background: var(--violet-tint);
+  }
+
+  .exercise-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--surface-3);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .exercise-row.selected .exercise-icon {
+    background: var(--violet-tint);
+    border: 1px solid var(--violet-border);
+  }
+
+  .exercise-info { flex: 1; }
+
+  .exercise-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--t1);
+    margin-bottom: 2px;
+  }
+
+  .exercise-meta {
+    font-size: 12px;
+    color: var(--t2);
+  }
+
+  .exercise-check {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--violet);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .sheet-add-btn {
+    margin: 16px 20px 0;
+    height: 52px;
+    background: var(--violet);
+    border-radius: 14px;
+    color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+  }
+
+  /* ============================================
+     EMPTY STATES
+     ============================================ */
+  .empty-screen {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: var(--bg);
+  }
+
+  .empty-nav {
+    display: flex;
+    align-items: center;
+    padding: 16px 20px 12px;
+    gap: 12px;
+  }
+
+  .empty-nav-back {
+    width: 36px;
+    height: 36px;
+    background: var(--surface-2);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--t1);
+  }
+
+  .empty-nav-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--t1);
+  }
+
+  .empty-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    text-align: center;
+  }
+
+  .empty-illustration {
+    width: 120px;
+    height: 120px;
+    background: var(--surface-2);
+    border-radius: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+
+  .empty-headline {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--t1);
+    margin-bottom: 10px;
+  }
+
+  .empty-body-text {
+    font-size: 14px;
+    color: var(--t2);
+    line-height: 1.6;
+    max-width: 260px;
+    margin-bottom: 28px;
+  }
+
+  .empty-cta {
+    height: 52px;
+    padding: 0 28px;
+    background: var(--violet);
+    border-radius: 14px;
+    color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+  }
+
+  .empty-cta.coral {
+    background: var(--coral);
+  }
+
+  .empty-hint {
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--t3);
+  }
+
+  /* ============================================
+     NUTRITION LOG SHEET
+     ============================================ */
+  .nutrition-bg {
+    position: absolute;
+    inset: 0;
+    background: var(--bg);
+    overflow-y: auto;
+  }
+
+  .nutrition-screen-content {
+    padding: 16px 20px;
+  }
+
+  .nutrition-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .nutrition-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+  }
+
+  .nutrition-date-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface-2);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 13px;
+    color: var(--t2);
+  }
+
+  .macro-ring-row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: var(--surface);
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.06);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .macro-totals {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .macro-bar-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .macro-bar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .macro-bar-label { font-size: 12px; color: var(--t2); }
+  .macro-bar-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--t1);
+  }
+
+  .macro-bar-track {
+    height: 5px;
+    background: var(--surface-3);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .macro-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+  }
+
+  .meal-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    margin-bottom: 4px;
+  }
+
+  .meal-section-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--t1);
+  }
+
+  .meal-section-cals {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--t2);
+  }
+
+  .meal-add-btn {
+    width: 28px;
+    height: 28px;
+    background: var(--violet-tint);
+    border: 1px solid var(--violet-border);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--violet);
+    cursor: pointer;
+  }
+
+  .food-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .food-icon {
+    width: 36px;
+    height: 36px;
+    background: var(--surface-3);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .food-info { flex: 1; }
+
+  .food-name { font-size: 14px; font-weight: 500; color: var(--t1); margin-bottom: 2px; }
+  .food-meta { font-size: 12px; color: var(--t2); }
+
+  .food-cals {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--t1);
+  }
+
+  /* ============================================
+     ADD FOOD SHEET (nested)
+     ============================================ */
+  .add-food-sheet {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 80%;
+    background: var(--surface);
+    border-radius: 28px 28px 0 0;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    overflow: hidden;
+  }
+
+  .scan-banner {
+    margin: 16px 20px;
+    background: var(--violet-tint);
+    border: 1.5px solid var(--violet-border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .scan-icon-wrap {
+    width: 40px;
+    height: 40px;
+    background: var(--violet);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .scan-text { flex: 1; }
+  .scan-title { font-size: 14px; font-weight: 600; color: var(--t1); margin-bottom: 2px; }
+  .scan-sub { font-size: 12px; color: var(--t2); }
+
+  .quick-add-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 0 20px 12px;
+  }
+
+  .quick-card {
+    background: var(--surface-2);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+  }
+
+  .quick-food-icon {
+    font-size: 24px;
+    line-height: 1;
+  }
+
+  .quick-food-info { flex: 1; }
+  .quick-food-name { font-size: 13px; font-weight: 500; color: var(--t1); margin-bottom: 2px; }
+  .quick-food-cals { font-size: 12px; color: var(--t2); }
+
+  /* Bottom Nav */
+  .bottom-nav {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 84px;
+    background: rgba(15,15,26,0.95);
+    backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-around;
+    padding-top: 12px;
+    z-index: 30;
+  }
+
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    min-width: 60px;
+  }
+
+  .nav-icon-wrap {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .nav-label {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+  }
+
+  .nav-item.violet .nav-label { color: var(--violet); }
+  .nav-item.inactive .nav-label { color: var(--t3); }
+  .nav-item.coral .nav-label { color: var(--coral); }
+
+  /* Toast notification */
+  .toast-wrap {
+    position: absolute;
+    top: 72px;
+    left: 20px;
+    right: 20px;
+    z-index: 100;
+  }
+
+  .toast {
+    background: var(--surface-3);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+
+  .toast.success { border-color: rgba(74,222,128,0.3); }
+  .toast.error { border-color: rgba(248,113,113,0.3); }
+  .toast.violet { border-color: var(--violet-border); }
+
+  .toast-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .toast.success .toast-icon { background: rgba(74,222,128,0.15); color: var(--success); }
+  .toast.error .toast-icon { background: rgba(248,113,113,0.15); color: var(--danger); }
+  .toast.violet .toast-icon { background: var(--violet-tint); color: var(--violet); }
+
+  .toast-body { flex: 1; }
+  .toast-title { font-size: 14px; font-weight: 600; color: var(--t1); margin-bottom: 2px; }
+  .toast-sub { font-size: 12px; color: var(--t2); line-height: 1.4; }
+
+  .toast-dismiss {
+    color: var(--t3);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 4px;
+  }
+
+  .caption {
+    font-size: 13px;
+    color: rgba(255,255,255,0.4);
+    margin-top: 12px;
+    text-align: center;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<h1>Overlays & System UI</h1>
+<p class="subtitle">Modals, sheets, empty states, toasts — all reusable patterns across flows</p>
+
+<!-- ============================================================ -->
+<!-- SECTION 1: PR CELEBRATION + ADD EXERCISE                     -->
+<!-- ============================================================ -->
+<p class="section-label">Overlays — celebrations &amp; exercise picker</p>
+<div class="frames-row">
+
+  <!-- PR CELEBRATION SHEET -->
+  <div>
+    <div class="phone gold-glow">
+      <div class="dynamic-island"></div>
+      <div class="status-bar">
+        <span>9:41</span>
+        <div class="status-icons">
+          <svg width="17" height="12" viewBox="0 0 17 12" fill="white"><rect x="0" y="3" width="3" height="9" rx="1"/><rect x="4.5" y="2" width="3" height="10" rx="1"/><rect x="9" y="0" width="3" height="12" rx="1"/><rect x="13.5" y="0" width="3" height="12" rx="1" opacity="0.3"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="white"><path d="M8 2.4C10.7 2.4 13.1 3.6 14.7 5.5L16 4.1C14 1.6 11.2 0 8 0 4.8 0 2 1.6 0 4.1L1.3 5.5C2.9 3.6 5.3 2.4 8 2.4Z" opacity="0.5"/><path d="M8 5.6C9.9 5.6 11.6 6.4 12.8 7.7L14.1 6.3C12.5 4.7 10.4 3.7 8 3.7 5.6 3.7 3.5 4.7 1.9 6.3L3.2 7.7C4.4 6.4 6.1 5.6 8 5.6Z"/><circle cx="8" cy="11" r="1.8"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="white" stroke-opacity="0.35"/><rect x="2" y="2" width="16" height="8" rx="2" fill="white"/><path d="M23 4.5V7.5C23.8 7.2 24.5 6.4 24.5 6C24.5 5.6 23.8 4.8 23 4.5Z" fill="white" opacity="0.4"/></svg>
+        </div>
+      </div>
+      <div class="screen">
+        <!-- Dimmed background (workout complete) -->
+        <div style="position:absolute;inset:0;background:var(--bg);">
+          <div style="padding:20px;display:flex;flex-direction:column;gap:12px;opacity:0.3;">
+            <div style="height:40px;background:var(--surface-2);border-radius:12px;"></div>
+            <div style="height:80px;background:var(--surface-2);border-radius:16px;"></div>
+            <div style="height:120px;background:var(--surface-2);border-radius:16px;"></div>
+          </div>
+        </div>
+
+        <!-- Backdrop blur -->
+        <div class="pr-backdrop"></div>
+
+        <!-- Confetti (static representation) -->
+        <div class="confetti-dot" style="top:80px;left:60px;background:#FCD34D;transform:rotate(25deg);"></div>
+        <div class="confetti-dot" style="top:100px;left:160px;background:#A78BFA;transform:rotate(-15deg);"></div>
+        <div class="confetti-dot" style="top:70px;right:80px;background:#F97066;transform:rotate(45deg);"></div>
+        <div class="confetti-dot" style="top:130px;right:50px;background:#FCD34D;transform:rotate(-30deg);width:6px;height:10px;"></div>
+        <div class="confetti-dot" style="top:90px;left:240px;background:#4ADE80;transform:rotate(20deg);"></div>
+        <div class="confetti-dot" style="top:150px;left:80px;background:#A78BFA;width:6px;height:6px;border-radius:50%;"></div>
+        <div class="confetti-dot" style="top:60px;left:300px;background:#FCD34D;transform:rotate(60deg);"></div>
+        <div class="confetti-dot" style="top:120px;right:110px;background:#F97066;width:10px;height:6px;"></div>
+
+        <!-- PR Sheet -->
+        <div class="pr-sheet">
+          <div class="pr-sheet-handle"></div>
+          <div class="pr-gold-glow-bg"></div>
+          <div class="pr-content">
+            <div class="pr-trophy-wrap">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#FCD34D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 9H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h2"/><path d="M18 9h2a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2"/>
+                <path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+                <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+              </svg>
+            </div>
+            <div class="pr-title">New Personal Record! 🏆</div>
+            <div class="pr-sub">You just crushed your all-time best.<br>The grind is paying off.</div>
+
+            <div class="pr-record-card">
+              <div class="pr-record-label">Personal Record</div>
+              <div class="pr-record-exercise">Bench Press</div>
+              <div class="pr-record-stats">
+                <div class="pr-stat">
+                  <span class="pr-stat-val">102.5<span style="font-size:14px;color:var(--t2);">kg</span></span>
+                  <span class="pr-stat-label">Weight</span>
+                </div>
+                <div class="pr-stat">
+                  <span class="pr-stat-val">5<span style="font-size:14px;color:var(--t2);">reps</span></span>
+                  <span class="pr-stat-label">Reps</span>
+                </div>
+                <div class="pr-stat">
+                  <span class="pr-stat-val" style="color:var(--gold);">↑8%</span>
+                  <span class="pr-stat-label">vs. Best</span>
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+              <div class="pr-prev">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                <span>Previous best:</span>
+                <span class="pr-prev-val">95 kg × 5</span>
+              </div>
+              <div class="pr-streak-pill">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                3rd PR this month
+              </div>
+            </div>
+          </div>
+
+          <div class="pr-actions">
+            <div class="btn-ghost-gold">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+              Share
+            </div>
+            <div class="btn-gold">Continue Session</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="caption">PR Celebration — gold sheet over blurred workout</p>
+  </div>
+
+  <!-- ADD EXERCISE SHEET -->
+  <div>
+    <div class="phone violet-glow">
+      <div class="dynamic-island"></div>
+      <div class="status-bar">
+        <span>9:41</span>
+        <div class="status-icons">
+          <svg width="17" height="12" viewBox="0 0 17 12" fill="white"><rect x="0" y="3" width="3" height="9" rx="1"/><rect x="4.5" y="2" width="3" height="10" rx="1"/><rect x="9" y="0" width="3" height="12" rx="1"/><rect x="13.5" y="0" width="3" height="12" rx="1" opacity="0.3"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="white"><path d="M8 2.4C10.7 2.4 13.1 3.6 14.7 5.5L16 4.1C14 1.6 11.2 0 8 0 4.8 0 2 1.6 0 4.1L1.3 5.5C2.9 3.6 5.3 2.4 8 2.4Z" opacity="0.5"/><path d="M8 5.6C9.9 5.6 11.6 6.4 12.8 7.7L14.1 6.3C12.5 4.7 10.4 3.7 8 3.7 5.6 3.7 3.5 4.7 1.9 6.3L3.2 7.7C4.4 6.4 6.1 5.6 8 5.6Z"/><circle cx="8" cy="11" r="1.8"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="white" stroke-opacity="0.35"/><rect x="2" y="2" width="16" height="8" rx="2" fill="white"/><path d="M23 4.5V7.5C23.8 7.2 24.5 6.4 24.5 6C24.5 5.6 23.8 4.8 23 4.5Z" fill="white" opacity="0.4"/></svg>
+        </div>
+      </div>
+      <div class="screen">
+        <!-- Background (session screen dimmed) -->
+        <div style="position:absolute;inset:0;background:var(--bg);">
+          <div style="background:linear-gradient(180deg,rgba(249,112,102,0.08) 0%,transparent 200px);height:200px;"></div>
+          <div style="padding:12px 20px;opacity:0.35;">
+            <div style="height:32px;background:var(--surface-2);border-radius:10px;margin-bottom:10px;"></div>
+            <div style="height:72px;background:var(--surface-2);border-radius:14px;margin-bottom:8px;"></div>
+            <div style="height:72px;background:var(--surface-2);border-radius:14px;margin-bottom:8px;"></div>
+            <div style="height:72px;background:var(--surface-2);border-radius:14px;"></div>
+          </div>
+        </div>
+        <div class="sheet-overlay"></div>
+
+        <!-- Add Exercise Bottom Sheet -->
+        <div class="bottom-sheet">
+          <div class="sheet-handle"></div>
+          <div class="sheet-header">
+            <span class="sheet-title">Add Exercise</span>
+            <div class="sheet-close">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </div>
+          </div>
+
+          <div class="search-wrap">
+            <div class="search-box">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <span class="search-input-text">Search exercises...</span>
+            </div>
+          </div>
+
+          <div class="filter-pills">
+            <div class="filter-pill active">All</div>
+            <div class="filter-pill inactive">Chest</div>
+            <div class="filter-pill inactive">Back</div>
+            <div class="filter-pill inactive">Legs</div>
+            <div class="filter-pill inactive">Shoulders</div>
+            <div class="filter-pill inactive">Arms</div>
+          </div>
+
+          <div class="exercise-list">
+            <!-- Selected item -->
+            <div class="exercise-row selected">
+              <div class="exercise-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--violet)" stroke-width="1.8"><path d="M6 4v16M18 4v16M2 8h4M18 8h4M2 16h4M18 16h4M6 12h12"/></svg>
+              </div>
+              <div class="exercise-info">
+                <div class="exercise-name" style="color:var(--violet);">Incline Bench Press</div>
+                <div class="exercise-meta">Upper Chest · Barbell</div>
+              </div>
+              <div class="exercise-check">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+            </div>
+
+            <div class="exercise-row">
+              <div class="exercise-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.8"><path d="M6 4v16M18 4v16M2 8h4M18 8h4M2 16h4M18 16h4M6 12h12"/></svg>
+              </div>
+              <div class="exercise-info">
+                <div class="exercise-name">Flat Dumbbell Press</div>
+                <div class="exercise-meta">Chest · Dumbbell</div>
+              </div>
+            </div>
+
+            <div class="exercise-row">
+              <div class="exercise-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.8"><path d="M3 12h18M3 6l9 6-9 6"/></svg>
+              </div>
+              <div class="exercise-info">
+                <div class="exercise-name">Cable Fly (Low)</div>
+                <div class="exercise-meta">Inner Chest · Cable</div>
+              </div>
+            </div>
+
+            <div class="exercise-row">
+              <div class="exercise-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+              </div>
+              <div class="exercise-info">
+                <div class="exercise-name">Push-Up (Weighted)</div>
+                <div class="exercise-meta">Chest · Bodyweight</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sheet-add-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add 1 Exercise
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="caption">Add Exercise Sheet — searchable with muscle group filters</p>
+  </div>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 2: EMPTY STATES                                      -->
+<!-- ============================================================ -->
+<p class="section-label">Empty States — first-run &amp; no data</p>
+<div class="frames-row">
+
+  <!-- FIRST WORKOUT EMPTY STATE -->
+  <div>
+    <div class="phone">
+      <div class="dynamic-island"></div>
+      <div class="status-bar">
+        <span>9:41</span>
+        <div class="status-icons">
+          <svg width="17" height="12" viewBox="0 0 17 12" fill="white"><rect x="0" y="3" width="3" height="9" rx="1"/><rect x="4.5" y="2" width="3" height="10" rx="1"/><rect x="9" y="0" width="3" height="12" rx="1"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="white" stroke-opacity="0.35"/><rect x="2" y="2" width="18" height="8" rx="2" fill="white"/><path d="M23 4.5V7.5C23.8 7.2 24.5 6.4 24.5 6C24.5 5.6 23.8 4.8 23 4.5Z" fill="white" opacity="0.4"/></svg>
+        </div>
+      </div>
+      <div class="screen">
+        <div class="empty-screen">
+          <div class="empty-nav" style="padding-bottom:0;">
+            <div style="flex:1;">
+              <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:var(--t1);">Training</div>
+              <div style="font-size:13px;color:var(--t2);">No sessions yet</div>
+            </div>
+            <div style="width:40px;height:40px;background:var(--coral-tint);border:1px solid var(--coral-border);border-radius:12px;display:flex;align-items:center;justify-content:center;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--coral)" stroke-width="1.8"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </div>
+          </div>
+
+          <div class="empty-body">
+            <div class="empty-illustration">
+              <!-- Dumbbell SVG -->
+              <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="var(--coral)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 4v16M18 4v16M2 8h4M18 8h4M2 16h4M18 16h4M6 12h12"/>
+              </svg>
+            </div>
+            <div class="empty-headline">Ready to train?</div>
+            <div class="empty-body-text">Your first workout is waiting. Start a session from your plan, or build a custom workout from scratch.</div>
+            <div class="empty-cta coral">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Start First Session
+            </div>
+            <div class="empty-hint">Or explore your training plan below</div>
+          </div>
+        </div>
+
+        <!-- Bottom Nav -->
+        <div class="bottom-nav">
+          <div class="nav-item inactive">
+            <div class="nav-icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+            <span class="nav-label">Today</span>
+          </div>
+          <div class="nav-item coral">
+            <div class="nav-icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--coral)" stroke-width="1.8"><path d="M6 4v16M18 4v16M2 8h4M18 8h4M2 16h4M18 16h4M6 12h12"/></svg></div>
+            <span class="nav-label" style="color:var(--coral);">Train</span>
+          </div>
+          <div class="nav-item inactive">
+            <div class="nav-icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+            <span class="nav-label">Progress</span>
+          </div>
+          <div class="nav-item inactive">
+            <div class="nav-icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+            <span class="nav-label">Profile</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="caption">Train empty state — first-time user, coral CTA</p>
+  </div>
+
+  <!-- COACH EMPTY STATE -->
+  <div>
+    <div class="phone violet-glow">
+      <div class="dynamic-island"></div>
+      <div class="status-bar">
+        <span>9:41</span>
+        <div class="status-icons">
+          <svg width="17" height="12" viewBox="0 0 17 12" fill="white"><rect x="0" y="3" width="3" height="9" rx="1"/><rect x="4.5" y="2" width="3" height="10" rx="1"/><rect x="9" y="0" width="3" height="12" rx="1"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="white" stroke-opacity="0.35"/><rect x="2" y="2" width="16" height="8" rx="2" fill="white"/><path d="M23 4.5V7.5C23.8 7.2 24.5 6.4 24.5 6C24.5 5.6 23.8 4.8 23 4.5Z" fill="white" opacity="0.4"/></svg>
+        </div>
+      </div>
+      <div class="screen">
+        <div class="empty-screen">
+          <div style="padding:20px 20px 0;display:flex;align-items:center;justify-content:space-between;">
+            <div>
+              <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:700;">Coach</div>
+              <div style="font-size:13px;color:var(--t2);">Your AI training partner</div>
+            </div>
+            <div style="width:36px;height:36px;background:var(--violet-tint);border:1px solid var(--violet-border);border-radius:10px;display:flex;align-items:center;justify-content:center;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--violet)" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </div>
+          </div>
+
+          <div class="empty-body" style="justify-content:center;">
+            <div class="empty-illustration" style="background:var(--violet-tint);border:1.5px solid var(--violet-border);">
+              <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="var(--violet)" stroke-width="1.5" stroke-linecap="round">
+                <path d="M12 2a10 10 0 0 1 10 10c0 5.52-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2Z" opacity="0.3"/>
+                <path d="M8 12h8M8 8h5M8 16h6"/>
+              </svg>
+            </div>
+            <div class="empty-headline">No conversations yet</div>
+            <div class="empty-body-text">Ask your AI coach anything — training advice, program adjustments, recovery tips, or nutrition guidance.</div>
+
+            <!-- Starter prompt chips -->
+            <div style="display:flex;flex-direction:column;gap:8px;width:100%;margin-bottom:24px;">
+              <div style="background:var(--violet-tint);border:1px solid var(--violet-border);border-radius:12px;padding:12px 14px;font-size:13px;color:var(--violet);cursor:pointer;">
+                "How should I structure my deload week?"
+              </div>
+              <div style="background:var(--surface-2);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 14px;font-size:13px;color:var(--t2);cursor:pointer;">
+                "Why is my bench press stuck?"
+              </div>
+              <div style="background:var(--surface-2);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 14px;font-size:13px;color:var(--t2);cursor:pointer;">
+                "Build me a 4-day upper/lower split"
+              </div>
+            </div>
+
+            <div class="empty-cta">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              Start a Conversation
+            </div>
+          </div>
+        </div>
+
+        <div class="bottom-nav">
+          <div class="nav-item inactive">
+            <div class="nav-icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+            <span class="nav-label">Today</span>
+          </div>
+          <div class="nav-item inactive">
+            <div class="nav-icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1.8"><path d="M6 4v16M18 4v16M2 8h4M18 8h4M2 16h4M18 16h4M6 12h12"/></svg></div>
+            <span class="nav-label">Train</span>
+          </div>
+          <div class="nav-item violet">
+            <div class="nav-icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--violet)" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+            <span class="nav-label">Coach</span>
+          </div>
+          <div class="nav-item inactive">
+            <div class="nav-icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+            <span class="nav-label">Profile</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="caption">Coach empty state — prompt chips surface first questions</p>
+  </div>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 3: TOASTS + NUTRITION LOG SHEET                      -->
+<!-- ============================================================ -->
+<p class="section-label">Toast notifications &amp; Nutrition Log</p>
+<div class="frames-row">
+
+  <!-- TOAST SHOWCASE -->
+  <div>
+    <div class="phone">
+      <div class="dynamic-island"></div>
+      <div class="status-bar">
+        <span>9:41</span>
+        <div class="status-icons">
+          <svg width="17" height="12" viewBox="0 0 17 12" fill="white"><rect x="0" y="3" width="3" height="9" rx="1"/><rect x="4.5" y="2" width="3" height="10" rx="1"/><rect x="9" y="0" width="3" height="12" rx="1"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="white" stroke-opacity="0.35"/><rect x="2" y="2" width="18" height="8" rx="2" fill="white"/><path d="M23 4.5V7.5C23.8 7.2 24.5 6.4 24.5 6C24.5 5.6 23.8 4.8 23 4.5Z" fill="white" opacity="0.4"/></svg>
+        </div>
+      </div>
+      <div class="screen">
+        <!-- Background -->
+        <div style="position:absolute;inset:0;background:var(--bg);">
+          <div style="padding:20px;opacity:0.3;">
+            <div style="height:48px;background:var(--surface-2);border-radius:12px;margin-bottom:16px;"></div>
+            <div style="height:120px;background:var(--surface-2);border-radius:16px;margin-bottom:12px;"></div>
+            <div style="height:80px;background:var(--surface-2);border-radius:16px;margin-bottom:12px;"></div>
+            <div style="height:80px;background:var(--surface-2);border-radius:16px;"></div>
+          </div>
+        </div>
+
+        <!-- Toast stack -->
+        <div style="position:absolute;top:72px;left:16px;right:16px;display:flex;flex-direction:column;gap:10px;z-index:100;">
+
+          <!-- Success toast -->
+          <div class="toast success">
+            <div class="toast-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="toast-body">
+              <div class="toast-title">Workout saved</div>
+              <div class="toast-sub">Your session has been logged successfully</div>
+            </div>
+            <div class="toast-dismiss">×</div>
+          </div>
+
+          <!-- AI / violet toast -->
+          <div class="toast violet">
+            <div class="toast-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2a10 10 0 0 1 10 10c0 5.52-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2Z" opacity="0.4"/><path d="M9 12l2 2 4-4"/></svg>
+            </div>
+            <div class="toast-body">
+              <div class="toast-title">AI plan updated</div>
+              <div class="toast-sub">Next week adjusted based on your fatigue signals</div>
+            </div>
+            <div class="toast-dismiss">×</div>
+          </div>
+
+          <!-- Error toast -->
+          <div class="toast error">
+            <div class="toast-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+            <div class="toast-body">
+              <div class="toast-title">Sync failed</div>
+              <div class="toast-sub">Could not reach server — changes saved locally</div>
+            </div>
+            <div class="toast-dismiss">×</div>
+          </div>
+
+          <!-- Gold / PR toast -->
+          <div class="toast" style="border-color:var(--gold-border);">
+            <div class="toast-icon" style="background:var(--gold-tint);color:var(--gold);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 9H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h2"/><path d="M18 9h2a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+            </div>
+            <div class="toast-body">
+              <div class="toast-title" style="color:var(--gold);">New personal record!</div>
+              <div class="toast-sub">Deadlift — 180 kg × 3 reps</div>
+            </div>
+            <div class="toast-dismiss">×</div>
+          </div>
+
+        </div>
+
+        <!-- Label overlay -->
+        <div style="position:absolute;bottom:100px;left:0;right:0;text-align:center;">
+          <div style="font-size:12px;color:var(--t3);font-style:italic;">All 4 toast variants • auto-dismiss 4s • aria-live</div>
+        </div>
+
+        <div class="bottom-nav">
+          <div class="nav-item violet">
+            <div class="nav-icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--violet)" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+            <span class="nav-label">Today</span>
+          </div>
+          <div class="nav-item inactive">
+            <div class="nav-icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1.8"><path d="M6 4v16M18 4v16M2 8h4M18 8h4M2 16h4M18 16h4M6 12h12"/></svg></div>
+            <span class="nav-label">Train</span>
+          </div>
+          <div class="nav-item inactive">
+            <div class="nav-icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+            <span class="nav-label">Progress</span>
+          </div>
+          <div class="nav-item inactive">
+            <div class="nav-icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+            <span class="nav-label">Profile</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="caption">Toast system — success / AI / error / PR variants</p>
+  </div>
+
+  <!-- NUTRITION LOG -->
+  <div>
+    <div class="phone">
+      <div class="dynamic-island"></div>
+      <div class="status-bar">
+        <span>9:41</span>
+        <div class="status-icons">
+          <svg width="17" height="12" viewBox="0 0 17 12" fill="white"><rect x="0" y="3" width="3" height="9" rx="1"/><rect x="4.5" y="2" width="3" height="10" rx="1"/><rect x="9" y="0" width="3" height="12" rx="1"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="white" stroke-opacity="0.35"/><rect x="2" y="2" width="15" height="8" rx="2" fill="white"/><path d="M23 4.5V7.5C23.8 7.2 24.5 6.4 24.5 6C24.5 5.6 23.8 4.8 23 4.5Z" fill="white" opacity="0.4"/></svg>
+        </div>
+      </div>
+      <div class="screen">
+        <div style="position:absolute;inset:0;overflow-y:auto;background:var(--bg);">
+          <div class="nutrition-screen-content">
+            <div class="nutrition-header">
+              <div class="nutrition-title">Nutrition</div>
+              <div class="nutrition-date-pill">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                Today
+              </div>
+            </div>
+
+            <!-- Macro Summary -->
+            <div class="macro-ring-row">
+              <!-- Calorie ring (SVG) -->
+              <div style="flex-shrink:0;text-align:center;">
+                <svg width="90" height="90" viewBox="0 0 90 90">
+                  <circle cx="45" cy="45" r="38" fill="none" stroke="var(--surface-3)" stroke-width="8"/>
+                  <circle cx="45" cy="45" r="38" fill="none" stroke="var(--violet)" stroke-width="8"
+                    stroke-dasharray="239" stroke-dashoffset="72"
+                    stroke-linecap="round" transform="rotate(-90 45 45)"/>
+                  <text x="45" y="41" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="16" font-weight="600" fill="white">1,847</text>
+                  <text x="45" y="55" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="rgba(255,255,255,0.5)">of 2,400 kcal</text>
+                </svg>
+              </div>
+
+              <div class="macro-totals">
+                <div class="macro-bar-row">
+                  <div class="macro-bar-header">
+                    <span class="macro-bar-label">Protein</span>
+                    <span class="macro-bar-val">142 / 180g</span>
+                  </div>
+                  <div class="macro-bar-track">
+                    <div class="macro-bar-fill" style="width:79%;background:var(--violet);"></div>
+                  </div>
+                </div>
+                <div class="macro-bar-row">
+                  <div class="macro-bar-header">
+                    <span class="macro-bar-label">Carbs</span>
+                    <span class="macro-bar-val">198 / 260g</span>
+                  </div>
+                  <div class="macro-bar-track">
+                    <div class="macro-bar-fill" style="width:76%;background:var(--coral);"></div>
+                  </div>
+                </div>
+                <div class="macro-bar-row">
+                  <div class="macro-bar-header">
+                    <span class="macro-bar-label">Fat</span>
+                    <span class="macro-bar-val">54 / 80g</span>
+                  </div>
+                  <div class="macro-bar-track">
+                    <div class="macro-bar-fill" style="width:68%;background:var(--gold);"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Breakfast -->
+            <div class="meal-section-header">
+              <span class="meal-section-name">Breakfast</span>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span class="meal-section-cals">612 kcal</span>
+                <div class="meal-add-btn">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </div>
+              </div>
+            </div>
+
+            <div class="food-item">
+              <div class="food-icon">🥚</div>
+              <div class="food-info">
+                <div class="food-name">Scrambled Eggs (3)</div>
+                <div class="food-meta">P: 21g · C: 2g · F: 16g</div>
+              </div>
+              <div class="food-cals">280</div>
+            </div>
+            <div class="food-item">
+              <div class="food-icon">🍞</div>
+              <div class="food-info">
+                <div class="food-name">Sourdough Toast (2 slices)</div>
+                <div class="food-meta">P: 8g · C: 48g · F: 2g</div>
+              </div>
+              <div class="food-cals">240</div>
+            </div>
+            <div class="food-item" style="border-bottom:none;">
+              <div class="food-icon">☕</div>
+              <div class="food-info">
+                <div class="food-name">Flat White (oat milk)</div>
+                <div class="food-meta">P: 4g · C: 12g · F: 5g</div>
+              </div>
+              <div class="food-cals">92</div>
+            </div>
+
+            <!-- Lunch -->
+            <div class="meal-section-header">
+              <span class="meal-section-name">Lunch</span>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span class="meal-section-cals">734 kcal</span>
+                <div class="meal-add-btn">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </div>
+              </div>
+            </div>
+
+            <div class="food-item">
+              <div class="food-icon">🍗</div>
+              <div class="food-info">
+                <div class="food-name">Chicken Breast (200g)</div>
+                <div class="food-meta">P: 62g · C: 0g · F: 7g</div>
+              </div>
+              <div class="food-cals">310</div>
+            </div>
+            <div class="food-item" style="border-bottom:none;">
+              <div class="food-icon">🍚</div>
+              <div class="food-info">
+                <div class="food-name">Basmati Rice (150g cooked)</div>
+                <div class="food-meta">P: 4g · C: 56g · F: 1g</div>
+              </div>
+              <div class="food-cals">244</div>
+            </div>
+
+            <!-- Dinner placeholder -->
+            <div class="meal-section-header">
+              <span class="meal-section-name">Dinner</span>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span class="meal-section-cals" style="color:var(--t3);">Not logged</span>
+                <div class="meal-add-btn">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </div>
+              </div>
+            </div>
+            <div style="height:52px;background:var(--surface-2);border-radius:12px;display:flex;align-items:center;justify-content:center;border:1.5px dashed rgba(255,255,255,0.08);">
+              <span style="font-size:13px;color:var(--t3);">Tap + to log dinner</span>
+            </div>
+
+            <div style="height:100px;"></div>
+          </div>
+        </div>
+
+        <!-- Floating Add Food Button -->
+        <div style="position:absolute;bottom:96px;right:20px;z-index:20;">
+          <div style="width:52px;height:52px;background:var(--violet);border-radius:16px;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(167,139,250,0.4);cursor:pointer;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </div>
+        </div>
+
+        <div class="bottom-nav">
+          <div class="nav-item violet">
+            <div class="nav-icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--violet)" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+            <span class="nav-label">Today</span>
+          </div>
+          <div class="nav-item inactive">
+            <div class="nav-icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1.8"><path d="M6 4v16M18 4v16M2 8h4M18 8h4M2 16h4M18 16h4M6 12h12"/></svg></div>
+            <span class="nav-label">Train</span>
+          </div>
+          <div class="nav-item inactive">
+            <div class="nav-icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+            <span class="nav-label">Progress</span>
+          </div>
+          <div class="nav-item inactive">
+            <div class="nav-icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+            <span class="nav-label">Profile</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="caption">Nutrition log — macro ring, meal sections, + FAB</p>
+  </div>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 4: ADD FOOD SHEET (BARCODE + SEARCH)                 -->
+<!-- ============================================================ -->
+<p class="section-label">Add Food Sheet — search &amp; barcode scan</p>
+<div class="frames-row">
+
+  <div>
+    <div class="phone violet-glow">
+      <div class="dynamic-island"></div>
+      <div class="status-bar">
+        <span>9:41</span>
+        <div class="status-icons">
+          <svg width="17" height="12" viewBox="0 0 17 12" fill="white"><rect x="0" y="3" width="3" height="9" rx="1"/><rect x="4.5" y="2" width="3" height="10" rx="1"/><rect x="9" y="0" width="3" height="12" rx="1"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="white" stroke-opacity="0.35"/><rect x="2" y="2" width="16" height="8" rx="2" fill="white"/><path d="M23 4.5V7.5C23.8 7.2 24.5 6.4 24.5 6C24.5 5.6 23.8 4.8 23 4.5Z" fill="white" opacity="0.4"/></svg>
+        </div>
+      </div>
+      <div class="screen">
+        <!-- Background: nutrition page dimmed -->
+        <div style="position:absolute;inset:0;background:var(--bg);opacity:0.5;"></div>
+        <div class="sheet-overlay"></div>
+
+        <div class="add-food-sheet">
+          <div class="sheet-handle"></div>
+          <div class="sheet-header">
+            <span class="sheet-title">Add Food</span>
+            <div class="sheet-close">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </div>
+          </div>
+
+          <!-- Meal context chip -->
+          <div style="padding:0 20px 12px;">
+            <div style="display:flex;gap:8px;">
+              <div style="height:32px;padding:0 14px;background:var(--surface-3);border:1px solid rgba(255,255,255,0.08);border-radius:999px;font-size:13px;color:var(--t2);display:flex;align-items:center;gap:6px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                Adding to: <strong style="color:var(--t1);">Dinner</strong>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Search -->
+          <div class="search-wrap">
+            <div class="search-box" style="border-color:var(--violet-border);background:var(--surface-3);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <span class="search-input-text" style="flex:1;">Search food or scan barcode</span>
+              <div style="width:32px;height:32px;background:var(--violet-tint);border:1px solid var(--violet-border);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--violet)" stroke-width="1.8"><rect x="2" y="2" width="7" height="7"/><rect x="15" y="2" width="7" height="7"/><rect x="2" y="15" width="7" height="7"/><path d="M17 17h4v4M17 21h4"/><rect x="3" y="3" width="5" height="5" fill="var(--violet)" opacity="0.5"/><rect x="16" y="3" width="5" height="5" fill="var(--violet)" opacity="0.5"/><rect x="3" y="16" width="5" height="5" fill="var(--violet)" opacity="0.5"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Barcode scan CTA -->
+          <div class="scan-banner">
+            <div class="scan-icon-wrap">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><rect x="2" y="2" width="7" height="7"/><rect x="15" y="2" width="7" height="7"/><rect x="2" y="15" width="7" height="7"/></svg>
+            </div>
+            <div class="scan-text">
+              <div class="scan-title">Scan a barcode</div>
+              <div class="scan-sub">Instantly log packaged foods</div>
+            </div>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--violet)" stroke-width="1.8"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+
+          <!-- Quick add section -->
+          <div style="padding:12px 20px 8px;font-size:12px;font-weight:600;color:var(--t3);letter-spacing:0.08em;text-transform:uppercase;">Frequent Foods</div>
+
+          <div class="quick-add-grid">
+            <div class="quick-card">
+              <span class="quick-food-icon">🐔</span>
+              <div class="quick-food-info">
+                <div class="quick-food-name">Chicken Breast</div>
+                <div class="quick-food-cals">165 kcal / 100g</div>
+              </div>
+            </div>
+            <div class="quick-card">
+              <span class="quick-food-icon">🥛</span>
+              <div class="quick-food-info">
+                <div class="quick-food-name">Whey Protein</div>
+                <div class="quick-food-cals">120 kcal / scoop</div>
+              </div>
+            </div>
+            <div class="quick-card">
+              <span class="quick-food-icon">🥦</span>
+              <div class="quick-food-info">
+                <div class="quick-food-name">Broccoli</div>
+                <div class="quick-food-cals">34 kcal / 100g</div>
+              </div>
+            </div>
+            <div class="quick-card">
+              <span class="quick-food-icon">🍳</span>
+              <div class="quick-food-info">
+                <div class="quick-food-name">Egg (large)</div>
+                <div class="quick-food-cals">78 kcal / egg</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent section -->
+          <div style="padding:8px 20px 8px;font-size:12px;font-weight:600;color:var(--t3);letter-spacing:0.08em;text-transform:uppercase;">Recently Logged</div>
+          <div class="exercise-list" style="padding:0 20px;">
+            <div class="food-item">
+              <div class="food-icon" style="width:36px;height:36px;font-size:18px;">🍚</div>
+              <div class="food-info">
+                <div class="food-name">Jasmine Rice (cooked)</div>
+                <div class="food-meta">130 kcal · P: 3g · C: 28g · F: 0g</div>
+              </div>
+              <div style="width:32px;height:32px;background:var(--surface-3);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--t2);cursor:pointer;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </div>
+            </div>
+            <div class="food-item" style="border-bottom:none;">
+              <div class="food-icon" style="width:36px;height:36px;font-size:18px;">🥗</div>
+              <div class="food-info">
+                <div class="food-name">Mixed Salad</div>
+                <div class="food-meta">45 kcal · P: 2g · C: 8g · F: 1g</div>
+              </div>
+              <div style="width:32px;height:32px;background:var(--surface-3);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--t2);cursor:pointer;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="caption">Add Food sheet — barcode, frequent foods, recent log</p>
+  </div>
+
+</div>
+
+</body>
+</html>
