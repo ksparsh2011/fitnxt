@@ -29,7 +29,6 @@ export function BottomNav() {
         {tabs.map(({ href, label, Icon }) => {
           const active =
             href === "/" ? path === "/" : path.startsWith(href);
-          const isCoach = href === "/coach";
 
           return (
             <li key={href} className="flex-1">
@@ -42,9 +41,7 @@ export function BottomNav() {
                   "transition-colors duration-150 min-h-[56px] justify-center",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset",
                   active
-                    ? isCoach
-                      ? "text-violet focus-visible:ring-violet"
-                      : "text-coral focus-visible:ring-coral"
+                    ? "text-violet focus-visible:ring-violet"
                     : "text-t3 hover:text-t2 focus-visible:ring-[var(--border-2)]",
                 )}
               >

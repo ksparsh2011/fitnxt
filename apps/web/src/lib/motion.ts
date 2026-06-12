@@ -14,3 +14,18 @@ export const authItemVariants = {
     transition: { duration: 0.3, ease: [0, 0, 0.2, 1] as const },
   },
 } as const;
+
+// Shared variants for Today screen and other app screens
+export const pageContainerVariants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.06 } },
+} as const;
+
+export const cardItemVariants = {
+  hidden: { opacity: 0, y: 12 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.3, ease: [0, 0, 0.2, 1] as const },
+  },
+} as const;

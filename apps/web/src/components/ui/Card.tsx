@@ -10,15 +10,15 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
 
 const variants: Record<CardVariant, string> = {
   default:
-    "bg-[var(--surface)] border border-[var(--border)] hover:border-[var(--border-2)]",
+    "bg-surface border border-border hover:border-border-2",
   violet:
-    "bg-[var(--violet-tint)] border border-[var(--violet-border)]",
+    "bg-violet-tint border border-violet-border",
   coral:
-    "bg-[var(--coral-tint)] border border-[var(--coral-border)]",
+    "bg-coral-tint border border-coral-border",
   gold:
-    "bg-[var(--gold-tint)] border border-[var(--gold-border)]",
+    "bg-gold-tint border border-gold-border",
   flat:
-    "bg-[var(--surface-2)]",
+    "bg-surface-2",
 };
 
 const paddings = {

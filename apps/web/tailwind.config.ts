@@ -70,8 +70,8 @@ const config: Config = {
       },
       borderRadius: {
         "xl":   "16px",
-        "2xl":  "16px",
-        "3xl":  "20px",
+        "2xl":  "20px",
+        "3xl":  "28px",
         "4xl":  "28px",
         phone:  "44px",
       },

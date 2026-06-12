@@ -67,7 +67,7 @@ export function ProgressRing({
       {(label || sublabel) && (
         <div className="absolute flex flex-col items-center leading-none text-center">
           {label && (
-            <span className="font-display font-bold text-t1" style={{ fontSize: size * 0.18 }}>
+            <span className="font-mono font-bold text-t1" style={{ fontSize: size * 0.18 }}>
               {label}
             </span>
           )}
