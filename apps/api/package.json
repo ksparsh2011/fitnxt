@@ -9,8 +9,8 @@
     "start:debug": "nest start --debug --watch",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"{src,libs}/**/*.ts\"",
-    "migrate": "ts-node -r tsconfig-paths/register libs/database/migrate.ts",
-    "migrate:down": "ts-node -r tsconfig-paths/register libs/database/migrate.ts down"
+    "migrate": "tsx libs/database/migrate.ts",
+    "migrate:down": "tsx libs/database/migrate.ts down"
   },
   "dependencies": {
     "@fitnxt/shared": "workspace:*",
@@ -43,7 +43,6 @@
     "@nestjs/cli": "^10.3.2",
     "@nestjs/schematics": "^10.1.1",
     "@nestjs/swagger": "^7.3.0",
-    "@types/bcrypt": "^5.0.2",
     "@types/bcryptjs": "^3.0.0",
     "@types/cookie-parser": "^1.4.7",
     "@types/express": "^4.17.21",
@@ -52,6 +51,7 @@
     "@types/passport-local": "^1.0.38",
     "@types/pg": "^8.11.0",
     "ts-loader": "^9.6.0",
+    "tsx": "^4.22.4",
     "typescript": "^5.3.3"
   }
 }
