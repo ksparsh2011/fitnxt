@@ -56,7 +56,7 @@ export function WorkoutCard() {
       }}
     >
       <p className="text-xs font-semibold text-coral/80 uppercase tracking-wide mb-1.5">
-        TODAY'S WORKOUT
+        TODAY&apos;S WORKOUT
       </p>
       <h2 className="font-display font-extrabold text-2xl text-white mb-1">{workout.name}</h2>
       <p className="text-sm text-white/60 mb-3">

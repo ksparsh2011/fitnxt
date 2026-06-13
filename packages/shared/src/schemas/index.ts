@@ -7,7 +7,6 @@ export const UserSchema = z.object({
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
 });
-export type User = z.infer<typeof UserSchema>;
 
 export const UserProfileSchema = z.object({
   userId: z.string().uuid(),
@@ -16,7 +15,6 @@ export const UserProfileSchema = z.object({
   bio: z.string().max(500).nullable(),
   updatedAt: z.coerce.date(),
 });
-export type UserProfile = z.infer<typeof UserProfileSchema>;
 
 export const WorkoutSessionSchema = z.object({
   id: z.string().uuid(),
@@ -29,7 +27,6 @@ export const WorkoutSessionSchema = z.object({
   notes: z.string().optional(),
   totalVolume: z.number().nonnegative().optional(),
 });
-export type WorkoutSession = z.infer<typeof WorkoutSessionSchema>;
 
 export const SetSchema = z.object({
   id: z.string().uuid(),
@@ -40,7 +37,6 @@ export const SetSchema = z.object({
   rpe: z.number().min(1).max(10).optional(),
   completedAt: z.coerce.date(),
 });
-export type Set = z.infer<typeof SetSchema>;
 
 export const MealLogSchema = z.object({
   id: z.string().uuid(),
@@ -55,7 +51,6 @@ export const MealLogSchema = z.object({
   quantity: z.number().positive(),
   unit: z.string().min(1),
 });
-export type MealLog = z.infer<typeof MealLogSchema>;
 
 export const PersonalRecordSchema = z.object({
   id: z.string().uuid(),
@@ -66,7 +61,6 @@ export const PersonalRecordSchema = z.object({
   achievedAt: z.coerce.date(),
   previousValue: z.number().nonnegative().optional(),
 });
-export type PersonalRecord = z.infer<typeof PersonalRecordSchema>;
 
 export const LoginSchema = z.object({
   email: z.string().email(),
