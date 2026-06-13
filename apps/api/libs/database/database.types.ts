@@ -115,7 +115,7 @@ export interface WorkoutSessionsTable {
   fatigue_rating: number | null;
   total_volume_kg: number | null;
   total_sets: number | null;
-  pr_count: Generated<number>;
+  pr_count: ColumnType<number, number | undefined, number>;
 }
 
 export interface SetLogsTable {
@@ -127,8 +127,8 @@ export interface SetLogsTable {
   weight_kg: number | null;
   rpe_actual: number | null;
   rest_seconds: number | null;
-  is_warmup: Generated<boolean>;
-  is_pr: Generated<boolean>;
+  is_warmup: ColumnType<boolean, boolean | undefined, never>;
+  is_pr: ColumnType<boolean, boolean | undefined, boolean>;
   logged_at: ColumnType<Date, Date, never>;
   days_since_last_session: number | null;
   session_fatigue_at_time: number | null;
@@ -138,7 +138,7 @@ export interface PersonalRecordsTable {
   id: Generated<string>;
   user_id: string;
   exercise_id: string;
-  pr_type: '1rm' | '3rm' | '5rm' | '8rm' | '10rm' | 'max_reps';
+  pr_type: '1rm' | '3rm' | '5rm' | '8rm' | '10rm' | 'max_reps' | 'e1rm';
   value: number;
   achieved_at: ColumnType<Date, Date, Date>;
   set_log_id: string | null;

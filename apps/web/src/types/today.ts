@@ -25,3 +25,11 @@ export interface UserProfile {
   fitnessGoal: string;
   createdAt: string;
 }
+
+export interface ActiveSessionResponse {
+  sessionId: string;
+  trainingDayId: string | null;
+  checkedInAt: string;
+  totalSets: number | null;
+  totalVolumeKg: number | null;
+}

@@ -1,7 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { Kysely } from 'kysely';
 import { DATABASE_TOKEN } from '../../../libs/database/database.module';
-import { Database } from '../../../libs/database/database.types';
+import { Database, PersonalRecordsTable } from '../../../libs/database/database.types';
 
 @Injectable()
 export class WorkoutsRepository {
@@ -59,5 +59,264 @@ export class WorkoutsRepository {
       .orderBy('checked_in_at', 'desc')
       .limit(1)
       .executeTakeFirst();
+  }
+
+  async createSession(
+    userId: string,
+    trainingDayId: string | null,
+  ): Promise<{ id: string; checked_in_at: Date }> {
+    return this.db
+      .insertInto('workout_sessions')
+      .values({
+        user_id: userId,
+        training_day_id: trainingDayId,
+        checked_in_at: new Date(),
+      })
+      .returning(['id', 'checked_in_at'])
+      .executeTakeFirstOrThrow();
+  }
+
+  async getSetLogsForSession(sessionId: string): Promise<
+    Array<{
+      id: string;
+      exercise_id: string;
+      set_number: number;
+      reps: number;
+      weight_kg: number | null;
+      rpe_actual: number | null;
+      rest_seconds: number | null;
+      is_warmup: boolean;
+      is_pr: boolean;
+      logged_at: Date;
+    }>
+  > {
+    return this.db
+      .selectFrom('set_logs')
+      .select([
+        'id',
+        'exercise_id',
+        'set_number',
+        'reps',
+        'weight_kg',
+        'rpe_actual',
+        'rest_seconds',
+        'is_warmup',
+        'is_pr',
+        'logged_at',
+      ])
+      .where('session_id', '=', sessionId)
+      .orderBy('set_number', 'asc')
+      .execute();
+  }
+
+  async getSetCountForExerciseInSession(sessionId: string, exerciseId: string): Promise<number> {
+    const result = await this.db
+      .selectFrom('set_logs')
+      .select((eb) => eb.fn.count<number>('id').as('cnt'))
+      .where('session_id', '=', sessionId)
+      .where('exercise_id', '=', exerciseId)
+      .executeTakeFirst();
+    return Number(result?.cnt ?? 0);
+  }
+
+  async insertSetLog(data: {
+    sessionId: string;
+    exerciseId: string;
+    setNumber: number;
+    reps: number;
+    weightKg: number | null;
+    rpeActual: number | null;
+    isWarmup: boolean;
+  }): Promise<{ id: string }> {
+    return this.db
+      .insertInto('set_logs')
+      .values({
+        session_id: data.sessionId,
+        exercise_id: data.exerciseId,
+        set_number: data.setNumber,
+        reps: data.reps,
+        weight_kg: data.weightKg,
+        rpe_actual: data.rpeActual,
+        is_warmup: data.isWarmup,
+        logged_at: new Date(),
+      })
+      .returning(['id'])
+      .executeTakeFirstOrThrow();
+  }
+
+  async findPR(
+    userId: string,
+    exerciseId: string,
+    prType: string,
+  ): Promise<{ id: string; value: number } | undefined> {
+    return this.db
+      .selectFrom('personal_records')
+      .select(['id', 'value'])
+      .where('user_id', '=', userId)
+      .where('exercise_id', '=', exerciseId)
+      .where('pr_type', '=', prType as PersonalRecordsTable['pr_type'])
+      .executeTakeFirst();
+  }
+
+  async upsertPR(data: {
+    userId: string;
+    exerciseId: string;
+    prType: string;
+    value: number;
+    setLogId: string;
+  }): Promise<{ id: string }> {
+    return this.db
+      .insertInto('personal_records')
+      .values({
+        user_id: data.userId,
+        exercise_id: data.exerciseId,
+        pr_type: data.prType as PersonalRecordsTable['pr_type'],
+        value: data.value,
+        achieved_at: new Date(),
+        set_log_id: data.setLogId,
+      })
+      .onConflict((oc) =>
+        oc.columns(['user_id', 'exercise_id', 'pr_type']).doUpdateSet({
+          value: (eb) => eb.ref('excluded.value'),
+          achieved_at: (eb) => eb.ref('excluded.achieved_at'),
+          set_log_id: (eb) => eb.ref('excluded.set_log_id'),
+        }),
+      )
+      .returning(['id'])
+      .executeTakeFirstOrThrow();
+  }
+
+  async markSetAsPR(setLogId: string): Promise<void> {
+    await this.db
+      .updateTable('set_logs')
+      .set({ is_pr: true })
+      .where('id', '=', setLogId)
+      .execute();
+  }
+
+  async findExerciseById(exerciseId: string): Promise<{ id: string; name: string } | undefined> {
+    return this.db
+      .selectFrom('exercises')
+      .select(['id', 'name'])
+      .where('id', '=', exerciseId)
+      .executeTakeFirst();
+  }
+
+  async finishSession(
+    sessionId: string,
+    userId: string,
+    data: {
+      totalVolumeKg: number;
+      totalSets: number;
+      prCount: number;
+      fatigueRating: number | null;
+      notes: string | null;
+    },
+  ): Promise<void> {
+    await this.db
+      .updateTable('workout_sessions')
+      .set({
+        checked_out_at: new Date(),
+        total_volume_kg: data.totalVolumeKg,
+        total_sets: data.totalSets,
+        pr_count: data.prCount,
+        fatigue_rating: data.fatigueRating,
+        notes: data.notes,
+      })
+      .where('id', '=', sessionId)
+      .where('user_id', '=', userId)
+      .execute();
+  }
+
+  async getSessionDurationMinutes(sessionId: string): Promise<number | null> {
+    const result = await this.db
+      .selectFrom('workout_sessions')
+      .select(['duration_minutes'])
+      .where('id', '=', sessionId)
+      .executeTakeFirst();
+    return result?.duration_minutes ?? null;
+  }
+
+  async getSessionWithSets(
+    sessionId: string,
+    userId: string,
+  ): Promise<{
+    session:
+      | {
+          id: string;
+          training_day_id: string | null;
+          checked_in_at: Date;
+          checked_out_at: Date | null;
+          duration_minutes: number | null;
+          total_volume_kg: number | null;
+          total_sets: number | null;
+          pr_count: number;
+        }
+      | undefined;
+    rows: Array<{
+      set_log_id: string;
+      exercise_id: string;
+      exercise_name: string;
+      set_number: number;
+      reps: number;
+      weight_kg: number | null;
+      rpe_actual: number | null;
+      rest_seconds: number | null;
+      is_warmup: boolean;
+      is_pr: boolean;
+      logged_at: Date;
+    }>;
+  }> {
+    const session = await this.db
+      .selectFrom('workout_sessions')
+      .select([
+        'id',
+        'training_day_id',
+        'checked_in_at',
+        'checked_out_at',
+        'duration_minutes',
+        'total_volume_kg',
+        'total_sets',
+        'pr_count',
+      ])
+      .where('id', '=', sessionId)
+      .where('user_id', '=', userId)
+      .executeTakeFirst();
+
+    if (!session) return { session: undefined, rows: [] };
+
+    const rows = await this.db
+      .selectFrom('set_logs')
+      .innerJoin('exercises', 'exercises.id', 'set_logs.exercise_id')
+      .select([
+        'set_logs.id as set_log_id',
+        'set_logs.exercise_id',
+        'exercises.name as exercise_name',
+        'set_logs.set_number',
+        'set_logs.reps',
+        'set_logs.weight_kg',
+        'set_logs.rpe_actual',
+        'set_logs.rest_seconds',
+        'set_logs.is_warmup',
+        'set_logs.is_pr',
+        'set_logs.logged_at',
+      ])
+      .where('set_logs.session_id', '=', sessionId)
+      .orderBy('set_logs.exercise_id', 'asc')
+      .orderBy('set_logs.set_number', 'asc')
+      .execute();
+
+    return { session, rows };
+  }
+
+  async findExercises(
+    search: string,
+  ): Promise<Array<{ id: string; name: string; muscle_groups: string[]; equipment: string }>> {
+    return this.db
+      .selectFrom('exercises')
+      .select(['id', 'name', 'muscle_groups', 'equipment'])
+      .where('name', 'ilike', `%${search}%`)
+      .limit(20)
+      .execute();
   }
 }

@@ -1,17 +1,52 @@
 'use client';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/stores/auth.store';
+import { apiGet, apiPost } from '@/lib/api';
+import type { ActiveSessionResponse } from '@/types/today';
 
-import { Dumbbell } from 'lucide-react';
+export default function SessionEntryPage() {
+  const router = useRouter();
+  const accessToken = useAuthStore((s) => s.accessToken);
 
-export default function SessionPage() {
+  useEffect(() => {
+    if (!accessToken) {
+      router.replace('/login');
+      return;
+    }
+
+    void (async () => {
+      try {
+        // Check for existing active session
+        const active = await apiGet<ActiveSessionResponse | null>(
+          '/workouts/sessions/active',
+          accessToken,
+        );
+        if (active?.sessionId) {
+          router.replace(`/session/${active.sessionId}`);
+          return;
+        }
+
+        // Start a new session, optionally with trainingDayId from query params
+        const params = new URLSearchParams(window.location.search);
+        const trainingDayId = params.get('trainingDayId');
+        const newSession = await apiPost<ActiveSessionResponse>('/workouts/sessions', {
+          training_day_id: trainingDayId ?? null,
+        });
+        router.replace(`/session/${newSession.sessionId}`);
+      } catch {
+        router.replace('/today');
+      }
+    })();
+  }, [accessToken, router]);
+
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-bg px-6 text-center">
-      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-coral/10">
-        <Dumbbell className="h-10 w-10 text-coral" strokeWidth={1.8} />
-      </div>
-      <div className="space-y-2">
-        <h1 className="font-display text-2xl font-bold text-t1">Session Logging</h1>
-        <p className="text-t2">Chef is cooking — this screen is coming soon.</p>
-      </div>
+    <div className="flex items-center justify-center min-h-dvh bg-bg">
+      <div
+        className="w-10 h-10 border-2 border-coral border-t-transparent rounded-full animate-spin"
+        role="status"
+        aria-label="Starting session..."
+      />
     </div>
   );
 }

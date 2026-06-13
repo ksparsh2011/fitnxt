@@ -1,11 +1,39 @@
 import { Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { WorkoutsRepository } from './workouts.repository';
 import { TodayWorkoutResponseDto } from './dto/today-workout.response.dto';
 import { ActiveSessionResponseDto } from './dto/active-session.response.dto';
+import { StartSessionDto } from './dto/start-session.dto';
+import { LogSetDto } from './dto/log-set.dto';
+import { FinishSessionDto } from './dto/finish-session.dto';
+import {
+  SessionAlreadyActiveException,
+  SessionAlreadyFinishedException,
+  SessionNotFoundException,
+} from './exceptions/workouts.exceptions';
+import { EVENTS } from '@fitnxt/shared';
+import type { PREvent, WorkoutSessionDetail, SessionExercise, SessionSet } from '@fitnxt/shared';
+
+// Static lookup: reps → PR bucket. Reps >= 11 skip PR detection entirely.
+const PR_TYPE_MAP: Record<number, '1rm' | '3rm' | '5rm' | '8rm' | '10rm'> = {
+  1: '1rm',
+  2: '3rm',
+  3: '3rm',
+  4: '5rm',
+  5: '5rm',
+  6: '5rm',
+  7: '8rm',
+  8: '8rm',
+  9: '8rm',
+  10: '10rm',
+};
 
 @Injectable()
 export class WorkoutsService {
-  constructor(private readonly workoutsRepository: WorkoutsRepository) {}
+  constructor(
+    private readonly workoutsRepository: WorkoutsRepository,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
   private computeTodayDayNumber(): number {
     const jsDay = new Date().getDay(); // 0=Sun..6=Sat
@@ -48,5 +76,215 @@ export class WorkoutsService {
     dto.totalSets = session.total_sets;
     dto.totalVolumeKg = session.total_volume_kg;
     return dto;
+  }
+
+  async startSession(userId: string, dto: StartSessionDto): Promise<ActiveSessionResponseDto> {
+    const existing = await this.workoutsRepository.findActiveSession(userId);
+    if (existing) throw new SessionAlreadyActiveException();
+
+    const session = await this.workoutsRepository.createSession(
+      userId,
+      dto.training_day_id ?? null,
+    );
+
+    this.eventEmitter.emit(EVENTS.WORKOUT_SESSION_STARTED, {
+      sessionId: session.id,
+      userId,
+      startedAt: session.checked_in_at,
+    });
+
+    const response = new ActiveSessionResponseDto();
+    response.sessionId = session.id;
+    response.trainingDayId = dto.training_day_id ?? null;
+    response.checkedInAt = session.checked_in_at.toISOString();
+    response.totalSets = 0;
+    response.totalVolumeKg = 0;
+    return response;
+  }
+
+  async logSet(
+    userId: string,
+    sessionId: string,
+    dto: LogSetDto,
+  ): Promise<{ setId: string; isPr: boolean; pr?: PREvent }> {
+    const setCount = await this.workoutsRepository.getSetCountForExerciseInSession(
+      sessionId,
+      dto.exercise_id,
+    );
+    const setNumber = setCount + 1;
+
+    const { id: setId } = await this.workoutsRepository.insertSetLog({
+      sessionId,
+      exerciseId: dto.exercise_id,
+      setNumber,
+      reps: dto.reps,
+      weightKg: dto.weight_kg ?? null,
+      rpeActual: dto.rpe ?? null,
+      isWarmup: dto.is_warmup ?? false,
+    });
+
+    this.eventEmitter.emit(EVENTS.SET_LOGGED, {
+      setId,
+      sessionId,
+      userId,
+      exerciseId: dto.exercise_id,
+      reps: dto.reps,
+      weightKg: dto.weight_kg ?? null,
+    });
+
+    let isPr = false;
+    let pr: PREvent | undefined;
+
+    const isWarmup = dto.is_warmup ?? false;
+    const weightKg = dto.weight_kg ?? null;
+    const prType = PR_TYPE_MAP[dto.reps];
+
+    // Skip PR detection for warmups, bodyweight (null weight), or reps >= 11
+    if (!isWarmup && weightKg !== null && prType !== undefined) {
+      const existing = await this.workoutsRepository.findPR(userId, dto.exercise_id, prType);
+      const previousValue = existing?.value ?? null;
+
+      if (!existing || weightKg > existing.value) {
+        const { id: prId } = await this.workoutsRepository.upsertPR({
+          userId,
+          exerciseId: dto.exercise_id,
+          prType,
+          value: weightKg,
+          setLogId: setId,
+        });
+        await this.workoutsRepository.markSetAsPR(setId);
+
+        const exercise = await this.workoutsRepository.findExerciseById(dto.exercise_id);
+        const exerciseName = exercise?.name ?? 'Unknown Exercise';
+
+        isPr = true;
+        pr = {
+          prId,
+          exerciseId: dto.exercise_id,
+          exerciseName,
+          prType,
+          value: weightKg,
+          previousValue,
+        };
+
+        this.eventEmitter.emit(EVENTS.PERSONAL_RECORD_ACHIEVED, {
+          prId,
+          userId,
+          exerciseId: dto.exercise_id,
+          exerciseName,
+          prType,
+          value: weightKg,
+          previousValue,
+          achievedAt: new Date(),
+        });
+      }
+    }
+
+    return { setId, isPr, pr };
+  }
+
+  async finishSession(
+    userId: string,
+    sessionId: string,
+    dto: FinishSessionDto,
+  ): Promise<WorkoutSessionDetail> {
+    const existing = await this.workoutsRepository.findActiveSession(userId);
+    if (!existing || existing.id !== sessionId) {
+      const { session } = await this.workoutsRepository.getSessionWithSets(sessionId, userId);
+      if (!session) throw new SessionNotFoundException(sessionId);
+      if (session.checked_out_at !== null) throw new SessionAlreadyFinishedException();
+    }
+
+    const setLogs = await this.workoutsRepository.getSetLogsForSession(sessionId);
+    const nonWarmupSets = setLogs.filter((s) => !s.is_warmup);
+    const totalVolumeKg = nonWarmupSets.reduce(
+      (acc, s) => acc + (s.weight_kg ?? 0) * s.reps,
+      0,
+    );
+    const totalSets = nonWarmupSets.length;
+    const prCount = setLogs.filter((s) => s.is_pr).length;
+
+    await this.workoutsRepository.finishSession(sessionId, userId, {
+      totalVolumeKg,
+      totalSets,
+      prCount,
+      fatigueRating: dto.fatigue_rating ?? null,
+      notes: dto.notes ?? null,
+    });
+
+    const durationMinutes = await this.workoutsRepository.getSessionDurationMinutes(sessionId);
+
+    this.eventEmitter.emit(EVENTS.WORKOUT_SESSION_COMPLETED, {
+      sessionId,
+      userId,
+      totalVolumeKg,
+      durationMinutes,
+      prCount,
+      totalSets,
+    });
+
+    return this.buildSessionDetail(sessionId, userId);
+  }
+
+  async getSession(userId: string, sessionId: string): Promise<WorkoutSessionDetail> {
+    return this.buildSessionDetail(sessionId, userId);
+  }
+
+  async searchExercises(
+    search: string,
+  ): Promise<Array<{ id: string; name: string; muscleGroups: string[]; equipment: string }>> {
+    const results = await this.workoutsRepository.findExercises(search);
+    return results.map((e) => ({
+      id: e.id,
+      name: e.name,
+      muscleGroups: e.muscle_groups,
+      equipment: e.equipment,
+    }));
+  }
+
+  private async buildSessionDetail(
+    sessionId: string,
+    userId: string,
+  ): Promise<WorkoutSessionDetail> {
+    const { session, rows } = await this.workoutsRepository.getSessionWithSets(sessionId, userId);
+    if (!session) throw new SessionNotFoundException(sessionId);
+
+    const exerciseMap = new Map<string, { name: string; sets: SessionSet[] }>();
+    for (const row of rows) {
+      if (!exerciseMap.has(row.exercise_id)) {
+        exerciseMap.set(row.exercise_id, { name: row.exercise_name, sets: [] });
+      }
+      exerciseMap.get(row.exercise_id)!.sets.push({
+        setLogId: row.set_log_id,
+        setNumber: row.set_number,
+        reps: row.reps,
+        weightKg: row.weight_kg,
+        rpeActual: row.rpe_actual,
+        restSeconds: row.rest_seconds,
+        isWarmup: row.is_warmup,
+        isPr: row.is_pr,
+        loggedAt: row.logged_at.toISOString(),
+      });
+    }
+
+    const exercises: SessionExercise[] = Array.from(exerciseMap.entries()).map(
+      ([exerciseId, data]) => ({
+        exerciseId,
+        exerciseName: data.name,
+        sets: data.sets,
+      }),
+    );
+
+    return {
+      sessionId: session.id,
+      trainingDayId: session.training_day_id,
+      checkedInAt: session.checked_in_at.toISOString(),
+      checkedOutAt: session.checked_out_at?.toISOString() ?? null,
+      durationMinutes: session.duration_minutes,
+      totalVolumeKg: session.total_volume_kg,
+      totalSets: session.total_sets,
+      prCount: session.pr_count,
+      exercises,
+    };
   }
 }

@@ -157,3 +157,42 @@ export interface OnboardingInput {
     | 'extremely_active';
   target_weight_kg?: number | null;
 }
+
+export interface WorkoutSessionDetail {
+  sessionId: string;
+  trainingDayId: string | null;
+  checkedInAt: string;
+  checkedOutAt: string | null;
+  durationMinutes: number | null;
+  totalVolumeKg: number | null;
+  totalSets: number | null;
+  prCount: number;
+  exercises: SessionExercise[];
+}
+
+export interface SessionExercise {
+  exerciseId: string;
+  exerciseName: string;
+  sets: SessionSet[];
+}
+
+export interface SessionSet {
+  setLogId: string;
+  setNumber: number;
+  reps: number;
+  weightKg: number | null;
+  rpeActual: number | null;
+  restSeconds: number | null;
+  isWarmup: boolean;
+  isPr: boolean;
+  loggedAt: string;
+}
+
+export interface PREvent {
+  prId: string;
+  exerciseId: string;
+  exerciseName: string;
+  prType: '1rm' | '3rm' | '5rm' | '8rm' | '10rm' | 'max_reps';
+  value: number;
+  previousValue: number | null;
+}

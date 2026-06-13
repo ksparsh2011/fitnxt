@@ -103,3 +103,23 @@ export const PatchOnboardingSchema = z.object({
   target_weight_kg: z.number().positive().nullable().optional(),
 });
 export type PatchOnboardingInput = z.infer<typeof PatchOnboardingSchema>;
+
+export const LogSetSchema = z.object({
+  exercise_id: z.string().uuid(),
+  reps: z.number().int().positive(),
+  weight_kg: z.number().positive().nullable().optional(),
+  rpe: z.number().min(1).max(10).nullable().optional(),
+  is_warmup: z.boolean().optional().default(false),
+});
+export type LogSetInput = z.infer<typeof LogSetSchema>;
+
+export const StartSessionSchema = z.object({
+  training_day_id: z.string().uuid().nullable().optional(),
+});
+export type StartSessionInput = z.infer<typeof StartSessionSchema>;
+
+export const FinishSessionSchema = z.object({
+  fatigue_rating: z.number().int().min(1).max(10).optional(),
+  notes: z.string().optional(),
+});
+export type FinishSessionInput = z.infer<typeof FinishSessionSchema>;

@@ -15,19 +15,20 @@ export type WorkoutSessionStartedEvent = {
 export type WorkoutSessionCompletedEvent = {
   sessionId: string;
   userId: string;
-  durationSeconds: number;
-  totalVolume: number;
-  completedAt: Date;
+  totalVolumeKg: number;
+  durationMinutes: number | null;
+  prCount: number;
+  totalSets: number;
 };
 
 export type PersonalRecordAchievedEvent = {
   prId: string;
   userId: string;
+  exerciseId: string;
   exerciseName: string;
-  weightKg: number;
-  reps: number;
-  previousWeightKg?: number;
-  previousReps?: number;
+  prType: '1rm' | '3rm' | '5rm' | '8rm' | '10rm' | 'max_reps';
+  value: number;
+  previousValue: number | null;
   achievedAt: Date;
 };
 
@@ -35,7 +36,7 @@ export type SetLoggedEvent = {
   setId: string;
   sessionId: string;
   userId: string;
-  exerciseName: string;
-  weightKg: number;
+  exerciseId: string;
   reps: number;
+  weightKg: number | null;
 };

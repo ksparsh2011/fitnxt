@@ -5,15 +5,16 @@ import { cn } from "@/lib/utils";
 import { Home, Zap, Sparkles, BarChart2, User } from "lucide-react";
 
 const tabs = [
-  { href: "/",         label: "Home",     Icon: Home       },
-  { href: "/workout",  label: "Workout",  Icon: Zap        },
-  { href: "/coach",    label: "AI Coach", Icon: Sparkles   },
-  { href: "/progress", label: "Progress", Icon: BarChart2  },
-  { href: "/profile",  label: "Profile",  Icon: User       },
+  { href: "/today",    label: "Today",    Icon: Home     },
+  { href: "/session",  label: "Train",    Icon: Zap      },
+  { href: "/coach",    label: "Coach",    Icon: Sparkles },
+  { href: "/progress", label: "Progress", Icon: BarChart2 },
+  { href: "/profile",  label: "Profile",  Icon: User     },
 ] as const;
 
 export function BottomNav() {
   const path = usePathname();
+  const isSessionPath = path.startsWith('/session');
 
   return (
     <nav
@@ -28,7 +29,17 @@ export function BottomNav() {
       <ul className="flex">
         {tabs.map(({ href, label, Icon }) => {
           const active =
-            href === "/" ? path === "/" : path.startsWith(href);
+            href === "/today"
+              ? path === "/today" || path === "/"
+              : path.startsWith(href);
+
+          // Train tab uses coral when on session pages, violet otherwise
+          const activeColor =
+            active && href === "/session" && isSessionPath
+              ? "text-coral focus-visible:ring-coral"
+              : active
+              ? "text-violet focus-visible:ring-violet"
+              : "text-t3 hover:text-t2 focus-visible:ring-[var(--border-2)]";
 
           return (
             <li key={href} className="flex-1">
@@ -40,9 +51,7 @@ export function BottomNav() {
                   "flex flex-col items-center gap-0.5 py-2 px-1",
                   "transition-colors duration-150 min-h-[56px] justify-center",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset",
-                  active
-                    ? "text-violet focus-visible:ring-violet"
-                    : "text-t3 hover:text-t2 focus-visible:ring-[var(--border-2)]",
+                  activeColor,
                 )}
               >
                 <Icon

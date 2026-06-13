@@ -48,7 +48,7 @@ export function WorkoutCard() {
       transition={{ duration: 0.15 }}
       style={{
         background:
-          'radial-gradient(ellipse 70% 60% at 90% 10%, #F97066 0%, rgba(196,54,26,0.8) 45%, transparent 75%), linear-gradient(160deg, #1E0B08 0%, #3D150E 50%, #6B1E12 100%)',
+          'radial-gradient(ellipse 70% 60% at 90% 10%, var(--coral) 0%, color-mix(in srgb, var(--coral-deep) 80%, transparent) 45%, transparent 75%), linear-gradient(160deg, var(--bg) 0%, color-mix(in srgb, var(--coral-deep) 40%, var(--bg)) 50%, color-mix(in srgb, var(--coral-deep) 70%, var(--bg)) 100%)',
         borderRadius: '20px',
         padding: '20px',
         position: 'relative',
@@ -77,7 +77,7 @@ export function WorkoutCard() {
         variant="coral"
         size="lg"
         className="w-full rounded-xl"
-        onClick={() => router.push('/session')}
+        onClick={() => router.push(`/session?trainingDayId=${workout.trainingDayId}`)}
         aria-label={`Start ${workout.name} workout session`}
       >
         Start Workout

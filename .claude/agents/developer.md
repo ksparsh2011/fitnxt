@@ -41,6 +41,7 @@ Read what exists before writing anything. Extend the established pattern — nev
 - No JSX logic beyond ternary — extract to named variable or component
 - No inline styles — Tailwind classes only
 - Animations via Framer Motion `variants` — never inline `animate={{ x: 100 }}`
+- **Always use design system components over raw elements** — before writing a `<button>`, `<input>`, or common UI pattern, check `apps/web/src/components/ui/` first. Use `<Button>`, `<Input>`, etc. Raw elements are only acceptable when no existing component fits (e.g. custom selection cards). This is the single most important rule for keeping the codebase maintainable.
 
 **File structure (per feature):**
 ```
@@ -119,6 +120,7 @@ export class WorkoutSessionNotFoundException extends DomainException {
 ## Self-Review Checklist (before marking done)
 
 - [ ] No hardcoded hex values — Tailwind token classes only
+- [ ] No raw `<button>` or `<input>` when a design system component (`Button`, `Input`, etc.) fits
 - [ ] No unused imports or variables
 - [ ] Error, loading, and empty states all handled
 - [ ] No `console.log` left in code
