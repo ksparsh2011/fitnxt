@@ -1,5 +1,4 @@
 'use client';
-import { use } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Trophy, Share2, Star } from 'lucide-react';
@@ -8,7 +7,7 @@ import { useSession } from '@/hooks/useSession';
 import { useSessionStore } from '@/stores/session.store';
 
 interface PageProps {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }
 
 const CONFETTI = [
@@ -51,7 +50,7 @@ function StatCard({ label, value, unit, gold }: StatCardProps) {
 }
 
 export default function WorkoutCompletePage({ params }: PageProps) {
-  const { id: sessionId } = use(params);
+  const { id: sessionId } = params;
   const router = useRouter();
   const accessToken = useAuthStore((s) => s.accessToken);
   const { session, isLoading } = useSession(sessionId);

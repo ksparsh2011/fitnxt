@@ -1,5 +1,5 @@
 'use client';
-import { use, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth.store';
 import { useSession } from '@/hooks/useSession';
@@ -17,11 +17,11 @@ import {
 type View = 'list' | 'logger';
 
 interface PageProps {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }
 
 export default function SessionPage({ params }: PageProps) {
-  const { id: sessionId } = use(params);
+  const { id: sessionId } = params;
   const router = useRouter();
   const accessToken = useAuthStore((s) => s.accessToken);
   const { session, isLoading, isError } = useSession(sessionId);
