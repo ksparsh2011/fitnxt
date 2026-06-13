@@ -9,8 +9,10 @@ package-lock.json
 apps/web/.next/
 apps/web/out/
 
-# NestJS build
-apps/api/dist/
+# Build outputs
+dist/
+.next/
+out/
 
 # Environment variables — never commit real secrets
 .env
