@@ -43,3 +43,4 @@ coverage/
 
 # Type checking cache
 *.tsbuildinfo
+logs.json
