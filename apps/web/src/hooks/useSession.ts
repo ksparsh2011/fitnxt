@@ -29,25 +29,24 @@ interface FinishSessionInput {
 }
 
 export function useSession(sessionId: string | null) {
-  const accessToken = useAuthStore((s) => s.accessToken);
+  const isAuthenticated = useAuthStore((s) => s.accessToken !== null);
   const queryClient = useQueryClient();
 
   const sessionQuery = useQuery<WorkoutSessionDetail>({
     queryKey: ['sessions', sessionId],
-    queryFn: () =>
-      apiGet<WorkoutSessionDetail>(`/workouts/sessions/${sessionId}`, accessToken ?? undefined),
-    enabled: !!sessionId && !!accessToken,
+    queryFn: () => apiGet<WorkoutSessionDetail>(`/workouts/sessions/${sessionId}`),
+    enabled: !!sessionId && isAuthenticated,
     staleTime: 0,
   });
 
   const startSessionMutation = useMutation({
     mutationFn: (input: StartSessionInput) =>
-      apiPost<ActiveSessionResponse>('/workouts/sessions', input, accessToken ?? undefined),
+      apiPost<ActiveSessionResponse>('/workouts/sessions', input),
   });
 
   const logSetMutation = useMutation({
     mutationFn: (input: LogSetInput) =>
-      apiPost<LogSetResponse>(`/workouts/sessions/${sessionId}/sets`, input, accessToken ?? undefined),
+      apiPost<LogSetResponse>(`/workouts/sessions/${sessionId}/sets`, input),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['sessions', sessionId] });
     },
@@ -55,11 +54,7 @@ export function useSession(sessionId: string | null) {
 
   const finishSessionMutation = useMutation({
     mutationFn: (input: FinishSessionInput) =>
-      apiPatch<WorkoutSessionDetail>(
-        `/workouts/sessions/${sessionId}/finish`,
-        input,
-        accessToken ?? undefined,
-      ),
+      apiPatch<WorkoutSessionDetail>(`/workouts/sessions/${sessionId}/finish`, input),
     onSuccess: (data) => {
       queryClient.setQueryData(['sessions', sessionId], data);
     },

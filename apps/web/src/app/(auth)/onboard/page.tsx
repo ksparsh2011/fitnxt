@@ -359,7 +359,7 @@ export default function OnboardPage() {
       router.replace('/login');
       return;
     }
-    apiGet<UserProfileResponse>('/users/me', accessToken)
+    apiGet<UserProfileResponse>('/users/me')
       .then((res) => {
         if (res.onboardingCompleted) {
           router.replace('/today');
@@ -391,15 +391,11 @@ export default function OnboardPage() {
     }
 
     try {
-      await apiPatch<{ onboardingCompleted: boolean }>(
-        '/users/me/onboarding',
-        {
-          fitness_goal: state.fitness_goal,
-          activity_level: state.activity_level,
-          target_weight_kg: targetWeightKg,
-        },
-        accessToken,
-      );
+      await apiPatch<{ onboardingCompleted: boolean }>('/users/me/onboarding', {
+        fitness_goal: state.fitness_goal,
+        activity_level: state.activity_level,
+        target_weight_kg: targetWeightKg,
+      });
       router.push('/today');
     } catch {
       dispatch({ type: 'SET_ERROR', message: "Couldn't save your preferences. Check your connection and try again." });

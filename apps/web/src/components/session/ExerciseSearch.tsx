@@ -21,17 +21,14 @@ interface ExerciseSearchProps {
 export function ExerciseSearch({ onClose }: ExerciseSearchProps) {
   const prefersReducedMotion = useReducedMotion();
   const [search, setSearch] = useState('');
-  const accessToken = useAuthStore((s) => s.accessToken);
+  const isAuthenticated = useAuthStore((s) => s.accessToken !== null);
   const { addExercise } = useSessionStore();
 
   const { data: results = [] } = useQuery<ExerciseResult[]>({
     queryKey: ['exercises', 'search', search],
     queryFn: () =>
-      apiGet<ExerciseResult[]>(
-        `/workouts/exercises?search=${encodeURIComponent(search)}`,
-        accessToken ?? undefined,
-      ),
-    enabled: search.length >= 2 && !!accessToken,
+      apiGet<ExerciseResult[]>(`/workouts/exercises?search=${encodeURIComponent(search)}`),
+    enabled: search.length >= 2 && isAuthenticated,
     staleTime: 30_000,
   });
 

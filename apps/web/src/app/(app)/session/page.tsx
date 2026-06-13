@@ -18,10 +18,7 @@ export default function SessionEntryPage() {
     void (async () => {
       try {
         // Check for existing active session
-        const active = await apiGet<ActiveSessionResponse | null>(
-          '/workouts/sessions/active',
-          accessToken,
-        );
+        const active = await apiGet<ActiveSessionResponse | null>('/workouts/sessions/active');
         if (active?.sessionId) {
           router.replace(`/session/${active.sessionId}`);
           return;
@@ -32,7 +29,7 @@ export default function SessionEntryPage() {
         const trainingDayId = params.get('trainingDayId');
         const newSession = await apiPost<ActiveSessionResponse>('/workouts/sessions', {
           training_day_id: trainingDayId ?? null,
-        }, accessToken);
+        });
         router.replace(`/session/${newSession.sessionId}`);
       } catch {
         router.replace('/today');

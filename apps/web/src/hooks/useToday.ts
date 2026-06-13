@@ -5,27 +5,27 @@ import { useAuthStore } from '@/stores/auth.store';
 import type { UserProfile, TodayWorkout, TodayNutrition } from '@/types/today';
 
 export function useToday() {
-  const accessToken = useAuthStore((s) => s.accessToken);
+  const isAuthenticated = useAuthStore((s) => s.accessToken !== null);
 
   const userQuery = useQuery<UserProfile>({
     queryKey: ['user', 'me'],
-    queryFn: () => apiGet<UserProfile>('/users/me', accessToken ?? undefined),
+    queryFn: () => apiGet<UserProfile>('/users/me'),
     staleTime: Infinity,
-    enabled: !!accessToken,
+    enabled: isAuthenticated,
   });
 
   const workoutQuery = useQuery<TodayWorkout | null>({
     queryKey: ['workouts', 'today'],
-    queryFn: () => apiGet<TodayWorkout | null>('/workouts/today', accessToken ?? undefined),
+    queryFn: () => apiGet<TodayWorkout | null>('/workouts/today'),
     staleTime: 60_000,
-    enabled: !!accessToken,
+    enabled: isAuthenticated,
   });
 
   const nutritionQuery = useQuery<TodayNutrition>({
     queryKey: ['nutrition', 'today'],
-    queryFn: () => apiGet<TodayNutrition>('/nutrition/today', accessToken ?? undefined),
+    queryFn: () => apiGet<TodayNutrition>('/nutrition/today'),
     staleTime: 30_000,
-    enabled: !!accessToken,
+    enabled: isAuthenticated,
   });
 
   return {
