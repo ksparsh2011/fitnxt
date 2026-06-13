@@ -1,92 +1,166 @@
-# FitAI — Intelligent Training Platform
+# fitNXT
 
-> A production-grade AI-powered fitness coaching platform. Built with a modular monolith backend, React frontend, and Claude AI integration. Designed to scale from single-user to thousands with zero architectural rewrites.
+AI-powered fitness PWA for gym athletes. Intelligent workout logging, macro tracking, PR celebrations, and an AI coach powered by Claude.
 
-[![CI](https://github.com/ksparsh2011/fitai/actions/workflows/ci.yml/badge.svg)](https://github.com/ksparsh2011/fitai/actions)
-[![codecov](https://codecov.io/gh/ksparsh2011/fitai/branch/main/graph/badge.svg)](https://codecov.io/gh/ksparsh2011/fitai)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+## Live
+
+| Service | URL |
+|---------|-----|
+| Frontend | https://fitnxt.vercel.app |
+| API | https://fitnxt-api-production.up.railway.app/api/v1 |
+
+> The API root (`/`) returns 404 by design — all routes are under `/api/v1/`.
 
 ---
 
-## What this is
+## What works right now
 
-FitAI is a personal training platform where the coach is Claude. It tracks your workouts, reads machine screens via computer vision, plans your training blocks using progressive overload principles, and adapts your program in real-time based on feedback. The AI coach maintains full context of your training history, nutrition, and goals — not a generic chatbot.
+| Screen | Status | Notes |
+|--------|--------|-------|
+| Register / Login | Working | Email + password. Google OAuth button is visible but disabled (Coming soon). |
+| Onboarding | Working | 3-slide goal → activity → target weight flow after first sign-up. |
+| Today screen | Working | Shows today's planned workout and macro ring. Both sections show empty state until a plan and nutrition targets exist — those UIs come in later phases. |
+| Session screen | Working | Start a workout, search exercises, log sets with weight/reps/RPE, rest timer, PR detection, finish with summary. |
+| Coach / Progress / Plan / Profile | Placeholder | Navigation tabs exist, screens are empty stubs. |
 
-## Architecture at a glance
+---
+
+## Tech stack
+
+| Layer | Technology |
+|-------|-----------|
+| Frontend | Next.js 14 App Router, TypeScript, Tailwind CSS, Framer Motion, TanStack Query v5, Zustand |
+| Backend | NestJS modular monolith, TypeScript, Kysely (PostgreSQL), BullMQ, Redis |
+| Database | PostgreSQL 16 (Railway) |
+| Cache / Queue | Redis 7 (Railway) |
+| AI | Claude API (Anthropic) — Phase 5 |
+| Deployment | Vercel (web), Railway (API + Postgres + Redis) |
+| Package manager | pnpm workspaces |
+
+---
+
+## Monorepo structure
 
 ```
 apps/
-├── api/          # NestJS modular monolith — 6 bounded domains
-└── web/          # Next.js 14 PWA — mobile-first
-
-docs/
-├── adr/          # Architecture Decision Records (ADR-001 to ADR-009)
-├── api/          # OpenAPI contracts per domain
-└── design/       # System design, data model, context strategy
+  web/          → Next.js 14 PWA
+  api/          → NestJS modular monolith
+packages/
+  shared/       → Zod schemas, TypeScript types, event contracts
 ```
 
-See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for full system design including C4 diagrams, domain model, data flow, and scaling strategy.
+### Backend domains (`apps/api/src/modules/`)
 
-## Tech Stack
+```
+auth/       → JWT, refresh tokens (Google OAuth planned)
+users/      → profile, goals, body metrics, onboarding
+workouts/   → plans, sessions, exercises, sets, PR detection
+nutrition/  → meal logs, macro targets (backend only, no UI yet)
+ai-coach/   → Claude integration (Phase 5)
+media/      → photo upload, Vision OCR (Phase 5)
+```
 
-| Layer | Technology | Rationale |
-|---|---|---|
-| API | NestJS + TypeScript | Modular DI, domain isolation, scales to microservices |
-| Web | Next.js 14 + TypeScript | SSR, PWA, App Router, Turbopack |
-| Primary DB | PostgreSQL 16 | ACID, rich querying, `pgvector` for future ML embeddings |
-| Cache | Redis 7 | Session store, AI context cache, BullMQ job queue |
-| AI | Claude 3.5 Sonnet API | Vision OCR, structured output, prompt caching |
-| Storage | S3 / GCS | Workout photos, progress images |
-| Infra | Docker + GitHub Actions | Local parity, CI/CD, deploy to Cloud Run or ECS |
+---
 
 ## Running locally
 
+**Prerequisites:** Node 20+, pnpm, Docker
+
 ```bash
-# Prerequisites: Node 20+, Docker, pnpm
-
-git clone https://github.com/ksparsh2011/fitai
-cd fitai
-cp .env.example .env  # fill in ANTHROPIC_API_KEY, DATABASE_URL
-
-docker compose up -d  # starts postgres + redis
-
+git clone https://github.com/ksparsh2011/fitnxt
+cd fitnxt
 pnpm install
-pnpm --filter api run dev   # http://localhost:3001
-pnpm --filter web run dev   # http://localhost:3000
 ```
 
-## Documentation
+Start Postgres and Redis:
 
-| Document | Description |
-|---|---|
-| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | System design, C4 model, scaling strategy, domain boundaries |
-| [DATA-MODEL.md](docs/design/DATA-MODEL.md) | PostgreSQL schema, indexing strategy, data retention policy |
-| [AI-CONTEXT-STRATEGY.md](docs/design/AI-CONTEXT-STRATEGY.md) | How user context is managed, token budgeting, caching |
-| [SYSTEM-DESIGN.md](docs/design/SYSTEM-DESIGN.md) | Multi-user scaling, event architecture, future ML data strategy |
-| [ADR Index](docs/adr/INDEX.md) | All architecture decisions with status and rationale |
-| [API Contracts](docs/api/) | OpenAPI 3.1 specs per domain |
-| [Frontend Components](docs/design/FRONTEND-COMPONENTS.md) | Component tree, state management, UX decisions |
-| [DEPLOYMENT.md](docs/design/DEPLOYMENT.md) | Free-tier deployment on GCP/AWS, Play Store path |
-
-## Domains
-
-The API is a **modular monolith** with six bounded contexts. Each domain is independently testable and extractable to a microservice without changing public interfaces.
-
-```
-auth        → JWT, refresh tokens, OAuth (Google)
-users       → profile, goals, body metrics, BMI history
-workouts    → plans, sessions, exercises, sets, PRs
-nutrition   → meal logs, macro targets, food database
-ai-coach    → Claude integration, context assembly, plan generation
-media       → photo upload, Vision OCR, S3 management
+```bash
+docker compose up -d
 ```
 
-## Design decisions
+Set environment variables — create `apps/api/.env`:
 
-Key ADRs (see [docs/adr/](docs/adr/) for full reasoning):
+```env
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/fitnxt
+REDIS_URL=redis://localhost:6379
+JWT_SECRET=any-long-random-string-at-least-64-chars
+JWT_REFRESH_SECRET=another-long-random-string
+FRONTEND_URL=http://localhost:3000
+PORT=3001
+```
 
-- **ADR-001**: Modular monolith over microservices — domain isolation without operational overhead at MVP scale
-- **ADR-002**: Next.js over plain React or Angular — SSR for initial load, PWA for mobile, App Router for streaming
-- **ADR-003**: PostgreSQL + pgvector — relational model for workout data + future embedding storage for semantic search
-- **ADR-004**: Claude prompt caching strategy — per-user context assembled in layers, cached at profile boundary
-- **ADR-005**: Event-driven intra-domain communication — EventEmitter2 decouples domains, same interface if extracted to message queue later
+Create `apps/web/.env.local`:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3001
+```
+
+Run migrations and start both servers:
+
+```bash
+# Run DB migrations
+pnpm --filter @fitnxt/api migrate
+
+# Start API (http://localhost:3001)
+pnpm --filter @fitnxt/api start:dev
+
+# Start web (http://localhost:3000)
+pnpm --filter web dev
+```
+
+---
+
+## API endpoints
+
+All routes require `Authorization: Bearer <token>` except auth.
+
+### Auth
+```
+POST /api/v1/auth/register      → { email, password, displayName }
+POST /api/v1/auth/login         → { email, password }
+POST /api/v1/auth/refresh       → (refresh token cookie)
+POST /api/v1/auth/logout
+```
+
+### Users
+```
+GET   /api/v1/users/me
+PATCH /api/v1/users/me/onboarding   → { fitness_goal, activity_level, target_weight_kg }
+```
+
+### Workouts
+```
+GET   /api/v1/workouts/today
+GET   /api/v1/workouts/sessions/active
+GET   /api/v1/workouts/sessions/:id
+POST  /api/v1/workouts/sessions/start
+POST  /api/v1/workouts/sessions/:id/sets    → { exercise_id, reps, weight_kg, rpe }
+PATCH /api/v1/workouts/sessions/:id/finish  → { fatigue_rating?, notes? }
+GET   /api/v1/workouts/exercises?search=
+```
+
+### Nutrition
+```
+GET /api/v1/nutrition/today
+```
+
+---
+
+## Design system
+
+Ignite design system — see [design-system/MASTER.md](design-system/MASTER.md).
+
+| Token | Value | Use |
+|-------|-------|-----|
+| Violet `#7C6AF7` | AI / intelligence | Auth, Coach, Today, Plan screens |
+| Coral `#FF6B4A` | Intensity / effort | Session screen |
+| Gold `#C8A84B` | Achievement | PR celebrations only |
+| Root bg | `#06060D` dark / `#EEEDF8` light | App background |
+
+Fonts: Syne (display headings), DM Sans (body), JetBrains Mono (numbers/metrics).
+
+---
+
+## Known gaps
+
+See [KNOWN-GAPS.md](KNOWN-GAPS.md) for the full list of deferred items and planned phases.
