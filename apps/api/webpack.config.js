@@ -1,6 +1,5 @@
-module.exports = (options, webpack) => {
+module.exports = (options) => {
   return {
     ...options,
-    externals: ['bcrypt'],
   };
 };
