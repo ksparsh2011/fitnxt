@@ -1,5 +1,5 @@
 'use client';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth.store';
 import { apiGet, apiPost } from '@/lib/api';
@@ -8,29 +8,31 @@ import type { ActiveSessionResponse } from '@/types/today';
 export default function SessionEntryPage() {
   const router = useRouter();
   const accessToken = useAuthStore((s) => s.accessToken);
+  const initiated = useRef(false);
 
   useEffect(() => {
-    if (!accessToken) {
-      router.replace('/login');
-      return;
-    }
+    if (!accessToken) { router.replace('/login'); return; }
+    if (initiated.current) return;
+    initiated.current = true;
 
     void (async () => {
       try {
-        // Check for existing active session
-        const active = await apiGet<ActiveSessionResponse | null>('/workouts/sessions/active');
-        if (active?.sessionId) {
-          router.replace(`/session/${active.sessionId}`);
-          return;
+        let active = await apiGet<ActiveSessionResponse | null>('/workouts/sessions/active');
+
+        if (!active?.sessionId) {
+          const trainingDayId = new URLSearchParams(window.location.search).get('trainingDayId');
+          active = await apiPost<ActiveSessionResponse>('/workouts/sessions', {
+            training_day_id: trainingDayId ?? null,
+          }).catch(() =>
+            apiGet<ActiveSessionResponse | null>('/workouts/sessions/active'),
+          );
         }
 
-        // Start a new session, optionally with trainingDayId from query params
-        const params = new URLSearchParams(window.location.search);
-        const trainingDayId = params.get('trainingDayId');
-        const newSession = await apiPost<ActiveSessionResponse>('/workouts/sessions', {
-          training_day_id: trainingDayId ?? null,
-        });
-        router.replace(`/session/${newSession.sessionId}`);
+        if (active?.sessionId) {
+          router.replace(`/session/${active.sessionId}`);
+        } else {
+          router.replace('/today');
+        }
       } catch {
         router.replace('/today');
       }

@@ -15,6 +15,12 @@ async function safeFetch(input: string, init?: RequestInit): Promise<Response> {
   }
 }
 
+async function parseBody<T>(res: Response): Promise<T> {
+  const text = await res.text();
+  if (!text || text.trim() === '') return null as T;
+  return JSON.parse(text) as T;
+}
+
 function authHeaders(): Record<string, string> {
   const token = getToken();
   return token ? { Authorization: `Bearer ${token}` } : {};
@@ -29,7 +35,7 @@ export async function apiGet<T>(path: string): Promise<T> {
     const err = await res.json().catch(() => ({}));
     throw new Error((err as { message?: string }).message ?? 'Request failed');
   }
-  return res.json() as Promise<T>;
+  return parseBody<T>(res);
 }
 
 export async function apiPost<T>(path: string, body?: unknown): Promise<T> {
@@ -43,7 +49,7 @@ export async function apiPost<T>(path: string, body?: unknown): Promise<T> {
     const err = await res.json().catch(() => ({}));
     throw new Error((err as { message?: string }).message ?? 'Request failed');
   }
-  return res.json() as Promise<T>;
+  return parseBody<T>(res);
 }
 
 export async function apiPatch<T>(path: string, body?: unknown): Promise<T> {
@@ -57,7 +63,7 @@ export async function apiPatch<T>(path: string, body?: unknown): Promise<T> {
     const err = await res.json().catch(() => ({}));
     throw new Error((err as { message?: string }).message ?? 'Request failed');
   }
-  return res.json() as Promise<T>;
+  return parseBody<T>(res);
 }
 
 export async function apiDelete<T = void>(path: string): Promise<T> {
@@ -71,5 +77,5 @@ export async function apiDelete<T = void>(path: string): Promise<T> {
     throw new Error((err as { message?: string }).message ?? 'Request failed');
   }
   if (res.status === 204) return undefined as T;
-  return res.json() as Promise<T>;
+  return parseBody<T>(res);
 }
