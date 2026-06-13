@@ -14,9 +14,15 @@ async function bootstrap(): Promise<void> {
     new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }),
   );
   app.useGlobalFilters(new DomainExceptionFilter());
+  const allowedOrigins = (process.env['FRONTEND_URL'] ?? 'http://localhost:3000')
+    .split(',')
+    .map((o) => o.trim());
   app.enableCors({
-    origin: process.env['FRONTEND_URL'] ?? 'http://localhost:3000',
-    credentials: true, // required for cookies to work cross-origin
+    origin: (origin, cb) => {
+      if (!origin || allowedOrigins.includes(origin)) cb(null, true);
+      else cb(new Error(`CORS: origin ${origin} not allowed`));
+    },
+    credentials: true,
   });
   await app.listen(process.env['PORT'] ?? 3001);
 }
