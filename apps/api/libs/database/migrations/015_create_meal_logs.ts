@@ -37,17 +37,9 @@ export async function up(db: Kysely<any>): Promise<void> {
     .on('meal_logs')
     .columns(['user_id', 'logged_at'])
     .execute();
-
-  // Functional index on logged_at::date for daily macro aggregation.
-  // Expression index requires sql tag — not supported by Kysely builder.
-  await sql`
-    CREATE INDEX idx_meal_logs_user_day
-    ON meal_logs (user_id, (logged_at::date))
-  `.execute(db);
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
-  await db.schema.dropIndex('idx_meal_logs_user_day').ifExists().execute();
   await db.schema.dropIndex('idx_meal_logs_user_date').ifExists().execute();
   await db.schema.dropTable('meal_logs').ifExists().execute();
 }
