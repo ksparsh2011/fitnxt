@@ -191,8 +191,8 @@ function GoalSlide({ selected, onSelect }: GoalSlideProps) {
   return (
     <div className="flex flex-col gap-3">
       <div className="mb-2">
-        <p className="font-display text-2xl font-extrabold text-t1 mb-1">What's your goal?</p>
-        <p className="text-base text-t2">We'll personalise your training and nutrition plan.</p>
+        <p className="font-display text-2xl font-extrabold text-t1 mb-1">What&apos;s your goal?</p>
+        <p className="text-base text-t2">We&apos;ll personalise your training and nutrition plan.</p>
       </div>
       <div className="grid grid-cols-2 gap-2.5">
         {GOALS.map((goal) => {
@@ -469,7 +469,7 @@ export default function OnboardPage() {
           <span className="text-t1">fit</span>
           <span className="text-violet">NXT</span>
         </div>
-        <p className="text-xs text-t2">Let's personalise your experience</p>
+        <p className="text-xs text-t2">Let&apos;s personalise your experience</p>
       </div>
 
       {backButton}
