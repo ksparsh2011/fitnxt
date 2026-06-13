@@ -1,4 +1,4 @@
-import { IsEmail, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsEmail, IsOptional, IsString } from 'class-validator';
 
 export class UserProfileResponseDto {
   @IsString()
@@ -16,6 +16,9 @@ export class UserProfileResponseDto {
 
   @IsString()
   fitnessGoal!: string;
+
+  @IsBoolean()
+  onboardingCompleted!: boolean;
 
   @IsString()
   createdAt!: string;

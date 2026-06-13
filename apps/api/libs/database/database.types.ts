@@ -38,6 +38,7 @@ export interface UserProfilesTable {
   activity_level: Generated<'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active' | 'extremely_active'>;
   target_weight_kg: number | null;
   target_body_fat_pct: number | null;
+  onboarding_completed: Generated<boolean>;
   updated_at: ColumnType<Date, never, never>;
 }
 

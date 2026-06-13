@@ -146,3 +146,14 @@ export interface AIMessage {
   content: string;
   createdAt: Date;
 }
+
+export interface OnboardingInput {
+  fitness_goal: 'lean_bulk' | 'cut' | 'recomp' | 'strength' | 'endurance';
+  activity_level:
+    | 'sedentary'
+    | 'lightly_active'
+    | 'moderately_active'
+    | 'very_active'
+    | 'extremely_active';
+  target_weight_kg?: number | null;
+}

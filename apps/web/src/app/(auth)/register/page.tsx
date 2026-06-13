@@ -43,7 +43,7 @@ export default function RegisterPage() {
         displayName: data.displayName,
       });
       setAuth(res.accessToken, res.userId, res.email);
-      router.push('/today');
+      router.push('/onboard');
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'Registration failed');
     }
@@ -178,11 +178,11 @@ export default function RegisterPage() {
 
         {/* Google OAuth button */}
         <motion.div variants={authItemVariants}>
-          <motion.button
+          <button
             type="button"
-            whileTap={{ scale: 0.98 }}
-            transition={{ duration: 0.1 }}
-            className="w-full h-[52px] bg-surface-2 border border-border-2 rounded-2xl flex items-center justify-center gap-2.5 text-sm font-medium text-t1 hover:bg-surface-3 transition-colors"
+            disabled
+            aria-disabled="true"
+            className="w-full h-[52px] bg-surface-2 border border-border-2 rounded-2xl flex items-center justify-center gap-2.5 text-sm font-medium text-t1 opacity-40 cursor-not-allowed"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
               <path
@@ -203,7 +203,8 @@ export default function RegisterPage() {
               />
             </svg>
             Continue with Google
-          </motion.button>
+            <span className="text-xs text-t3 font-normal">(Coming soon)</span>
+          </button>
         </motion.div>
 
         {/* Footer */}

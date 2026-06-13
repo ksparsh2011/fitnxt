@@ -63,22 +63,25 @@ export const PersonalRecordSchema = z.object({
 });
 
 export const LoginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
+  email: z.string().email('Please enter a valid email address'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
 });
 export type LoginInput = z.infer<typeof LoginSchema>;
 
 export const RegisterSchema = z
   .object({
-    displayName: z.string().min(2).max(100),
-    email: z.string().email(),
+    displayName: z
+      .string()
+      .min(2, 'Name must be at least 2 characters')
+      .max(100, 'Name is too long'),
+    email: z.string().email('Please enter a valid email address'),
     password: z
       .string()
-      .min(8)
-      .max(72)
+      .min(8, 'Password must be at least 8 characters')
+      .max(72, 'Password is too long')
       .regex(
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-        'Password must contain uppercase, lowercase, and number',
+        'Password must contain uppercase, lowercase, and a number',
       ),
     confirmPassword: z.string(),
   })
@@ -87,3 +90,16 @@ export const RegisterSchema = z
     path: ['confirmPassword'],
   });
 export type RegisterInput = z.infer<typeof RegisterSchema>;
+
+export const PatchOnboardingSchema = z.object({
+  fitness_goal: z.enum(['lean_bulk', 'cut', 'recomp', 'strength', 'endurance']),
+  activity_level: z.enum([
+    'sedentary',
+    'lightly_active',
+    'moderately_active',
+    'very_active',
+    'extremely_active',
+  ]),
+  target_weight_kg: z.number().positive().nullable().optional(),
+});
+export type PatchOnboardingInput = z.infer<typeof PatchOnboardingSchema>;
