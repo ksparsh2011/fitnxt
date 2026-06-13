@@ -6,14 +6,15 @@ Each section is a ready-to-paste orchestrator prompt. Complete phases in order �
 - [x] Phase 0 — Foundation (monorepo, design system, UI components)
 - [x] Phase 1 — Scaffold (NestJS stub, shared types, docker, CI)
 - [x] Phase 2 — Auth (JWT, bcrypt, login/register screens, DB migrations)
-- [ ] Phase 3 — Today Screen
+- [x] Phase 3 — Today Screen
+- [ ] Phase 3.5 — Onboarding (post-registration goal setup, 3 slides)
 - [ ] Phase 4 — Session Screen (active workout logging)
 - [ ] Phase 5 — AI Coach Screen
 - [ ] Phase 6 — Progress Screen
 - [ ] Phase 7 — Plan Screen
 - [ ] Phase 8 — Profile Screen
 - [ ] Phase 9 — PWA + Offline
-- [ ] Phase 10 — Polish (Google OAuth, forgot password, PR celebrations)
+- [ ] Phase 10 — Polish (Google OAuth, forgot password, email verification, PR celebrations)
 
 ---
 
@@ -75,6 +76,85 @@ Shared:
 1. backend-architect → spec the 4 endpoint shapes and Kysely query patterns
 2. developer → implement backend endpoints + frontend components
 3. ui-ux-reviewer → sign off against mockups/02-today.html and Ignite design system
+```
+
+---
+
+## Phase 3.5 — Onboarding
+
+```
+Build the post-registration onboarding flow using mockups/01-auth.html (Onboarding slides 1–3)
+as the visual source of truth.
+
+━━━ SCOPE ━━━
+
+Backend — add to users module (do NOT create new modules):
+
+  PATCH /api/v1/users/me/onboarding   → save fitness_goal, activity_level, target_weight_kg,
+                                        and set onboarding_completed = true on user_profiles.
+                                        Returns updated profile. JwtAuthGuard protected.
+
+  The user_profiles table already has fitness_goal (text). Add activity_level (text) and
+  onboarding_completed (boolean default false) columns via a new migration:
+    018_add_onboarding_fields.ts
+
+  Valid fitness_goal values: 'lean_bulk' | 'cut' | 'recomp' | 'strength' | 'endurance'
+  Valid activity_level values: 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active'
+
+Frontend — create apps/web/src/app/(auth)/onboard/
+
+  Route: /onboard — only reachable immediately after registration, redirect to /today if
+  onboarding_completed is true (check via GET /users/me).
+
+  3-slide stepper (no page navigation between slides — single page with animated transitions):
+
+  Slide 1 — Goal selection
+    - Heading: "What's your main goal?"
+    - 5 goal cards in a vertical list, each tappable/selectable:
+        Lean Bulk · Cut · Body Recomp · Strength · Endurance
+    - Each card: icon (lucide-react), title, one-line description
+    - Selected card: violet border + violet bg tint
+    - Violet accent theme
+
+  Slide 2 — Activity level
+    - Heading: "How active are you?"
+    - 5 activity level options (same card pattern as slide 1):
+        Sedentary · Lightly Active · Moderately Active · Very Active · Athlete
+    - Violet accent theme
+
+  Slide 3 — Body weight (optional)
+    - Heading: "What's your current weight?"
+    - Single numeric input (kg or lbs toggle)
+    - "Skip for now" text link below input
+    - This is optional — user can skip and it saves null
+
+  Navigation:
+  - "Continue" button at bottom advances slides
+  - Back arrow on slides 2 and 3
+  - Progress dots indicator (3 dots, filled = completed)
+  - Final slide "Continue" calls PATCH /users/me/onboarding then pushes to /today
+
+  After successful registration in register/page.tsx:
+  - Change router.push('/today') → router.push('/onboard')
+
+  Animations:
+  - Slide transition: Framer Motion x-axis slide (exit left, enter right for forward)
+  - Card selection: scale(0.97) on tap, border color transition
+  - "Continue" button disabled until selection made (slides 1 and 2)
+
+  Code quality:
+  - Single page component with local useReducer for slide state
+  - No separate route per slide
+  - All Ignite design tokens — violet theme throughout
+  - lucide-react icons strokeWidth={1.8}
+  - 44×44dp minimum tap targets on all cards
+
+Shared:
+  - Add OnboardingInput type and PatchOnboardingSchema to packages/shared
+
+━━━ HANDOFF ORDER ━━━
+1. developer → migration 018, PATCH endpoint, frontend onboarding flow
+2. ui-ux-reviewer → sign off against mockups/01-auth.html onboarding slides
 ```
 
 ---

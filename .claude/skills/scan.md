@@ -17,7 +17,7 @@ When asked to scan, map, or index the repo. Also auto-activates when REPO_MAP.md
 
 6. **Shared packages** — List exported types, event contracts, Zod schemas from packages/shared/.
 
-7. **ADR compliance check** — Cross-reference ADR-001-to-006.md against what exists. Flag anything promised in an ADR that isn't present yet.
+7. **ADR compliance check** — Cross-reference docs/ADR-001-to-006.md against what exists. Flag anything promised in an ADR that isn't present yet.
 
 8. **Design system integration check** — Is tailwind.config wired to MASTER.md tokens? Are design tokens in apps/web/src/lib/design-tokens.ts? Are Ignite fonts loaded in layout.tsx?
 

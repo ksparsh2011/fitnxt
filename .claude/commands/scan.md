@@ -25,10 +25,10 @@ If `apps/api/src/modules/` exists, list all NestJS modules. For each module chec
 If `packages/shared/` exists, list exported types, event contracts, and Zod schemas.
 
 **7. Identify gaps vs ADR decisions**
-Cross-reference what exists against the decisions in ADR-001-to-006.md. Flag anything promised in an ADR that isn't yet present.
+Cross-reference what exists against the decisions in docs/ADR-001-to-006.md. Flag anything promised in an ADR that isn't yet present.
 
 **8. Check design system integration**
-Is `design-system/MASTER.md` referenced in tailwind.config? Are design tokens exported to `apps/web/src/lib/design-tokens.ts`? Are Ignite fonts loaded in `layout.tsx`?
+Is `docs/design-system/MASTER.md` referenced in tailwind.config? Are design tokens exported to `apps/web/src/lib/design-tokens.ts`? Are Ignite fonts loaded in `layout.tsx`?
 
 ## Output Format
 

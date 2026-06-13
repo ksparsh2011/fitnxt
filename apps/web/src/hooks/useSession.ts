@@ -42,12 +42,12 @@ export function useSession(sessionId: string | null) {
 
   const startSessionMutation = useMutation({
     mutationFn: (input: StartSessionInput) =>
-      apiPost<ActiveSessionResponse>('/workouts/sessions', input),
+      apiPost<ActiveSessionResponse>('/workouts/sessions', input, accessToken ?? undefined),
   });
 
   const logSetMutation = useMutation({
     mutationFn: (input: LogSetInput) =>
-      apiPost<LogSetResponse>(`/workouts/sessions/${sessionId}/sets`, input),
+      apiPost<LogSetResponse>(`/workouts/sessions/${sessionId}/sets`, input, accessToken ?? undefined),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['sessions', sessionId] });
     },

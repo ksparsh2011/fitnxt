@@ -148,7 +148,7 @@ GET /api/v1/nutrition/today
 
 ## Design system
 
-Ignite design system — see [design-system/MASTER.md](design-system/MASTER.md).
+Ignite design system — see [docs/design-system/MASTER.md](docs/design-system/MASTER.md).
 
 | Token | Value | Use |
 |-------|-------|-----|
@@ -163,4 +163,4 @@ Fonts: Syne (display headings), DM Sans (body), JetBrains Mono (numbers/metrics)
 
 ## Known gaps
 
-See [KNOWN-GAPS.md](KNOWN-GAPS.md) for the full list of deferred items and planned phases.
+See [docs/KNOWN-GAPS.md](docs/KNOWN-GAPS.md) for the full list of deferred items and planned phases.
