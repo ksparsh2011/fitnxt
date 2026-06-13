@@ -4,93 +4,68 @@
 
 ### Level 1 — System Context
 
-```
-                    ┌──────────────────────────────────────────────┐
-                    │                                              │
-     User           │                  FitAI                      │
-  (mobile PWA) ────▶│   Tracks workouts, reads machine photos,    │
-                    │   generates AI training plans, logs diet     │
-                    │                                              │
-                    └───────────┬──────────────┬───────────────────┘
-                                │              │
-                    ┌───────────▼───┐  ┌───────▼──────────────┐
-                    │  Anthropic    │  │  Cloud Storage        │
-                    │  Claude API   │  │  (S3 / GCS)           │
-                    │  (Vision +    │  │  workout photos,      │
-                    │   Chat + JSON)│  │  progress images      │
-                    └───────────────┘  └──────────────────────┘
+```mermaid
+graph LR
+    User(["👤 User\n(Mobile PWA)"])
+
+    subgraph fitNXT["fitNXT Platform"]
+        direction TB
+        Web["Next.js 14\n(Vercel)"]
+        API["NestJS API\n(Railway)"]
+    end
+
+    Claude["Anthropic Claude API\nChat · Vision · JSON"]
+    Storage["Cloud Storage\nS3 / GCS\nPhotos · Progress images"]
+
+    User -->|uses| fitNXT
+    fitNXT -->|Claude SDK| Claude
+    fitNXT -->|upload / fetch| Storage
 ```
 
 ### Level 2 — Container Diagram
 
-```
-Browser / PWA
-┌─────────────────────────────────────────────────────────────────┐
-│  Next.js 14 (web)                                               │
-│  ┌──────────────┐  ┌────────────────┐  ┌─────────────────────┐ │
-│  │ App Router   │  │ React Query    │  │ Service Worker      │ │
-│  │ (RSC + CC)   │  │ (data layer)   │  │ (offline cache)     │ │
-│  └──────────────┘  └────────────────┘  └─────────────────────┘ │
-└────────────────────────────┬────────────────────────────────────┘
-                             │ HTTPS / REST+JSON
-                             │ (SSE for AI streaming)
-┌────────────────────────────▼────────────────────────────────────┐
-│  NestJS API (api)  — Modular Monolith                           │
-│                                                                 │
-│  ┌──────┐ ┌──────┐ ┌──────────┐ ┌──────────┐ ┌─────┐ ┌──────┐│
-│  │ auth │ │users │ │workouts  │ │nutrition │ │media│ │ ai   ││
-│  │      │ │      │ │          │ │          │ │     │ │coach ││
-│  └──┬───┘ └──┬───┘ └────┬─────┘ └────┬─────┘ └──┬──┘ └──┬───┘│
-│     └────────┴──────────┴────────────┴───────────┴────────┘   │
-│                    Internal EventEmitter2 bus                   │
-└───────┬────────────────────────────────────┬────────────────────┘
-        │                                    │
-┌───────▼────────┐                  ┌────────▼───────┐
-│  PostgreSQL 16 │                  │  Redis 7       │
-│                │                  │                │
-│  - user data   │                  │ - session store│
-│  - workouts    │                  │ - AI ctx cache │
-│  - nutrition   │                  │ - BullMQ jobs  │
-│  - pgvector    │                  │ - rate limiter │
-│    (future)    │                  │                │
-└────────────────┘                  └────────────────┘
+```mermaid
+graph TB
+    subgraph Browser["Browser / PWA"]
+        Web["Next.js 14\nApp Router · TanStack Query · Service Worker"]
+    end
+
+    subgraph NestJS["NestJS API — Modular Monolith (Railway)"]
+        auth["auth"]
+        users["users"]
+        workouts["workouts"]
+        nutrition["nutrition"]
+        media["media"]
+        coach["ai-coach"]
+        Bus(["EventEmitter2\ninternal event bus"])
+        auth & users & workouts & nutrition & media & coach --- Bus
+    end
+
+    PG[("PostgreSQL 16\nuser data · workouts\nnutrition · pgvector")]
+    Redis[("Redis 7\nsession store · AI ctx cache\nBullMQ jobs · rate limiter")]
+
+    Browser -->|"HTTPS · REST+JSON\nSSE for AI streaming"| NestJS
+    NestJS --> PG
+    NestJS --> Redis
 ```
 
 ### Level 3 — Domain Component: ai-coach
 
-```
-  ┌─────────────────────────────────────────────────────────────┐
-  │  ai-coach domain                                            │
-  │                                                             │
-  │  CoachController                                            │
-  │    POST /ai/chat          (SSE streaming response)          │
-  │    POST /ai/plan/generate (JSON structured workout plan)    │
-  │    POST /ai/ocr           (photo → structured data)         │
-  │    PATCH /ai/plan/adjust  (modify existing plan)            │
-  │                                                             │
-  │  ContextAssemblerService  ◀── critical component            │
-  │    buildContext(userId)   → assembles layered prompt        │
-  │    - Layer 0: system persona  (always, cached forever)      │
-  │    - Layer 1: user profile    (cached 1hr, ~800 tokens)     │
-  │    - Layer 2: 30-day summary  (cached 30min, ~1200 tokens)  │
-  │    - Layer 3: last 7 days     (cached 10min, ~2000 tokens)  │
-  │    - Layer 4: today's session (no cache, ~500 tokens)       │
-  │    - Layer 5: conversation    (no cache, sliding window)    │
-  │                                                             │
-  │  ClaudeGateway                                              │
-  │    chat()       → streaming SSE via claude-sdk              │
-  │    generate()   → structured JSON via tool_use              │
-  │    ocr()        → vision API, base64 image                  │
-  │                                                             │
-  │  PlanGeneratorService                                       │
-  │    generateMesocycle()  → 4–12 week periodized block        │
-  │    adjustSession()      → real-time session modification    │
-  │    detectDeload()       → auto-deload after fatigue signal  │
-  │                                                             │
-  │  ConversationRepository  (Redis + PostgreSQL)               │
-  │    - Redis: last 20 messages (hot, fast)                    │
-  │    - PostgreSQL: full history (cold, permanent)             │
-  └─────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph aicoach["ai-coach domain"]
+        Ctrl["CoachController\nPOST /ai/chat · POST /ai/plan/generate\nPOST /ai/ocr · PATCH /ai/plan/adjust"]
+        Ctx["ContextAssemblerService\nbuildContext(userId)\nAssembles 5-layer prompt with cache control"]
+        GW["ClaudeGateway\nchat() → SSE streaming\ngenerate() → JSON via tool_use\nocr() → Vision API"]
+        Plan["PlanGeneratorService\ngenerateMesocycle()\nadjustSession()\ndetectDeload()"]
+        Repo["ConversationRepository\nRedis: last 20 msgs (hot)\nPostgreSQL: full history (cold)"]
+    end
+
+    Ctrl --> Ctx
+    Ctrl --> GW
+    Ctrl --> Plan
+    GW --> Repo
+    Ctx --> Repo
 ```
 
 ---
@@ -110,39 +85,34 @@ Browser / PWA
 
 ## Data Flow: Photo OCR Workout Log
 
-```
-User taps "Log from photo"
-        │
-        ▼
-Next.js → POST /media/upload (multipart)
-        │
-        ▼
-MediaService → validates MIME type, size (max 10MB)
-        │
-        ▼
-S3/GCS presigned upload → returns mediaId + CDN URL
-        │
-        ▼
-BullMQ job enqueued: { jobType: 'OCR', mediaId, userId, sessionId }
-        │
-        ▼
-OCR Worker (async) → fetches S3 URL → calls Claude Vision API
-  System prompt: "Extract: equipment_type, duration_minutes,
-  calories_burned, distance_km, heart_rate_avg, resistance_level
-  from this fitness machine display. Return JSON only."
-        │
-        ▼
-Claude returns: { equipment: 'treadmill', duration: 32,
-  calories: 287, distance: 4.2, heart_rate_avg: 141 }
-        │
-        ▼
-WorkoutService.logCardio(sessionId, ocrResult)
-        │
-        ▼
-SSE event pushed to client: { type: 'ocr_complete', data: {...} }
-        │
-        ▼
-UI auto-populates the cardio log form — user confirms + saves
+```mermaid
+sequenceDiagram
+    actor User
+    participant Web as Next.js
+    participant API as MediaService
+    participant Storage as S3 / GCS
+    participant Queue as BullMQ
+    participant Worker as OCR Worker
+    participant Claude as Claude Vision API
+    participant WS as WorkoutService
+
+    User->>Web: Tap "Log from photo"
+    Web->>API: POST /media/upload (multipart)
+    API->>API: Validate MIME type + size (max 10MB)
+    API->>Storage: Presigned upload
+    Storage-->>API: mediaId + CDN URL
+    API->>Queue: Enqueue { jobType: OCR, mediaId, userId, sessionId }
+    API-->>Web: { mediaId } — returns immediately
+
+    Queue->>Worker: Dequeue job
+    Worker->>Storage: Fetch image URL
+    Worker->>Claude: Vision API — base64 image
+    Note over Claude: Extract: equipment, duration_minutes,<br/>calories_burned, distance_km, heart_rate_avg
+    Claude-->>Worker: { equipment: treadmill, duration: 32,<br/>calories: 287, distance: 4.2, heart_rate_avg: 141 }
+    Worker->>WS: logCardio(sessionId, ocrResult)
+    WS-->>Web: SSE push { type: ocr_complete, data: {...} }
+    Web-->>User: Auto-populate cardio form
+    User->>Web: Confirm + Save
 ```
 
 ---
@@ -233,19 +203,27 @@ When extracting to microservices, only the EventEmitter is replaced with a messa
 
 ## Security Architecture
 
-```
-Request lifecycle:
-  ┌────────────────────────────────────────────────────────┐
-  │ 1. Rate limiter (Redis)      — 100 req/min per IP      │
-  │ 2. Helmet middleware         — HSTS, CSP, X-Frame      │
-  │ 3. CORS whitelist            — only known origins      │
-  │ 4. JWT validation            — JWKS-RSA, exp check     │
-  │ 5. User extraction           — req.user from token     │
-  │ 6. Resource ownership guard  — userId match on all DB  │
-  │    queries (no IDOR possible)                          │
-  │ 7. Input validation          — class-validator DTOs    │
-  │ 8. Response sanitization     — no raw SQL errors       │
-  └────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    Req(["Incoming Request"]) --> RL
+
+    RL["1. Rate Limiter (Redis)\n100 req/min per IP"]
+    HM["2. Helmet Middleware\nHSTS · CSP · X-Frame-Options"]
+    CO["3. CORS Whitelist\nKnown origins only"]
+    JW["4. JWT Validation\nJWKS-RSA · expiry check"]
+    UE["5. User Extraction\nreq.user populated from token"]
+    OG["6. Resource Ownership Guard\nuserId match on all DB queries\n(no IDOR possible)"]
+    IV["7. Input Validation\nclass-validator DTOs"]
+    RS["8. Response Sanitization\nNo raw SQL errors exposed"]
+    OK(["✓ Route Handler"])
+
+    RL --> HM --> CO --> JW --> UE --> OG --> IV --> RS --> OK
+
+    RL -- "429 Too Many Requests" --> Err(["Rejected"])
+    CO -- "403 CORS Error" --> Err
+    JW -- "401 Unauthorized" --> Err
+    OG -- "403 Forbidden" --> Err
+    IV -- "400 Bad Request" --> Err
 ```
 
 **AI-specific security:**
