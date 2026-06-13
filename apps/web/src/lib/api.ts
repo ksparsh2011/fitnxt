@@ -25,10 +25,13 @@ export async function apiGet<T>(path: string, accessToken?: string): Promise<T> 
   return res.json() as Promise<T>;
 }
 
-export async function apiPost<T>(path: string, body: unknown): Promise<T> {
+export async function apiPost<T>(path: string, body: unknown, accessToken?: string): Promise<T> {
   const res = await safeFetch(`${API_BASE}/api/v1${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+    },
     credentials: 'include',
     body: JSON.stringify(body),
   });

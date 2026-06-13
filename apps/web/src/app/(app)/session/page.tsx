@@ -32,7 +32,7 @@ export default function SessionEntryPage() {
         const trainingDayId = params.get('trainingDayId');
         const newSession = await apiPost<ActiveSessionResponse>('/workouts/sessions', {
           training_day_id: trainingDayId ?? null,
-        });
+        }, accessToken);
         router.replace(`/session/${newSession.sessionId}`);
       } catch {
         router.replace('/today');
