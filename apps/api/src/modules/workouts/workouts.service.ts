@@ -242,6 +242,24 @@ export class WorkoutsService {
     }));
   }
 
+  async createExercise(
+    userId: string,
+    dto: { name: string; equipment?: string; muscle_groups?: string[] },
+  ): Promise<{ id: string; name: string; muscleGroups: string[]; equipment: string }> {
+    const result = await this.workoutsRepository.createCustomExercise(
+      userId,
+      dto.name,
+      dto.equipment ?? 'other',
+      dto.muscle_groups ?? [],
+    );
+    return {
+      id: result.id,
+      name: result.name,
+      muscleGroups: result.muscle_groups,
+      equipment: result.equipment,
+    };
+  }
+
   private async buildSessionDetail(
     sessionId: string,
     userId: string,

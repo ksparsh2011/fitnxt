@@ -7,6 +7,7 @@ import { StartSessionDto } from './dto/start-session.dto';
 import { LogSetDto } from './dto/log-set.dto';
 import { FinishSessionDto } from './dto/finish-session.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CreateExerciseDto } from './dto/create-exercise.dto';
 import type { PREvent, WorkoutSessionDetail } from '@fitnxt/shared';
 
 @Controller('workouts')
@@ -81,5 +82,15 @@ export class WorkoutsController {
   ): Promise<Array<{ id: string; name: string; muscleGroups: string[]; equipment: string }>> {
     if (!search || search.length < 2) return [];
     return this.workoutsService.searchExercises(search);
+  }
+
+  @Post('exercises')
+  @UseGuards(JwtAuthGuard)
+  async createExercise(
+    @Req() req: Request,
+    @Body() dto: CreateExerciseDto,
+  ): Promise<{ id: string; name: string; muscleGroups: string[]; equipment: string }> {
+    const { userId } = req.user as { userId: string; email: string };
+    return this.workoutsService.createExercise(userId, dto);
   }
 }

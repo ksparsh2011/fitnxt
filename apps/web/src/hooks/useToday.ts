@@ -7,7 +7,7 @@ import type { UserProfile, TodayWorkout, TodayNutrition } from '@/types/today';
 export function useToday() {
   const isAuthenticated = useAuthStore((s) => s.accessToken !== null);
 
-  const userQuery = useQuery<UserProfile>({
+  const userQuery = useQuery<UserProfile | null>({
     queryKey: ['user', 'me'],
     queryFn: () => apiGet<UserProfile>('/users/me'),
     staleTime: Infinity,
@@ -16,12 +16,12 @@ export function useToday() {
 
   const workoutQuery = useQuery<TodayWorkout | null>({
     queryKey: ['workouts', 'today'],
-    queryFn: () => apiGet<TodayWorkout | null>('/workouts/today'),
+    queryFn: () => apiGet<TodayWorkout>('/workouts/today'),
     staleTime: 60_000,
     enabled: isAuthenticated,
   });
 
-  const nutritionQuery = useQuery<TodayNutrition>({
+  const nutritionQuery = useQuery<TodayNutrition | null>({
     queryKey: ['nutrition', 'today'],
     queryFn: () => apiGet<TodayNutrition>('/nutrition/today'),
     staleTime: 30_000,

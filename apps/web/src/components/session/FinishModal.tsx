@@ -3,6 +3,7 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useSessionStore } from '@/stores/session.store';
 import { useSession } from '@/hooks/useSession';
 import { useToast } from '@/components/ui/Toast';
+import { Button } from '@/components/ui/Button';
 
 interface FinishModalProps {
   sessionId: string;
@@ -86,19 +87,18 @@ export function FinishModal({ sessionId, onClose, onComplete }: FinishModalProps
 
           {/* Actions */}
           <div className="flex gap-3">
-            <button
-              onClick={onClose}
-              className="flex-1 h-[52px] rounded-2xl bg-surface-2 border border-border text-t1 text-sm font-medium"
-            >
+            <Button variant="surface" size="lg" className="flex-1" onClick={onClose}>
               Keep Going
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="primary"
+              size="lg"
+              className="flex-[2] font-display font-bold"
+              loading={isFinishing}
               onClick={() => void handleFinish()}
-              disabled={isFinishing}
-              className="flex-[2] h-[52px] rounded-2xl bg-violet text-bg font-display font-bold text-base disabled:opacity-50"
             >
-              {isFinishing ? 'Saving...' : 'Finish Workout'}
-            </button>
+              Finish Workout
+            </Button>
           </div>
         </motion.div>
       </motion.div>

@@ -106,6 +106,8 @@ export function SetLogger({ exerciseIndex, exercise, sessionId }: SetLoggerProps
         is_warmup: false,
       });
 
+      if (!result) throw new Error('No response from server');
+
       confirmSet(exerciseIndex, localId, result.setId, result.isPr);
 
       if (result.isPr && result.pr) {

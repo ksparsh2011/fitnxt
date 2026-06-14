@@ -2,7 +2,7 @@
 import { forwardRef, ButtonHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
-type Variant = "primary" | "secondary" | "ghost" | "danger" | "coral" | "gold";
+type Variant = "primary" | "secondary" | "surface" | "ghost" | "danger" | "coral" | "gold";
 type Size    = "sm" | "md" | "lg" | "icon";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -22,6 +22,8 @@ const variants: Record<Variant, string> = {
   secondary:
     "bg-[var(--violet-tint)] text-violet border border-[var(--violet-border)] " +
     "hover:bg-[var(--violet-tint)] hover:border-violet focus-visible:ring-violet",
+  surface:
+    "bg-surface-2 text-t1 border border-border hover:border-border-2 focus-visible:ring-border-2",
   ghost:
     "bg-transparent text-t2 hover:text-t1 hover:bg-[var(--surface-2)] focus-visible:ring-[var(--border-2)]",
   danger:

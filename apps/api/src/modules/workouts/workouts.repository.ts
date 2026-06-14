@@ -319,4 +319,27 @@ export class WorkoutsRepository {
       .limit(20)
       .execute();
   }
+
+  async createCustomExercise(
+    userId: string,
+    name: string,
+    equipment: string,
+    muscleGroups: string[],
+  ): Promise<{ id: string; name: string; muscle_groups: string[]; equipment: string }> {
+    const slug = `custom-${name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}-${Date.now()}`;
+    return this.db
+      .insertInto('exercises')
+      .values({
+        slug,
+        name,
+        muscle_groups: muscleGroups as unknown as string[],
+        equipment,
+        movement_type: 'compound',
+        mechanics: 'compound',
+        is_custom: true,
+        created_by: userId,
+      })
+      .returning(['id', 'name', 'muscle_groups', 'equipment'])
+      .executeTakeFirstOrThrow();
+  }
 }

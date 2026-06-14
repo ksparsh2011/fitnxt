@@ -361,7 +361,7 @@ export default function OnboardPage() {
     }
     apiGet<UserProfileResponse>('/users/me')
       .then((res) => {
-        if (res.onboardingCompleted) {
+        if (res?.onboardingCompleted) {
           router.replace('/today');
         }
       })

@@ -1,11 +1,13 @@
 'use client';
 import { useState, useCallback } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { Search, X } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-import { apiGet } from '@/lib/api';
+import { Plus, Search, X } from 'lucide-react';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { apiGet, apiPost } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth.store';
 import { useSessionStore } from '@/stores/session.store';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 
 interface ExerciseResult {
   id: string;
@@ -27,9 +29,19 @@ export function ExerciseSearch({ onClose }: ExerciseSearchProps) {
   const { data: results = [] } = useQuery<ExerciseResult[]>({
     queryKey: ['exercises', 'search', search],
     queryFn: () =>
-      apiGet<ExerciseResult[]>(`/workouts/exercises?search=${encodeURIComponent(search)}`),
+      apiGet<ExerciseResult[]>(`/workouts/exercises?search=${encodeURIComponent(search)}`).then(
+        (r) => r ?? [],
+      ),
     enabled: search.length >= 2 && isAuthenticated,
     staleTime: 30_000,
+  });
+
+  const { mutate: createCustom, isPending: isCreating } = useMutation({
+    mutationFn: (name: string) =>
+      apiPost<ExerciseResult>('/workouts/exercises', { name }),
+    onSuccess: (exercise) => {
+      if (exercise) handleSelect(exercise);
+    },
   });
 
   const handleSelect = useCallback(
@@ -68,27 +80,22 @@ export function ExerciseSearch({ onClose }: ExerciseSearchProps) {
 
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-display font-bold text-lg text-t1">Add Exercise</h3>
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={onClose}
-              className="w-11 h-11 flex items-center justify-center rounded-full text-t2 hover:text-t1 transition-colors"
               aria-label="Close exercise search"
             >
               <X className="w-5 h-5" strokeWidth={1.8} />
-            </button>
+            </Button>
           </div>
 
-          {/* Search input */}
-          <div className="relative mb-4">
-            <Search
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-t2"
-              strokeWidth={1.8}
-            />
-            <input
-              type="text"
+          <div className="mb-4">
+            <Input
               placeholder="Search exercises..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full h-11 pl-10 pr-4 bg-surface-2 border border-border rounded-xl text-sm text-t1 placeholder:text-t3 focus:border-violet focus:outline-none transition-colors"
+              leadingIcon={<Search className="w-4 h-4" strokeWidth={1.8} />}
               autoFocus
             />
           </div>
@@ -96,7 +103,19 @@ export function ExerciseSearch({ onClose }: ExerciseSearchProps) {
           {/* Results */}
           <div className="overflow-y-auto" style={{ maxHeight: '50vh' }}>
             {search.length >= 2 && results.length === 0 && (
-              <p className="text-sm text-t2 text-center py-6">No exercises found</p>
+              <div className="flex flex-col items-center gap-3 py-6">
+                <p className="text-sm text-t2">No exercises found for &ldquo;{search}&rdquo;</p>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => createCustom(search)}
+                  loading={isCreating}
+                  className="text-coral hover:text-coral border border-coral/30 bg-coral/10 hover:bg-coral/20"
+                >
+                  <Plus size={16} strokeWidth={1.8} />
+                  {isCreating ? 'Adding…' : `Add "${search}" as custom`}
+                </Button>
+              </div>
             )}
             {search.length < 2 && (
               <p className="text-sm text-t2 text-center py-6">Type to search exercises</p>

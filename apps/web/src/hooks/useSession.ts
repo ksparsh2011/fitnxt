@@ -3,11 +3,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiGet, apiPost, apiPatch } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth.store';
 import type { WorkoutSessionDetail, PREvent } from '@fitnxt/shared';
-import type { ActiveSessionResponse } from '@/types/today';
-
-interface StartSessionInput {
-  training_day_id?: string | null;
-}
 
 interface LogSetInput {
   exercise_id: string;
@@ -32,16 +27,11 @@ export function useSession(sessionId: string | null) {
   const isAuthenticated = useAuthStore((s) => s.accessToken !== null);
   const queryClient = useQueryClient();
 
-  const sessionQuery = useQuery<WorkoutSessionDetail>({
+  const sessionQuery = useQuery<WorkoutSessionDetail | null>({
     queryKey: ['sessions', sessionId],
     queryFn: () => apiGet<WorkoutSessionDetail>(`/workouts/sessions/${sessionId}`),
     enabled: !!sessionId && isAuthenticated,
     staleTime: 0,
-  });
-
-  const startSessionMutation = useMutation({
-    mutationFn: (input: StartSessionInput) =>
-      apiPost<ActiveSessionResponse>('/workouts/sessions', input),
   });
 
   const logSetMutation = useMutation({
@@ -64,12 +54,8 @@ export function useSession(sessionId: string | null) {
     session: sessionQuery.data,
     isLoading: sessionQuery.isLoading,
     isError: sessionQuery.isError,
-    startSession: startSessionMutation.mutate,
-    startSessionAsync: startSessionMutation.mutateAsync,
-    logSet: logSetMutation.mutate,
     logSetAsync: logSetMutation.mutateAsync,
     isLoggingSet: logSetMutation.isPending,
-    finishSession: finishSessionMutation.mutate,
     finishSessionAsync: finishSessionMutation.mutateAsync,
     isFinishing: finishSessionMutation.isPending,
   };

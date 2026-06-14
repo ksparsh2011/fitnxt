@@ -37,6 +37,7 @@ export default function LoginPage() {
     setServerError(null);
     try {
       const res = await apiPost<AuthApiResponse>('/auth/login', data);
+      if (!res) throw new Error('Login failed');
       setAuth(res.accessToken, res.userId, res.email);
       router.push('/today');
     } catch (err) {

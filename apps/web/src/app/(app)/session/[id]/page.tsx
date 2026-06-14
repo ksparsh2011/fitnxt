@@ -1,7 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/stores/auth.store';
 import { useSession } from '@/hooks/useSession';
 import { useSessionStore } from '@/stores/session.store';
 import {
@@ -23,7 +22,6 @@ interface PageProps {
 export default function SessionPage({ params }: PageProps) {
   const { id: sessionId } = params;
   const router = useRouter();
-  const accessToken = useAuthStore((s) => s.accessToken);
   const { session, isLoading, isError } = useSession(sessionId);
   const [view, setView] = useState<View>('list');
   const [showExerciseSearch, setShowExerciseSearch] = useState(false);
@@ -55,11 +53,6 @@ export default function SessionPage({ params }: PageProps) {
       });
     }
   }, [session, exercises.length, initSession]);
-
-  if (!accessToken) {
-    router.replace('/login');
-    return null;
-  }
 
   if (isError) {
     return (

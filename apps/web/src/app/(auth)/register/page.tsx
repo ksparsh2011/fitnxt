@@ -42,6 +42,7 @@ export default function RegisterPage() {
         password: data.password,
         displayName: data.displayName,
       });
+      if (!res) throw new Error('Registration failed');
       setAuth(res.accessToken, res.userId, res.email);
       router.push('/onboard');
     } catch (err) {
