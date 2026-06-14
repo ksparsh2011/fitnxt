@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import { useInterval } from '@/hooks/useInterval';
+import { Button } from '@/components/ui/Button';
 
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60).toString().padStart(2, '0');
@@ -27,15 +28,19 @@ export function SessionHeader({ startedAt, onFinish, onBack, workoutName }: Sess
 
   return (
     <header className="px-5 pt-4 pb-2">
-      {/* Top row: back / name / finish */}
+      {/* Top row: back (optional) / name / finish */}
       <div className="flex items-center justify-between mb-3">
-        <button
-          onClick={onBack}
-          className="w-11 h-11 flex items-center justify-center rounded-full text-t2 hover:text-t1 hover:bg-surface-2 transition-colors"
-          aria-label="Back"
-        >
-          <ChevronLeft className="w-6 h-6" strokeWidth={1.8} />
-        </button>
+        {onBack !== undefined ? (
+          <button
+            onClick={onBack}
+            className="w-11 h-11 flex items-center justify-center rounded-full text-t2 hover:text-t1 hover:bg-surface-2 transition-colors"
+            aria-label="Back"
+          >
+            <ChevronLeft className="w-6 h-6" strokeWidth={1.8} />
+          </button>
+        ) : (
+          <div className="w-11" aria-hidden="true" />
+        )}
 
         {workoutName ? (
           <span className="font-display font-bold text-base text-t1 truncate max-w-[160px]">
@@ -45,12 +50,14 @@ export function SessionHeader({ startedAt, onFinish, onBack, workoutName }: Sess
           <div />
         )}
 
-        <button
+        <Button
+          variant="coral"
+          size="sm"
+          className="bg-coral/20 border border-coral/30 text-coral hover:bg-coral/30"
           onClick={onFinish}
-          className="px-4 h-11 rounded-full bg-coral/20 border border-coral/30 text-coral text-sm font-medium hover:bg-coral/30 transition-colors"
         >
           Finish
-        </button>
+        </Button>
       </div>
 
       {/* Session active pill — full width */}

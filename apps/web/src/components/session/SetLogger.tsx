@@ -1,8 +1,10 @@
 'use client';
 import { useReducer, useCallback } from 'react';
+import { ArrowRight, Check, ChevronRight } from 'lucide-react';
 import { useSessionStore } from '@/stores/session.store';
 import { useSession } from '@/hooks/useSession';
 import { useToast } from '@/components/ui/Toast';
+import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 import type { SessionExerciseLocal } from '@/stores/session.store';
 
@@ -10,6 +12,7 @@ interface SetLoggerProps {
   exerciseIndex: number;
   exercise: SessionExerciseLocal;
   sessionId: string;
+  onNextExercise?: () => void;
 }
 
 interface LoggerState {
@@ -51,7 +54,7 @@ function getInitialWeight(exercise: SessionExerciseLocal): number {
   return lastConfirmed?.weightKg ?? 60;
 }
 
-export function SetLogger({ exerciseIndex, exercise, sessionId }: SetLoggerProps) {
+export function SetLogger({ exerciseIndex, exercise, sessionId, onNextExercise }: SetLoggerProps) {
   const { optimisticAddSet, confirmSet, rollbackSet, startRestTimer, setPrCelebration } =
     useSessionStore();
   const { logSetAsync, isLoggingSet } = useSession(sessionId);
@@ -83,8 +86,10 @@ export function SetLogger({ exerciseIndex, exercise, sessionId }: SetLoggerProps
     };
   });
 
+  const allSetsDone = confirmedSets.length >= totalSets;
+
   const handleLogSet = useCallback(async () => {
-    if (pendingSets.length > 0) return; // wait for previous
+    if (pendingSets.length > 0 || confirmedSets.length >= totalSets) return;
 
     const localId = crypto.randomUUID();
     optimisticAddSet(exerciseIndex, {
@@ -260,14 +265,36 @@ export function SetLogger({ exerciseIndex, exercise, sessionId }: SetLoggerProps
         </div>
       </div>
 
-      {/* LOG SET button */}
-      <button
-        onClick={() => void handleLogSet()}
-        disabled={hasPending || isLoggingSet}
-        className="w-full h-14 rounded-2xl bg-coral text-white font-display font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] transition-all duration-150"
-      >
-        {hasPending || isLoggingSet ? 'Logging...' : 'LOG SET'}
-      </button>
+      {/* LOG SET / NEXT EXERCISE button */}
+      {allSetsDone ? (
+        <div className="flex flex-col gap-2">
+          <div className="w-full h-10 flex items-center justify-center gap-1.5 rounded-xl bg-coral/10 border border-coral/20">
+            <Check className="w-4 h-4 text-coral" strokeWidth={2.5} />
+            <span className="text-sm font-medium text-coral">All {totalSets} sets complete</span>
+          </div>
+          {onNextExercise && (
+            <Button
+              variant="coral"
+              size="lg"
+              className="w-full rounded-2xl font-display font-bold"
+              onClick={onNextExercise}
+            >
+              Next Exercise
+              <ArrowRight className="w-5 h-5" strokeWidth={1.8} />
+            </Button>
+          )}
+        </div>
+      ) : (
+        <Button
+          variant="coral"
+          size="lg"
+          className="w-full rounded-2xl font-display font-bold"
+          loading={hasPending || isLoggingSet}
+          onClick={() => void handleLogSet()}
+        >
+          LOG SET
+        </Button>
+      )}
 
       {/* Previous sets */}
       {exercise.sets.length > 0 && (
@@ -287,11 +314,15 @@ export function SetLogger({ exerciseIndex, exercise, sessionId }: SetLoggerProps
                 <span className={`text-sm ${set.status === 'pending' ? 'text-coral' : 'text-t2'}`}>
                   Set {i + 1}
                 </span>
-                <span
-                  className={`font-mono text-sm ${set.status === 'pending' ? 'text-coral' : 'text-success'}`}
-                >
-                  {set.weightKg ?? 0} kg × {set.reps}
-                  {set.status === 'confirmed' ? ' ✓' : ' →'}
+                <span className="flex items-center gap-1.5 font-mono text-sm">
+                  <span className={set.status === 'pending' ? 'text-coral' : 'text-success'}>
+                    {set.weightKg ?? 0} kg × {set.reps}
+                  </span>
+                  {set.status === 'confirmed' ? (
+                    <Check className="w-3.5 h-3.5 text-success" strokeWidth={2.5} />
+                  ) : (
+                    <ChevronRight className="w-3.5 h-3.5 text-coral" strokeWidth={2} />
+                  )}
                 </span>
               </div>
             ))}

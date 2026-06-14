@@ -3,6 +3,7 @@ import { useReducedMotion } from 'framer-motion';
 import { Check } from 'lucide-react';
 import { useInterval } from '@/hooks/useInterval';
 import { useSessionStore } from '@/stores/session.store';
+import { Button } from '@/components/ui/Button';
 
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60).toString().padStart(2, '0');
@@ -65,8 +66,7 @@ export function RestTimer() {
       <div className="text-center mt-4">
         <div className="text-xs uppercase tracking-widest text-t2 mb-3">Rest</div>
         <div
-          className="font-display font-extrabold text-coral leading-none"
-          style={{ fontSize: '80px', letterSpacing: '-3px' }}
+          className="font-display font-extrabold text-coral leading-none text-[80px] tracking-[-3px]"
           aria-live="polite"
           aria-label={`Rest timer: ${formatTime(restSecondsRemaining)}`}
         >
@@ -110,18 +110,22 @@ export function RestTimer() {
 
       {/* Buttons */}
       <div className="flex gap-3 w-full mt-4">
-        <button
+        <Button
+          variant="surface"
+          size="md"
+          className="flex-1 rounded-xl"
           onClick={() => addRestSeconds(30)}
-          className="flex-1 h-12 rounded-xl bg-surface-2 border border-border text-t2 text-sm font-medium hover:text-t1 transition-colors"
         >
           +30s
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="ghost"
+          size="md"
+          className="flex-1 rounded-xl text-coral hover:bg-coral/10"
           onClick={skipRest}
-          className="flex-1 h-12 rounded-xl bg-coral/10 border border-coral/20 text-coral text-sm font-medium hover:bg-coral/20 transition-colors"
         >
           Skip Rest
-        </button>
+        </Button>
       </div>
 
       {/* Up next card */}

@@ -2,6 +2,7 @@
 import { useReducedMotion, motion, AnimatePresence } from 'framer-motion';
 import { Trophy } from 'lucide-react';
 import { useSessionStore } from '@/stores/session.store';
+import { Button } from '@/components/ui/Button';
 
 const PR_TYPE_LABELS: Record<string, string> = {
   '1rm': '1 Rep Max',
@@ -59,8 +60,7 @@ export function PRCelebration() {
           initial={prefersReducedMotion ? {} : { scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-          className="w-20 h-20 rounded-3xl flex items-center justify-center mb-6"
-          style={{ background: 'var(--gold-tint)', border: '1px solid var(--gold-border)' }}
+          className="w-20 h-20 rounded-3xl flex items-center justify-center mb-6 bg-gold-tint border border-gold-border"
         >
           <Trophy className="w-10 h-10 text-gold" strokeWidth={1.6} />
         </motion.div>
@@ -86,16 +86,22 @@ export function PRCelebration() {
           )}
         </motion.div>
 
-        <motion.button
-          onClick={clearPR}
+        <motion.div
           initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.3 }}
-          className="mt-8 px-8 h-12 rounded-full bg-gold text-bg font-display font-bold text-base"
-          aria-label="Dismiss personal record celebration"
+          className="mt-8"
         >
-          Continue
-        </motion.button>
+          <Button
+            variant="gold"
+            size="lg"
+            className="px-10 font-display font-bold"
+            aria-label="Dismiss personal record celebration"
+            onClick={clearPR}
+          >
+            Continue
+          </Button>
+        </motion.div>
       </motion.div>
     </AnimatePresence>
   );

@@ -142,7 +142,6 @@ export class WorkoutsService {
     // Skip PR detection for warmups, bodyweight (null weight), or reps >= 11
     if (!isWarmup && weightKg !== null && prType !== undefined) {
       const existing = await this.workoutsRepository.findPR(userId, dto.exercise_id, prType);
-      const previousValue = existing?.value ?? null;
 
       if (!existing || weightKg > existing.value) {
         const { id: prId } = await this.workoutsRepository.upsertPR({
@@ -154,29 +153,32 @@ export class WorkoutsService {
         });
         await this.workoutsRepository.markSetAsPR(setId);
 
-        const exercise = await this.workoutsRepository.findExerciseById(dto.exercise_id);
-        const exerciseName = exercise?.name ?? 'Unknown Exercise';
+        // Only celebrate when genuinely beating a previous record — not on first-ever set
+        if (existing && weightKg > existing.value) {
+          const exercise = await this.workoutsRepository.findExerciseById(dto.exercise_id);
+          const exerciseName = exercise?.name ?? 'Unknown Exercise';
 
-        isPr = true;
-        pr = {
-          prId,
-          exerciseId: dto.exercise_id,
-          exerciseName,
-          prType,
-          value: weightKg,
-          previousValue,
-        };
+          isPr = true;
+          pr = {
+            prId,
+            exerciseId: dto.exercise_id,
+            exerciseName,
+            prType,
+            value: weightKg,
+            previousValue: existing.value,
+          };
 
-        this.eventEmitter.emit(EVENTS.PERSONAL_RECORD_ACHIEVED, {
-          prId,
-          userId,
-          exerciseId: dto.exercise_id,
-          exerciseName,
-          prType,
-          value: weightKg,
-          previousValue,
-          achievedAt: new Date(),
-        });
+          this.eventEmitter.emit(EVENTS.PERSONAL_RECORD_ACHIEVED, {
+            prId,
+            userId,
+            exerciseId: dto.exercise_id,
+            exerciseName,
+            prType,
+            value: weightKg,
+            previousValue: existing.value,
+            achievedAt: new Date(),
+          });
+        }
       }
     }
 
