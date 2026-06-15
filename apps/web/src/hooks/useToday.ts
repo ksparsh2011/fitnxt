@@ -14,9 +14,11 @@ export function useToday() {
     enabled: isAuthenticated,
   });
 
+  const localDayNumber = (() => { const d = new Date().getDay(); return d === 0 ? 7 : d; })();
+
   const workoutQuery = useQuery<TodayWorkout | null>({
-    queryKey: ['workouts', 'today'],
-    queryFn: () => apiGet<TodayWorkout>('/workouts/today'),
+    queryKey: ['workouts', 'today', localDayNumber],
+    queryFn: () => apiGet<TodayWorkout>(`/workouts/today?dayNumber=${localDayNumber}`),
     staleTime: 60_000,
     enabled: isAuthenticated,
   });

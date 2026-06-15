@@ -40,8 +40,8 @@ export class WorkoutsService {
     return jsDay === 0 ? 7 : jsDay; // Sunday→7, others stay
   }
 
-  async getTodayWorkout(userId: string): Promise<TodayWorkoutResponseDto | null> {
-    return this.buildDayWorkoutResponse(userId, this.computeTodayDayNumber());
+  async getTodayWorkout(userId: string, clientDayNumber?: number): Promise<TodayWorkoutResponseDto | null> {
+    return this.buildDayWorkoutResponse(userId, clientDayNumber ?? this.computeTodayDayNumber());
   }
 
   private async buildDayWorkoutResponse(

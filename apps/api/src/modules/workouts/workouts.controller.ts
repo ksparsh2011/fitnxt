@@ -21,9 +21,12 @@ export class WorkoutsController {
 
   @Get('today')
   @UseGuards(JwtAuthGuard)
-  async getToday(@Req() req: Request): Promise<TodayWorkoutResponseDto | null> {
+  async getToday(
+    @Req() req: Request,
+    @Query('dayNumber', new ParseIntPipe({ optional: true })) dayNumber?: number,
+  ): Promise<TodayWorkoutResponseDto | null> {
     const { userId } = req.user as { userId: string; email: string };
-    return this.workoutsService.getTodayWorkout(userId);
+    return this.workoutsService.getTodayWorkout(userId, dayNumber);
   }
 
   @Get('week')
