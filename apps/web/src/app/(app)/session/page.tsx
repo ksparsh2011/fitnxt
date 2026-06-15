@@ -153,9 +153,9 @@ export default function SessionEntryPage() {
   }
 
   return (
-    <div className="relative flex flex-col h-dvh bg-bg overflow-hidden">
+    <div className="relative flex flex-col h-dvh bg-bg">
       {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto px-5 pt-5 pb-[160px]">
+      <div className="flex-1 overflow-y-auto px-5 pt-5 pb-4">
         {/* Header row */}
         <div className="flex items-center justify-between mb-4">
           <h1 className="font-display font-extrabold text-[22px] text-t1">Train</h1>
@@ -229,9 +229,9 @@ export default function SessionEntryPage() {
         </div>
       </div>
 
-      {/* Gradient scrim + pinned CTA */}
-      <div className="absolute bottom-[calc(84px+env(safe-area-inset-bottom,0px))] left-0 right-0 px-5 pt-5 pb-3.5 bg-gradient-to-t from-bg via-bg/90 to-transparent pointer-events-none">
-        <div className="pointer-events-auto">
+      {/* Pinned CTA — flex child, never overlaps scroll content */}
+      <div className="px-5 pt-3 pb-[calc(84px+env(safe-area-inset-bottom,0px)+14px)] border-t border-border/40 bg-bg">
+        <div>
           {isToday ? (
             <motion.div whileTap={{ scale: 0.98 }} transition={{ duration: 0.1 }}>
               <Button

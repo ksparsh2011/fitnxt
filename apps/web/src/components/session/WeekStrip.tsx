@@ -35,7 +35,7 @@ export function WeekStrip({
         const hasWorkout = planDay?.hasWorkout ?? false;
 
         let cellClass =
-          'flex-1 min-w-0 h-[52px] rounded-[13px] flex flex-col items-center justify-center gap-[1px] transition-colors duration-150 cursor-pointer select-none min-h-[44px]';
+          'flex-1 min-w-0 h-[60px] rounded-[14px] flex flex-col items-center justify-center gap-[2px] transition-colors duration-150 cursor-pointer select-none min-h-[44px]';
 
         if (isToday) {
           cellClass += ' bg-coral';
@@ -75,7 +75,7 @@ export function WeekStrip({
               </span>
               <span
                 className={
-                  'font-mono text-[15px] font-semibold leading-none ' +
+                  'font-mono text-[13px] font-semibold leading-none ' +
                   (isToday ? 'text-white' : isSelected ? 'text-coral' : 'text-t1')
                 }
               >
