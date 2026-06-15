@@ -48,7 +48,7 @@ export function ExerciseList({ onExerciseTap, onAddExercise, compact }: Exercise
                 )}
               </div>
               <div className={cn('text-xs', isActive ? 'text-coral' : 'text-t2')}>
-                {exercise.prescribedSets}×{exercise.prescribedReps} reps
+                {exercise.prescribedSets}×{exercise.repsMin === exercise.repsMax ? `${exercise.repsMax}` : `${exercise.repsMin}–${exercise.repsMax}`} reps
               </div>
             </div>
             <div className={cn('font-mono text-sm flex-shrink-0', isActive ? 'text-coral' : 'text-t3')}>

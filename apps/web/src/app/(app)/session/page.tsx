@@ -1,104 +1,269 @@
 'use client';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Dumbbell, Plus } from 'lucide-react';
-import { apiGet, apiPost } from '@/lib/api';
+import { Plus, Dumbbell } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { useQueryClient } from '@tanstack/react-query';
+import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
-import type { ActiveSessionResponse } from '@/types/today';
+import { WeekStrip } from '@/components/session/WeekStrip';
+import { PreSessionExerciseCard } from '@/components/session/PreSessionExerciseCard';
+import { ExerciseDetailSheet } from '@/components/session/ExerciseDetailSheet';
+import { useWeekPlan } from '@/hooks/useWeekPlan';
+import { useDayWorkout } from '@/hooks/useDayWorkout';
+import { useSessionStore } from '@/stores/session.store';
+import { apiGet, apiPost } from '@/lib/api';
+import { computeTodayDayNumber } from '@/lib/dates';
+import type { ActiveSessionResponse, TodayWorkout } from '@/types/today';
 
-type Status = 'checking' | 'idle' | 'starting';
+function estimateMinutes(
+  exercises: TodayWorkout['exercises'],
+  overrideSets: Record<string, number>,
+): number {
+  const totalSeconds = exercises.reduce((sum, ex) => {
+    const sets = overrideSets[ex.exerciseId] ?? ex.sets;
+    return sum + sets * ((ex.restSeconds ?? 90) + 30);
+  }, 0);
+  const raw = totalSeconds / 60;
+  return Math.round(raw / 5) * 5;
+}
 
 export default function SessionEntryPage() {
   const router = useRouter();
-  const [status, setStatus] = useState<Status>('checking');
-  const checked = useRef(false);
+  const queryClient = useQueryClient();
+  const todayDayNumber = computeTodayDayNumber();
 
-  const startSession = useCallback(async (trainingDayId?: string | null) => {
-    setStatus('starting');
-    try {
-      const session = await apiPost<ActiveSessionResponse>('/workouts/sessions', {
-        training_day_id: trainingDayId ?? null,
-      });
-      if (session?.sessionId) {
-        router.replace(`/session/${session.sessionId}`);
-      } else {
-        setStatus('idle');
-      }
-    } catch {
-      setStatus('idle');
-    }
-  }, [router]);
+  const [selectedDayNumber, setSelectedDayNumber] = useState(todayDayNumber);
+  const [skippedIds, setSkippedIds] = useState<Set<string>>(new Set());
+  const [detailExercise, setDetailExercise] = useState<TodayWorkout['exercises'][number] | null>(
+    null,
+  );
+  const [overrideSets, setOverrideSets] = useState<Record<string, number>>({});
+  const [isStarting, setIsStarting] = useState(false);
 
+  const weekPlan = useWeekPlan();
+  const dayWorkout = useDayWorkout(selectedDayNumber);
+  const setSkippedExercises = useSessionStore((s) => s.setSkippedExercises);
+
+  // Check for active session on mount and redirect
   useEffect(() => {
-    if (checked.current) return;
-    checked.current = true;
-
-    const trainingDayId = new URLSearchParams(window.location.search).get('trainingDayId');
-
     apiGet<ActiveSessionResponse>('/workouts/sessions/active')
       .then((active) => {
         if (active?.sessionId) {
           router.replace(`/session/${active.sessionId}`);
-        } else if (trainingDayId) {
-          void startSession(trainingDayId);
-        } else {
-          setStatus('idle');
         }
       })
-      .catch(() => setStatus('idle'));
-  }, [router, startSession]);
+      .catch(() => {
+        // No active session — stay on planner
+      });
+  }, [router]);
 
-  if (status === 'checking' || status === 'starting') {
+  const exercises = dayWorkout.data?.exercises ?? [];
+  const isToday = selectedDayNumber === todayDayNumber;
+  const estMin = estimateMinutes(exercises, overrideSets);
+
+  const handleStartSession = async () => {
+    if (!isToday) return;
+    setSkippedExercises(Array.from(skippedIds));
+    setIsStarting(true);
+    try {
+      const session = await apiPost<ActiveSessionResponse>('/workouts/sessions', {
+        training_day_id: dayWorkout.data?.trainingDayId ?? null,
+      });
+      if (session?.sessionId) {
+        await queryClient.invalidateQueries({ queryKey: ['workouts', 'today'] });
+        await queryClient.invalidateQueries({ queryKey: ['workouts', 'week'] });
+        router.replace(`/session/${session.sessionId}`);
+      } else {
+        setIsStarting(false);
+      }
+    } catch {
+      setIsStarting(false);
+    }
+  };
+
+  const hasActivePlan = (weekPlan.data ?? []).some((d) => d.hasWorkout);
+  const isLoading = weekPlan.isLoading || dayWorkout.isLoading;
+
+  if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-dvh bg-bg">
-        <div
-          className="w-10 h-10 border-2 border-coral border-t-transparent rounded-full animate-spin"
-          role="status"
-          aria-label={status === 'starting' ? 'Starting session…' : 'Loading…'}
-        />
+      <div className="flex flex-col h-dvh bg-bg px-5 pt-5 pb-[84px]">
+        {/* Header skeleton */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="h-7 w-16 rounded-lg bg-surface-3 animate-pulse" />
+          <div className="h-8 w-20 rounded-lg bg-surface-3 animate-pulse" />
+        </div>
+        {/* WeekStrip skeleton */}
+        <div className="flex gap-1.5 mb-5">
+          {Array.from({ length: 7 }).map((_, i) => (
+            <div key={i} className="flex-1 h-[52px] rounded-[13px] bg-surface-3 animate-pulse" />
+          ))}
+        </div>
+        {/* Label skeleton */}
+        <div className="h-5 w-40 rounded bg-surface-3 animate-pulse mb-1" />
+        <div className="h-4 w-24 rounded bg-surface-3 animate-pulse mb-4" />
+        {/* Exercise card skeletons */}
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="h-16 rounded-xl bg-surface-3 animate-pulse mb-2" />
+        ))}
+        {/* CTA skeleton */}
+        <div className="absolute bottom-[84px] left-5 right-5 h-14 rounded-xl bg-coral/30 animate-pulse" />
+      </div>
+    );
+  }
+
+  if (!weekPlan.isLoading && !hasActivePlan) {
+    return (
+      <div className="flex flex-col h-dvh bg-bg items-center justify-center px-8 pb-[84px]">
+        <Dumbbell className="w-12 h-12 text-t3 mb-4" strokeWidth={1.8} />
+        <h2 className="font-display font-bold text-xl text-t1 mb-2 text-center">No active plan</h2>
+        <p className="text-sm text-t2 text-center mb-6">
+          Set up a training plan to get started
+        </p>
+        <Link href="/plan">
+          <Button variant="coral" size="lg" className="rounded-xl px-8">
+            Set up a plan
+          </Button>
+        </Link>
       </div>
     );
   }
 
   return (
-    <div className="relative flex flex-col items-center justify-center min-h-dvh bg-bg px-6">
-      {/* radial-gradient not expressible in Tailwind without custom config */}
-      <div
-        className="absolute top-1/3 left-1/2 -translate-x-1/2 w-72 h-72 rounded-full pointer-events-none bg-coral/[0.12] blur-3xl"
-        aria-hidden="true"
-      />
-
-      <div className="relative z-10 flex flex-col items-center text-center max-w-xs w-full gap-6">
-        <div className="w-20 h-20 rounded-3xl bg-coral/10 flex items-center justify-center">
-          <Dumbbell size={36} className="text-coral" strokeWidth={1.8} />
+    <div className="relative flex flex-col h-dvh bg-bg overflow-hidden">
+      {/* Scrollable content */}
+      <div className="flex-1 overflow-y-auto px-5 pt-5 pb-[160px]">
+        {/* Header row */}
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="font-display font-extrabold text-[22px] text-t1">Train</h1>
+          <button
+            disabled
+            className="px-3.5 py-1.5 rounded-[10px] border border-border-2 text-t2 text-xs font-medium opacity-50 cursor-not-allowed"
+          >
+            Edit Plan
+          </button>
         </div>
 
-        <div>
-          <p className="font-display text-2xl font-extrabold text-t1 mb-1">Ready to train?</p>
-          <p className="text-base text-t2">Start a new session and log your sets as you go.</p>
+        {/* WeekStrip */}
+        <div className="mb-4">
+          <WeekStrip
+            todayDayNumber={todayDayNumber}
+            selectedDayNumber={selectedDayNumber}
+            onSelectDay={setSelectedDayNumber}
+            weekPlan={weekPlan.data ?? []}
+          />
         </div>
 
-        <div className="w-full flex flex-col gap-3">
-          <Button
-            variant="coral"
-            size="lg"
-            className="w-full"
-            onClick={() => void startSession(null)}
-          >
-            <Plus size={18} strokeWidth={1.8} />
-            Start Session
-          </Button>
+        {/* Day label */}
+        {dayWorkout.data ? (
+          <div className="mb-3.5">
+            <h2 className="font-display font-bold text-[17px] text-t1">
+              {dayWorkout.data.name}
+            </h2>
+            <p className="font-mono text-xs text-t2 mt-0.5">
+              {exercises.length} exercise{exercises.length !== 1 ? 's' : ''} · ~{estMin} min
+            </p>
+          </div>
+        ) : (
+          <div className="mb-3.5">
+            <h2 className="font-display font-bold text-[17px] text-t2">Rest day</h2>
+            <p className="font-mono text-xs text-t2 mt-0.5">No workout scheduled</p>
+          </div>
+        )}
 
-          <Button
-            variant="ghost"
-            size="md"
-            className="w-full"
-            onClick={() => router.push('/today')}
-          >
-            Not today
-          </Button>
+        {/* Exercise list */}
+        <div className="flex flex-col gap-2">
+          {dayWorkout.isLoading && exercises.length === 0 ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-16 rounded-2xl bg-surface-3 animate-pulse" />
+            ))
+          ) : exercises.map((ex) => (
+            <PreSessionExerciseCard
+              key={ex.exerciseId}
+              exercise={{ ...ex, overrideSets: overrideSets[ex.exerciseId] }}
+              isSkipped={skippedIds.has(ex.exerciseId)}
+              onTap={() => setDetailExercise(ex)}
+              onRemove={() =>
+                setSkippedIds((prev) => {
+                  const next = new Set(prev);
+                  next.add(ex.exerciseId);
+                  return next;
+                })
+              }
+              onRestore={() =>
+                setSkippedIds((prev) => {
+                  const next = new Set(prev);
+                  next.delete(ex.exerciseId);
+                  return next;
+                })
+              }
+            />
+          ))}
+
+          {/* Add exercise (static, disabled for now) */}
+          {dayWorkout.data && (
+            <button
+              disabled
+              className="flex items-center justify-center gap-2 h-12 border border-dashed border-border-2 rounded-[14px] text-t2 text-sm opacity-50 cursor-not-allowed"
+            >
+              <Plus className="w-4 h-4" strokeWidth={1.8} />
+              Add exercise
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Gradient scrim + pinned CTA */}
+      <div className="absolute bottom-[84px] left-0 right-0 px-5 pt-5 pb-3.5 bg-gradient-to-t from-bg via-bg/90 to-transparent pointer-events-none">
+        <div className="pointer-events-auto">
+          {isToday ? (
+            <motion.div whileTap={{ scale: 0.98 }} transition={{ duration: 0.1 }}>
+              <Button
+                variant="coral"
+                size="lg"
+                className="w-full rounded-xl font-display font-bold text-[17px] tracking-[0.02em] h-14"
+                loading={isStarting}
+                onClick={() => void handleStartSession()}
+                disabled={isStarting || !dayWorkout.data}
+              >
+                {!isStarting && (
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <polygon points="5,3 19,12 5,21" />
+                  </svg>
+                )}
+                Start Session
+              </Button>
+            </motion.div>
+          ) : (
+            <Button
+              variant="ghost"
+              size="lg"
+              className="w-full rounded-xl h-14 cursor-not-allowed"
+              disabled
+            >
+              Can only start today&apos;s workout
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Exercise detail sheet */}
+      {detailExercise && (
+        <ExerciseDetailSheet
+          exercise={detailExercise}
+          sessionOverrideSets={overrideSets[detailExercise.exerciseId] ?? null}
+          onSetOverride={(sets) => {
+            setOverrideSets((prev) => ({ ...prev, [detailExercise.exerciseId]: sets }));
+          }}
+          onClose={() => setDetailExercise(null)}
+        />
+      )}
     </div>
   );
 }

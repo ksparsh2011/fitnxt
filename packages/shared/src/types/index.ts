@@ -173,6 +173,10 @@ export interface WorkoutSessionDetail {
 export interface SessionExercise {
   exerciseId: string;
   exerciseName: string;
+  prescribedSets: number;
+  repsMin: number;
+  repsMax: number;
+  restSeconds: number | null;
   sets: SessionSet[];
 }
 
@@ -194,5 +198,6 @@ export interface PREvent {
   exerciseName: string;
   prType: '1rm' | '3rm' | '5rm' | '8rm' | '10rm' | 'max_reps';
   value: number;
+  // null when this is the user's first recorded PR for the exercise
   previousValue: number | null;
 }

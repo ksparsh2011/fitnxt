@@ -50,7 +50,9 @@ export function ExerciseSearch({ onClose }: ExerciseSearchProps) {
         exerciseId: exercise.id,
         name: exercise.name,
         prescribedSets: 3,
-        prescribedReps: 10,
+        repsMin: 8,
+        repsMax: 12,
+        restSeconds: 90,
       });
       onClose();
     },

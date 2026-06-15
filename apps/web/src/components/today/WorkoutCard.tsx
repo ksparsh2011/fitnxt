@@ -1,5 +1,6 @@
 'use client';
 import { motion } from 'framer-motion';
+import { Check } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToday } from '@/hooks/useToday';
 import { Badge, Button } from '@/components/ui';
@@ -23,7 +24,7 @@ function ExerciseList({ exercises }: ExerciseListProps) {
         <li key={ex.exerciseId} className="flex items-center gap-2 text-sm text-white/80">
           <span className="w-1 h-1 rounded-full bg-coral flex-shrink-0" aria-hidden="true" />
           <span>{ex.name}</span>
-          <span className="font-mono text-white/50 text-xs ml-auto">{ex.sets}×{ex.reps}</span>
+          <span className="font-mono text-white/50 text-xs ml-auto">{ex.sets}×{ex.repsMax}</span>
         </li>
       ))}
       {hiddenCount > 0 && (
@@ -33,12 +34,46 @@ function ExerciseList({ exercises }: ExerciseListProps) {
   );
 }
 
-export function WorkoutCard() {
+interface WorkoutCardProps {
+  tomorrowName?: string;
+}
+
+export function WorkoutCard({ tomorrowName }: WorkoutCardProps) {
   const { workout } = useToday();
   const router = useRouter();
 
   if (workout === null) return <RestDayCard />;
   if (workout === undefined) return null;
+
+  if (workout.completed) {
+    return (
+      <motion.div
+        variants={cardItemVariants}
+        className="relative overflow-hidden bg-surface-2 border border-success/20 rounded-2xl p-5"
+      >
+        {/* Top strip accent */}
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-success" aria-hidden="true" />
+
+        <div className="flex items-start gap-3">
+          <div className="w-8 h-8 rounded-full bg-success/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+            <Check className="w-4 h-4 text-success" strokeWidth={1.8} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="font-display font-bold text-base text-t1 leading-tight">
+              {workout.name} — Done
+            </h2>
+            <p className="text-xs text-t2 mt-0.5">Completed today</p>
+            <p className="text-sm text-t2 mt-2">Well done! Come back tomorrow.</p>
+            {tomorrowName && (
+              <div className="mt-2.5 inline-flex items-center px-3 py-1 rounded-full bg-surface-3 text-xs text-t2">
+                Tomorrow: <span className="text-t1 font-medium ml-1">{tomorrowName}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div

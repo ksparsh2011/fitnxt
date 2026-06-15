@@ -1,5 +1,5 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { Kysely } from 'kysely';
+import { Kysely, sql } from 'kysely';
 import { DATABASE_TOKEN } from '../../../libs/database/database.module';
 import { Database, PersonalRecordsTable } from '../../../libs/database/database.types';
 
@@ -36,6 +36,7 @@ export class WorkoutsRepository {
         'exercises.name',
         'exercises.muscle_groups',
         'training_day_exercises.sets_prescribed',
+        'training_day_exercises.reps_min',
         'training_day_exercises.reps_max',
         'training_day_exercises.rest_seconds',
       ])
@@ -122,18 +123,25 @@ export class WorkoutsRepository {
   async insertSetLog(data: {
     sessionId: string;
     exerciseId: string;
-    setNumber: number;
     reps: number;
     weightKg: number | null;
     rpeActual: number | null;
     isWarmup: boolean;
   }): Promise<{ id: string }> {
+    // set_number derived inline — avoids a round-trip COUNT query
+    const setNumberSubquery = sql<number>`(
+      SELECT COALESCE(MAX(set_number), 0) + 1
+      FROM set_logs
+      WHERE session_id = ${data.sessionId}
+        AND exercise_id = ${data.exerciseId}
+    )`;
+
     return this.db
       .insertInto('set_logs')
       .values({
         session_id: data.sessionId,
         exercise_id: data.exerciseId,
-        set_number: data.setNumber,
+        set_number: setNumberSubquery,
         reps: data.reps,
         weight_kg: data.weightKg,
         rpe_actual: data.rpeActual,
@@ -341,5 +349,86 @@ export class WorkoutsRepository {
       })
       .returning(['id', 'name', 'muscle_groups', 'equipment'])
       .executeTakeFirstOrThrow();
+  }
+
+  async isTodayWorkoutCompleted(userId: string, trainingDayId: string): Promise<boolean> {
+    // Uses server-local date (UTC on Railway); deviates from user's local date — schedule fix when user timezone is stored on profile
+    const result = await this.db
+      .selectFrom('workout_sessions')
+      .select((eb) => eb.fn.count<number>('id').as('cnt'))
+      .where('user_id', '=', userId)
+      .where('training_day_id', '=', trainingDayId)
+      .where('checked_out_at', 'is not', null)
+      .where(sql<boolean>`checked_in_at::date = current_date`)
+      .executeTakeFirst();
+    return Number(result?.cnt ?? 0) > 0;
+  }
+
+  async findAllTrainingDays(planId: string) {
+    return this.db
+      .selectFrom('training_days')
+      .select(['id', 'day_number', 'name', 'focus'])
+      .where('plan_id', '=', planId)
+      .orderBy('day_number', 'asc')
+      .execute();
+  }
+
+  async getExerciseLastWeight(userId: string, exerciseId: string): Promise<number | null> {
+    const result = await this.db
+      .selectFrom('set_logs')
+      .innerJoin('workout_sessions', 'workout_sessions.id', 'set_logs.session_id')
+      .select(['set_logs.weight_kg'])
+      .where('workout_sessions.user_id', '=', userId)
+      .where('set_logs.exercise_id', '=', exerciseId)
+      .where('set_logs.weight_kg', 'is not', null)
+      .orderBy('set_logs.logged_at', 'desc')
+      .limit(1)
+      .executeTakeFirst();
+    return result?.weight_kg ?? null;
+  }
+
+  async getExerciseBestPR(userId: string, exerciseId: string): Promise<number | null> {
+    const result = await this.db
+      .selectFrom('personal_records')
+      .select((eb) => eb.fn.max('value').as('best'))
+      .where('user_id', '=', userId)
+      .where('exercise_id', '=', exerciseId)
+      .executeTakeFirst();
+    return result?.best ?? null;
+  }
+
+  async getExerciseSessionCount(userId: string, exerciseId: string): Promise<number> {
+    const result = await this.db
+      .selectFrom('set_logs')
+      .innerJoin('workout_sessions', 'workout_sessions.id', 'set_logs.session_id')
+      .select((eb) => eb.fn.count<number>('set_logs.id').as('cnt'))
+      .where('workout_sessions.user_id', '=', userId)
+      .where('set_logs.exercise_id', '=', exerciseId)
+      .executeTakeFirst();
+    return Number(result?.cnt ?? 0);
+  }
+
+  async getExerciseTrend(
+    userId: string,
+    exerciseId: string,
+    limit = 6,
+  ): Promise<Array<{ date: string; maxWeightKg: number }>> {
+    const rows = await this.db
+      .selectFrom('set_logs')
+      .innerJoin('workout_sessions', 'workout_sessions.id', 'set_logs.session_id')
+      .select([
+        sql<string>`date(set_logs.logged_at)`.as('date'),
+        (eb) => eb.fn.max('set_logs.weight_kg').as('maxWeightKg'),
+      ])
+      .where('workout_sessions.user_id', '=', userId)
+      .where('set_logs.exercise_id', '=', exerciseId)
+      .where('set_logs.weight_kg', 'is not', null)
+      .groupBy(sql`date(set_logs.logged_at)`)
+      .orderBy(sql`date(set_logs.logged_at)`, 'desc')
+      .limit(limit)
+      .execute();
+    return rows
+      .reverse()
+      .map((r) => ({ date: String(r.date), maxWeightKg: Number(r.maxWeightKg) }));
   }
 }

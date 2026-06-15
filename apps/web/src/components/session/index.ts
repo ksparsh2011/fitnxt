@@ -5,3 +5,6 @@ export { RestTimer } from './RestTimer';
 export { ExerciseSearch } from './ExerciseSearch';
 export { PRCelebration } from './PRCelebration';
 export { FinishModal } from './FinishModal';
+export { WeekStrip } from './WeekStrip';
+export { PreSessionExerciseCard } from './PreSessionExerciseCard';
+export { ExerciseDetailSheet } from './ExerciseDetailSheet';

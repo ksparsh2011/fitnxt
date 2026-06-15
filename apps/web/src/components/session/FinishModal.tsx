@@ -1,4 +1,5 @@
 'use client';
+import { useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useSessionStore } from '@/stores/session.store';
 import { useSession } from '@/hooks/useSession';
@@ -38,6 +39,14 @@ export function FinishModal({ sessionId, onClose, onComplete }: FinishModalProps
       ? `${(totalVolumeKg / 1000).toFixed(1)}K`
       : String(Math.round(totalVolumeKg));
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
   const handleFinish = async () => {
     try {
       await finishSessionAsync({});
@@ -63,10 +72,13 @@ export function FinishModal({ sessionId, onClose, onComplete }: FinishModalProps
           transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.38, ease: [0, 0, 0.2, 1] }}
           className="w-full bg-surface rounded-t-4xl px-6 pt-6 pb-8"
           onClick={(e) => e.stopPropagation()}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="finish-modal-title"
         >
           <div className="w-10 h-1 rounded-full bg-border-2 mx-auto mb-6" />
 
-          <h3 className="font-display font-bold text-xl text-t1 mb-2">Finish Workout?</h3>
+          <h3 id="finish-modal-title" className="font-display font-bold text-xl text-t1 mb-2">Finish Workout?</h3>
           <p className="text-base text-t2 mb-6">Your progress will be saved.</p>
 
           {/* Stats summary */}
@@ -95,6 +107,7 @@ export function FinishModal({ sessionId, onClose, onComplete }: FinishModalProps
               size="lg"
               className="flex-[2] font-display font-bold"
               loading={isFinishing}
+              autoFocus
               onClick={() => void handleFinish()}
             >
               Finish Workout

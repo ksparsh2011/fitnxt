@@ -2,12 +2,14 @@ export interface TodayWorkout {
   trainingDayId: string;
   name: string;
   focus: string[];
+  completed: boolean;
   exercises: Array<{
     exerciseId: string;
     name: string;
     muscleGroup: string;
     sets: number;
-    reps: number;
+    repsMin: number;
+    repsMax: number;
     restSeconds: number | null;
   }>;
 }
@@ -32,4 +34,18 @@ export interface ActiveSessionResponse {
   checkedInAt: string;
   totalSets: number | null;
   totalVolumeKg: number | null;
+}
+
+export interface WeekPlanDay {
+  dayNumber: number;
+  name: string;
+  focus: string[];
+  hasWorkout: boolean;
+}
+
+export interface ExerciseStats {
+  lastWeightKg: number | null;
+  estOneRm: number | null;
+  sessionCount: number;
+  trend: Array<{ date: string; maxWeightKg: number }>;
 }

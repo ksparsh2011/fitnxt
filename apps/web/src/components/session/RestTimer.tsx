@@ -136,7 +136,7 @@ export function RestTimer() {
               Set {nextSetNumber} of {activeExercise.prescribedSets}
             </span>
             <span className="font-mono text-sm text-t2">
-              {lastSet?.weightKg ?? 60} kg × {activeExercise.prescribedReps}
+              {lastSet?.weightKg ?? 60} kg × {activeExercise.repsMax}
             </span>
           </div>
         </div>

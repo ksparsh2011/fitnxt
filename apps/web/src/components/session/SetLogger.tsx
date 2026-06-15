@@ -97,7 +97,7 @@ export function SetLogger({ exerciseIndex, exercise, sessionId, onNextExercise }
 
   const initialLoggerState: LoggerState = {
     weightKg: getInitialWeight(exercise),
-    reps: exercise.prescribedReps,
+    reps: exercise.repsMin,
   };
   const [state, dispatch] = useReducer(loggerReducer, initialLoggerState);
 
@@ -150,7 +150,7 @@ export function SetLogger({ exerciseIndex, exercise, sessionId, onNextExercise }
         setPrCelebration(result.pr);
       }
 
-      startRestTimer(90);
+      startRestTimer(exercise.restSeconds ?? 90);
     } catch {
       rollbackSet(exerciseIndex, localId);
       toast('Failed to log set. Please try again.', 'error');
@@ -180,11 +180,14 @@ export function SetLogger({ exerciseIndex, exercise, sessionId, onNextExercise }
 
   return (
     <div className="flex flex-col py-4 gap-6">
-      {/* Exercise name + set indicator */}
+      {/* Set indicator */}
       <div className="text-center">
-        <h2 className="font-display font-extrabold text-xl text-t1 mb-1">{exercise.name}</h2>
         <p className="text-sm text-t2">
           Set <span className="font-mono text-coral">{currentSetNumber}</span> of {totalSets}
+          {' · '}
+          {exercise.repsMin === exercise.repsMax
+            ? `${exercise.repsMax} reps`
+            : `${exercise.repsMin}–${exercise.repsMax} reps`}
         </p>
       </div>
 

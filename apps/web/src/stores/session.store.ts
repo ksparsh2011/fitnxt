@@ -15,7 +15,9 @@ export interface SessionExerciseLocal {
   exerciseId: string;
   name: string;
   prescribedSets: number;
-  prescribedReps: number;
+  repsMin: number;
+  repsMax: number;
+  restSeconds: number | null;
   sets: LocalSet[];
 }
 
@@ -29,6 +31,7 @@ interface SessionState {
   restSecondsRemaining: number;
   restTotalSeconds: number;
   prCelebration: PREvent | null;
+  skippedExerciseIds: string[];
 }
 
 interface SessionActions {
@@ -52,6 +55,7 @@ interface SessionActions {
   clearSession: () => void;
   editSet: (exerciseIndex: number, localId: string, weightKg: number, reps: number) => void;
   deleteSet: (exerciseIndex: number, localId: string) => void;
+  setSkippedExercises: (ids: string[]) => void;
 }
 
 const initialState: SessionState = {
@@ -64,21 +68,26 @@ const initialState: SessionState = {
   restSecondsRemaining: 0,
   restTotalSeconds: 0,
   prCelebration: null,
+  skippedExerciseIds: [],
 };
 
-export const useSessionStore = create<SessionState & SessionActions>((set) => ({
+export const useSessionStore = create<SessionState & SessionActions>((set, get) => ({
   ...initialState,
 
-  initSession: ({ sessionId, trainingDayId, startedAt, exercises }) =>
+  initSession: ({ sessionId, trainingDayId, startedAt, exercises }) => {
+    const skipped = get().skippedExerciseIds;
+    const filtered = exercises.filter((ex) => !skipped.includes(ex.exerciseId));
     set({
       sessionId,
       trainingDayId,
       startedAt,
-      exercises: exercises.map((ex) => ({ ...ex, sets: [] })),
+      exercises: filtered.map((ex) => ({ ...ex, sets: [] })),
       activeExerciseIndex: 0,
       showRestTimer: false,
       prCelebration: null,
-    }),
+      skippedExerciseIds: [],
+    });
+  },
 
   addExercise: (exercise) =>
     set((state) => ({
@@ -163,4 +172,6 @@ export const useSessionStore = create<SessionState & SessionActions>((set) => ({
       };
       return { exercises };
     }),
+
+  setSkippedExercises: (ids) => set({ skippedExerciseIds: ids }),
 }));

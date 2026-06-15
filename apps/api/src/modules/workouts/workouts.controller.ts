@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, HttpStatus, Param, ParseIntPipe, ParseUUIDPipe, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
 import { WorkoutsService } from './workouts.service';
 import { TodayWorkoutResponseDto } from './dto/today-workout.response.dto';
@@ -24,6 +24,40 @@ export class WorkoutsController {
   async getToday(@Req() req: Request): Promise<TodayWorkoutResponseDto | null> {
     const { userId } = req.user as { userId: string; email: string };
     return this.workoutsService.getTodayWorkout(userId);
+  }
+
+  @Get('week')
+  @UseGuards(JwtAuthGuard)
+  async getWeekPlan(
+    @Req() req: Request,
+  ): Promise<Array<{ dayNumber: number; name: string; focus: string[]; hasWorkout: boolean }>> {
+    const { userId } = req.user as { userId: string; email: string };
+    return this.workoutsService.getWeekPlan(userId);
+  }
+
+  @Get('day/:dayNumber')
+  @UseGuards(JwtAuthGuard)
+  async getDayWorkout(
+    @Req() req: Request,
+    @Param('dayNumber', new ParseIntPipe({ errorHttpStatusCode: HttpStatus.BAD_REQUEST })) dayNumber: number,
+  ): Promise<TodayWorkoutResponseDto | null> {
+    const { userId } = req.user as { userId: string; email: string };
+    return this.workoutsService.getDayWorkout(userId, dayNumber);
+  }
+
+  @Get('exercises/:id/stats')
+  @UseGuards(JwtAuthGuard)
+  async getExerciseStats(
+    @Req() req: Request,
+    @Param('id', new ParseUUIDPipe({ errorHttpStatusCode: HttpStatus.BAD_REQUEST })) exerciseId: string,
+  ): Promise<{
+    lastWeightKg: number | null;
+    estOneRm: number | null;
+    sessionCount: number;
+    trend: Array<{ date: string; maxWeightKg: number }>;
+  }> {
+    const { userId } = req.user as { userId: string; email: string };
+    return this.workoutsService.getExerciseStats(userId, exerciseId);
   }
 
   @Get('sessions/active')

@@ -51,8 +51,10 @@ export default function SessionPage({ params }: PageProps) {
         exercises: session.exercises.map((ex) => ({
           exerciseId: ex.exerciseId,
           name: ex.exerciseName,
-          prescribedSets: ex.sets.length > 0 ? ex.sets.length : 4,
-          prescribedReps: 8,
+          prescribedSets: ex.prescribedSets,
+          repsMin: ex.repsMin,
+          repsMax: ex.repsMax,
+          restSeconds: ex.restSeconds,
         })),
       });
     }
@@ -157,8 +159,24 @@ export default function SessionPage({ params }: PageProps) {
                   <ChevronRight className="w-5 h-5 text-t2 flex-shrink-0" strokeWidth={1.8} />
                 </motion.button>
               ) : (
-                <div className="w-full h-[72px] bg-surface-2 border border-border rounded-2xl px-4 flex items-center">
+                <div className="w-full bg-surface-2 border border-border rounded-2xl px-4 py-3 flex flex-col gap-2">
                   <p className="text-sm text-t2">Last exercise — finish strong</p>
+                  {(() => {
+                    const lastEx = exercises[exercises.length - 1];
+                    const allSetsDone =
+                      lastEx !== undefined &&
+                      lastEx.sets.filter((s) => s.status === 'confirmed').length >= lastEx.prescribedSets;
+                    return allSetsDone ? (
+                      <Button
+                        variant="coral"
+                        size="md"
+                        className="w-full rounded-xl"
+                        onClick={() => setShowFinishModal(true)}
+                      >
+                        Finish Workout
+                      </Button>
+                    ) : null;
+                  })()}
                 </div>
               )}
             </div>

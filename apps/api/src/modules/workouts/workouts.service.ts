@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { WorkoutsRepository } from './workouts.repository';
 import { TodayWorkoutResponseDto } from './dto/today-workout.response.dto';
@@ -60,9 +60,11 @@ export class WorkoutsService {
       name: ex.name,
       muscleGroup: ex.muscle_groups[0] ?? 'unknown',
       sets: ex.sets_prescribed,
-      reps: ex.reps_max,
+      repsMin: ex.reps_min,
+      repsMax: ex.reps_max,
       restSeconds: ex.rest_seconds,
     }));
+    dto.completed = await this.workoutsRepository.isTodayWorkoutCompleted(userId, trainingDay.id);
     return dto;
   }
 
@@ -107,16 +109,13 @@ export class WorkoutsService {
     sessionId: string,
     dto: LogSetDto,
   ): Promise<{ setId: string; isPr: boolean; pr?: PREvent }> {
-    const setCount = await this.workoutsRepository.getSetCountForExerciseInSession(
-      sessionId,
-      dto.exercise_id,
-    );
-    const setNumber = setCount + 1;
+    // Ownership check: session must exist and belong to this user
+    const { session: ownedSession } = await this.workoutsRepository.getSessionWithSets(sessionId, userId);
+    if (!ownedSession) throw new SessionNotFoundException(sessionId);
 
     const { id: setId } = await this.workoutsRepository.insertSetLog({
       sessionId,
       exerciseId: dto.exercise_id,
-      setNumber,
       reps: dto.reps,
       weightKg: dto.weight_kg ?? null,
       rpeActual: dto.rpe ?? null,
@@ -269,12 +268,13 @@ export class WorkoutsService {
     const { session, rows } = await this.workoutsRepository.getSessionWithSets(sessionId, userId);
     if (!session) throw new SessionNotFoundException(sessionId);
 
-    const exerciseMap = new Map<string, { name: string; sets: SessionSet[] }>();
+    // Build a map of already-logged sets keyed by exercise_id
+    const loggedSetsByExercise = new Map<string, { name: string; sets: SessionSet[] }>();
     for (const row of rows) {
-      if (!exerciseMap.has(row.exercise_id)) {
-        exerciseMap.set(row.exercise_id, { name: row.exercise_name, sets: [] });
+      if (!loggedSetsByExercise.has(row.exercise_id)) {
+        loggedSetsByExercise.set(row.exercise_id, { name: row.exercise_name, sets: [] });
       }
-      exerciseMap.get(row.exercise_id)!.sets.push({
+      loggedSetsByExercise.get(row.exercise_id)!.sets.push({
         setLogId: row.set_log_id,
         setNumber: row.set_number,
         reps: row.reps,
@@ -287,13 +287,51 @@ export class WorkoutsService {
       });
     }
 
-    const exercises: SessionExercise[] = Array.from(exerciseMap.entries()).map(
-      ([exerciseId, data]) => ({
+    let exercises: SessionExercise[];
+
+    if (session.training_day_id) {
+      // Use prescribed exercises as the canonical list, merging in any logged sets
+      const prescribed = await this.workoutsRepository.findTrainingDayExercises(
+        session.training_day_id,
+      );
+
+      if (prescribed.length > 0) {
+        exercises = prescribed.map((ex) => {
+          const logged = loggedSetsByExercise.get(ex.exerciseId);
+          return {
+            exerciseId: ex.exerciseId,
+            exerciseName: logged?.name ?? ex.name,
+            prescribedSets: ex.sets_prescribed,
+            repsMin: ex.reps_min,
+            repsMax: ex.reps_max,
+            restSeconds: ex.rest_seconds,
+            sets: logged?.sets ?? [],
+          };
+        });
+      } else {
+        // training day may have been deleted; fall back to logged sets
+        exercises = Array.from(loggedSetsByExercise.entries()).map(([exerciseId, data]) => ({
+          exerciseId,
+          exerciseName: data.name,
+          prescribedSets: data.sets.length > 0 ? data.sets.length : 4,
+          repsMin: 8,
+          repsMax: 12,
+          restSeconds: 90,
+          sets: data.sets,
+        }));
+      }
+    } else {
+      // Unplanned session: use only what was logged, with sensible defaults
+      exercises = Array.from(loggedSetsByExercise.entries()).map(([exerciseId, data]) => ({
         exerciseId,
         exerciseName: data.name,
+        prescribedSets: data.sets.length > 0 ? data.sets.length : 4,
+        repsMin: 8,
+        repsMax: 12,
+        restSeconds: 90,
         sets: data.sets,
-      }),
-    );
+      }));
+    }
 
     return {
       sessionId: session.id,
@@ -306,5 +344,78 @@ export class WorkoutsService {
       prCount: session.pr_count,
       exercises,
     };
+  }
+
+  async getDayWorkout(userId: string, dayNumber: number): Promise<TodayWorkoutResponseDto | null> {
+    if (dayNumber < 1 || dayNumber > 7) {
+      throw new BadRequestException('dayNumber must be between 1 and 7');
+    }
+    const activePlan = await this.workoutsRepository.findActivePlan(userId);
+    if (!activePlan) return null;
+
+    const trainingDay = await this.workoutsRepository.findTrainingDay(activePlan.id, dayNumber);
+    if (!trainingDay) return null;
+
+    const exercises = await this.workoutsRepository.findTrainingDayExercises(trainingDay.id);
+
+    const dto = new TodayWorkoutResponseDto();
+    dto.trainingDayId = trainingDay.id;
+    dto.name = trainingDay.name;
+    dto.focus = trainingDay.focus ?? [];
+    dto.exercises = exercises.map((ex) => ({
+      exerciseId: ex.exerciseId,
+      name: ex.name,
+      muscleGroup: ex.muscle_groups[0] ?? 'unknown',
+      sets: ex.sets_prescribed,
+      repsMin: ex.reps_min,
+      repsMax: ex.reps_max,
+      restSeconds: ex.rest_seconds,
+    }));
+    dto.completed = await this.workoutsRepository.isTodayWorkoutCompleted(userId, trainingDay.id);
+    return dto;
+  }
+
+  async getWeekPlan(userId: string): Promise<Array<{ dayNumber: number; name: string; focus: string[]; hasWorkout: boolean }>> {
+    const activePlan = await this.workoutsRepository.findActivePlan(userId);
+    if (!activePlan) {
+      return Array.from({ length: 7 }, (_, i) => ({
+        dayNumber: i + 1,
+        name: '',
+        focus: [],
+        hasWorkout: false,
+      }));
+    }
+
+    const days = await this.workoutsRepository.findAllTrainingDays(activePlan.id);
+    const dayMap = new Map(days.map((d) => [d.day_number, d]));
+
+    return Array.from({ length: 7 }, (_, i) => {
+      const dayNumber = i + 1;
+      const day = dayMap.get(dayNumber);
+      return {
+        dayNumber,
+        name: day?.name ?? '',
+        focus: day?.focus ?? [],
+        hasWorkout: !!day,
+      };
+    });
+  }
+
+  async getExerciseStats(
+    userId: string,
+    exerciseId: string,
+  ): Promise<{
+    lastWeightKg: number | null;
+    estOneRm: number | null;
+    sessionCount: number;
+    trend: Array<{ date: string; maxWeightKg: number }>;
+  }> {
+    const [lastWeightKg, estOneRm, sessionCount, trend] = await Promise.all([
+      this.workoutsRepository.getExerciseLastWeight(userId, exerciseId),
+      this.workoutsRepository.getExerciseBestPR(userId, exerciseId),
+      this.workoutsRepository.getExerciseSessionCount(userId, exerciseId),
+      this.workoutsRepository.getExerciseTrend(userId, exerciseId, 6),
+    ]);
+    return { lastWeightKg, estOneRm, sessionCount, trend };
   }
 }

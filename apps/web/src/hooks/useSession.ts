@@ -47,6 +47,7 @@ export function useSession(sessionId: string | null) {
       apiPatch<WorkoutSessionDetail>(`/workouts/sessions/${sessionId}/finish`, input),
     onSuccess: (data) => {
       queryClient.setQueryData(['sessions', sessionId], data);
+      void queryClient.invalidateQueries({ queryKey: ['workouts', 'today'] });
     },
   });
 
