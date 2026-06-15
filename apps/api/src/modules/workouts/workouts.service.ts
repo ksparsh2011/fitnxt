@@ -41,8 +41,13 @@ export class WorkoutsService {
   }
 
   async getTodayWorkout(userId: string): Promise<TodayWorkoutResponseDto | null> {
-    const dayNumber = this.computeTodayDayNumber();
+    return this.buildDayWorkoutResponse(userId, this.computeTodayDayNumber());
+  }
 
+  private async buildDayWorkoutResponse(
+    userId: string,
+    dayNumber: number,
+  ): Promise<TodayWorkoutResponseDto | null> {
     const activePlan = await this.workoutsRepository.findActivePlan(userId);
     if (!activePlan) return null;
 
@@ -189,12 +194,9 @@ export class WorkoutsService {
     sessionId: string,
     dto: FinishSessionDto,
   ): Promise<WorkoutSessionDetail> {
-    const existing = await this.workoutsRepository.findActiveSession(userId);
-    if (!existing || existing.id !== sessionId) {
-      const { session } = await this.workoutsRepository.getSessionWithSets(sessionId, userId);
-      if (!session) throw new SessionNotFoundException(sessionId);
-      if (session.checked_out_at !== null) throw new SessionAlreadyFinishedException();
-    }
+    const { session } = await this.workoutsRepository.getSessionWithSets(sessionId, userId);
+    if (!session) throw new SessionNotFoundException(sessionId);
+    if (session.checked_out_at !== null) throw new SessionAlreadyFinishedException();
 
     const setLogs = await this.workoutsRepository.getSetLogsForSession(sessionId);
     const nonWarmupSets = setLogs.filter((s) => !s.is_warmup);
@@ -309,26 +311,26 @@ export class WorkoutsService {
           };
         });
       } else {
-        // training day may have been deleted; fall back to logged sets
+        // training day may have been deleted; fall back to logged sets with null prescribed fields
         exercises = Array.from(loggedSetsByExercise.entries()).map(([exerciseId, data]) => ({
           exerciseId,
           exerciseName: data.name,
-          prescribedSets: data.sets.length > 0 ? data.sets.length : 4,
-          repsMin: 8,
-          repsMax: 12,
-          restSeconds: 90,
+          prescribedSets: null,
+          repsMin: null,
+          repsMax: null,
+          restSeconds: null,
           sets: data.sets,
         }));
       }
     } else {
-      // Unplanned session: use only what was logged, with sensible defaults
+      // Unplanned session: use only what was logged, prescribed fields are unknown
       exercises = Array.from(loggedSetsByExercise.entries()).map(([exerciseId, data]) => ({
         exerciseId,
         exerciseName: data.name,
-        prescribedSets: data.sets.length > 0 ? data.sets.length : 4,
-        repsMin: 8,
-        repsMax: 12,
-        restSeconds: 90,
+        prescribedSets: null,
+        repsMin: null,
+        repsMax: null,
+        restSeconds: null,
         sets: data.sets,
       }));
     }
@@ -350,29 +352,7 @@ export class WorkoutsService {
     if (dayNumber < 1 || dayNumber > 7) {
       throw new BadRequestException('dayNumber must be between 1 and 7');
     }
-    const activePlan = await this.workoutsRepository.findActivePlan(userId);
-    if (!activePlan) return null;
-
-    const trainingDay = await this.workoutsRepository.findTrainingDay(activePlan.id, dayNumber);
-    if (!trainingDay) return null;
-
-    const exercises = await this.workoutsRepository.findTrainingDayExercises(trainingDay.id);
-
-    const dto = new TodayWorkoutResponseDto();
-    dto.trainingDayId = trainingDay.id;
-    dto.name = trainingDay.name;
-    dto.focus = trainingDay.focus ?? [];
-    dto.exercises = exercises.map((ex) => ({
-      exerciseId: ex.exerciseId,
-      name: ex.name,
-      muscleGroup: ex.muscle_groups[0] ?? 'unknown',
-      sets: ex.sets_prescribed,
-      repsMin: ex.reps_min,
-      repsMax: ex.reps_max,
-      restSeconds: ex.rest_seconds,
-    }));
-    dto.completed = await this.workoutsRepository.isTodayWorkoutCompleted(userId, trainingDay.id);
-    return dto;
+    return this.buildDayWorkoutResponse(userId, dayNumber);
   }
 
   async getWeekPlan(userId: string): Promise<Array<{ dayNumber: number; name: string; focus: string[]; hasWorkout: boolean }>> {

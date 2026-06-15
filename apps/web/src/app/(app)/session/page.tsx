@@ -1,9 +1,9 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Dumbbell } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { useQueryClient } from '@tanstack/react-query';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { WeekStrip } from '@/components/session/WeekStrip';
@@ -45,18 +45,26 @@ export default function SessionEntryPage() {
   const dayWorkout = useDayWorkout(selectedDayNumber);
   const setSkippedExercises = useSessionStore((s) => s.setSkippedExercises);
 
-  // Check for active session on mount and redirect
+  const handleRemove = useCallback((id: string) => {
+    setSkippedIds((prev) => new Set(prev).add(id));
+  }, []);
+
+  const handleRestore = useCallback((id: string) => {
+    setSkippedIds((prev) => { const s = new Set(prev); s.delete(id); return s; });
+  }, []);
+
+  // Check for active session via TanStack Query and redirect if found
+  const activeSessionQuery = useQuery({
+    queryKey: ['workouts', 'sessions', 'active'],
+    queryFn: () => apiGet<{ sessionId: string } | null>('/workouts/sessions/active'),
+    staleTime: 0,
+    retry: false,
+  });
   useEffect(() => {
-    apiGet<ActiveSessionResponse>('/workouts/sessions/active')
-      .then((active) => {
-        if (active?.sessionId) {
-          router.replace(`/session/${active.sessionId}`);
-        }
-      })
-      .catch(() => {
-        // No active session — stay on planner
-      });
-  }, [router]);
+    if (activeSessionQuery.data?.sessionId) {
+      router.replace(`/session/${activeSessionQuery.data.sessionId}`);
+    }
+  }, [activeSessionQuery.data, router]);
 
   const exercises = dayWorkout.data?.exercises ?? [];
   const isToday = selectedDayNumber === todayDayNumber;
@@ -83,9 +91,10 @@ export default function SessionEntryPage() {
   };
 
   const hasActivePlan = (weekPlan.data ?? []).some((d) => d.hasWorkout);
-  const isLoading = weekPlan.isLoading || dayWorkout.isLoading;
 
-  if (isLoading) {
+  // Only show full-page skeleton on initial weekPlan load (before we know if a plan exists).
+  // dayWorkout loading is handled inline so WeekStrip stays visible during day switches.
+  if (weekPlan.isLoading) {
     return (
       <div className="flex flex-col h-dvh bg-bg px-5 pt-5 pb-[84px]">
         {/* Header skeleton */}
@@ -107,7 +116,21 @@ export default function SessionEntryPage() {
           <div key={i} className="h-16 rounded-xl bg-surface-3 animate-pulse mb-2" />
         ))}
         {/* CTA skeleton */}
-        <div className="absolute bottom-[84px] left-5 right-5 h-14 rounded-xl bg-coral/30 animate-pulse" />
+        <div className="absolute bottom-[calc(84px+env(safe-area-inset-bottom,0px))] left-5 right-5 h-14 rounded-xl bg-coral/30 animate-pulse" />
+      </div>
+    );
+  }
+
+  if (dayWorkout.isError) {
+    return (
+      <div className="flex flex-col items-center justify-center flex-1 gap-4 p-8 text-center">
+        <p className="text-t2">Could not load today&apos;s workout. Please try again.</p>
+        <button
+          onClick={() => void dayWorkout.refetch()}
+          className="text-coral text-sm underline underline-offset-2"
+        >
+          Retry
+        </button>
       </div>
     );
   }
@@ -155,7 +178,12 @@ export default function SessionEntryPage() {
         </div>
 
         {/* Day label */}
-        {dayWorkout.data ? (
+        {dayWorkout.isLoading ? (
+          <div className="mb-3.5">
+            <div className="h-5 w-36 rounded bg-surface-3 animate-pulse mb-1.5" />
+            <div className="h-4 w-28 rounded bg-surface-3 animate-pulse" />
+          </div>
+        ) : dayWorkout.data ? (
           <div className="mb-3.5">
             <h2 className="font-display font-bold text-[17px] text-t1">
               {dayWorkout.data.name}
@@ -164,12 +192,12 @@ export default function SessionEntryPage() {
               {exercises.length} exercise{exercises.length !== 1 ? 's' : ''} · ~{estMin} min
             </p>
           </div>
-        ) : (
+        ) : !dayWorkout.isError && !dayWorkout.data ? (
           <div className="mb-3.5">
             <h2 className="font-display font-bold text-[17px] text-t2">Rest day</h2>
             <p className="font-mono text-xs text-t2 mt-0.5">No workout scheduled</p>
           </div>
-        )}
+        ) : null}
 
         {/* Exercise list */}
         <div className="flex flex-col gap-2">
@@ -183,20 +211,8 @@ export default function SessionEntryPage() {
               exercise={{ ...ex, overrideSets: overrideSets[ex.exerciseId] }}
               isSkipped={skippedIds.has(ex.exerciseId)}
               onTap={() => setDetailExercise(ex)}
-              onRemove={() =>
-                setSkippedIds((prev) => {
-                  const next = new Set(prev);
-                  next.add(ex.exerciseId);
-                  return next;
-                })
-              }
-              onRestore={() =>
-                setSkippedIds((prev) => {
-                  const next = new Set(prev);
-                  next.delete(ex.exerciseId);
-                  return next;
-                })
-              }
+              onRemove={() => handleRemove(ex.exerciseId)}
+              onRestore={() => handleRestore(ex.exerciseId)}
             />
           ))}
 
@@ -214,7 +230,7 @@ export default function SessionEntryPage() {
       </div>
 
       {/* Gradient scrim + pinned CTA */}
-      <div className="absolute bottom-[84px] left-0 right-0 px-5 pt-5 pb-3.5 bg-gradient-to-t from-bg via-bg/90 to-transparent pointer-events-none">
+      <div className="absolute bottom-[calc(84px+env(safe-area-inset-bottom,0px))] left-0 right-0 px-5 pt-5 pb-3.5 bg-gradient-to-t from-bg via-bg/90 to-transparent pointer-events-none">
         <div className="pointer-events-auto">
           {isToday ? (
             <motion.div whileTap={{ scale: 0.98 }} transition={{ duration: 0.1 }}>
@@ -253,17 +269,20 @@ export default function SessionEntryPage() {
         </div>
       </div>
 
-      {/* Exercise detail sheet */}
-      {detailExercise && (
-        <ExerciseDetailSheet
-          exercise={detailExercise}
-          sessionOverrideSets={overrideSets[detailExercise.exerciseId] ?? null}
-          onSetOverride={(sets) => {
-            setOverrideSets((prev) => ({ ...prev, [detailExercise.exerciseId]: sets }));
-          }}
-          onClose={() => setDetailExercise(null)}
-        />
-      )}
+      {/* Exercise detail sheet — AnimatePresence must be in the parent to enable exit animation */}
+      <AnimatePresence>
+        {detailExercise && (
+          <ExerciseDetailSheet
+            key={detailExercise.exerciseId}
+            exercise={detailExercise}
+            sessionOverrideSets={overrideSets[detailExercise.exerciseId] ?? null}
+            onSetOverride={(sets) => {
+              setOverrideSets((prev) => ({ ...prev, [detailExercise.exerciseId]: sets }));
+            }}
+            onClose={() => setDetailExercise(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

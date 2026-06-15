@@ -1,8 +1,9 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { X, Minus, Plus, Check } from 'lucide-react';
 import { useExerciseStats } from '@/hooks/useExerciseStats';
+import { TrendChart } from './TrendChart';
 import type { TodayWorkout } from '@/types/today';
 
 interface ExerciseDetailSheetProps {
@@ -16,126 +17,6 @@ function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 
-function TrendChart({ trend }: { trend: Array<{ date: string; maxWeightKg: number }> }) {
-  if (trend.length < 2) {
-    return (
-      <div className="bg-surface-2 rounded-xl p-4 text-center text-sm text-t2">
-        No history yet
-      </div>
-    );
-  }
-
-  const weights = trend.map((t) => t.maxWeightKg);
-  const minW = Math.min(...weights);
-  const maxW = Math.max(...weights);
-  const range = maxW - minW || 1;
-  const W = 310;
-  const H = 80;
-  const PAD = 10;
-  const innerW = W - PAD * 2;
-
-  const points = trend.map((t, i) => ({
-    x: PAD + (i / (trend.length - 1)) * innerW,
-    y: H - PAD - ((t.maxWeightKg - minW) / range) * (H - PAD * 2),
-  }));
-
-  const polyline = points.map((p) => `${p.x},${p.y}`).join(' ');
-  const fillPath =
-    `M ${points[0].x},${H} ` +
-    points.map((p) => `L ${p.x},${p.y}`).join(' ') +
-    ` L ${points[points.length - 1].x},${H} Z`;
-
-  const pctChange =
-    trend.length >= 2
-      ? (((trend[trend.length - 1].maxWeightKg - trend[0].maxWeightKg) / trend[0].maxWeightKg) *
-          100).toFixed(1)
-      : '0';
-  const isPositive = parseFloat(pctChange) >= 0;
-
-  const xLabels = trend.map((_, i) => {
-    const stepsBack = trend.length - 1 - i;
-    return stepsBack === 0 ? 'Last' : `${stepsBack}w`;
-  });
-
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-semibold text-t2 uppercase tracking-widest">
-          Strength Trend
-        </span>
-        <span
-          className={
-            'font-mono text-xs font-medium ' + (isPositive ? 'text-success' : 'text-danger')
-          }
-        >
-          {isPositive ? '↑' : '↓'} {Math.abs(parseFloat(pctChange))}%
-        </span>
-      </div>
-      <span className="sr-only">Strength trend: {trend.length} sessions tracked</span>
-      <div className="bg-surface-2 rounded-xl pt-3 pb-2 px-2.5">
-        <svg
-          viewBox={`0 0 ${W} ${H}`}
-          width="100%"
-          preserveAspectRatio="none"
-          aria-hidden="true"
-        >
-          <defs>
-            <linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="var(--coral)" stopOpacity="0.25" />
-              <stop offset="100%" stopColor="var(--coral)" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-          {/* Grid lines */}
-          {[H / 4, H / 2, (H * 3) / 4].map((y) => (
-            <line key={y} x1="0" y1={y} x2={W} y2={y} stroke="var(--surface-3)" strokeWidth="1" />
-          ))}
-          {/* Fill area */}
-          <path d={fillPath} fill="url(#trendGrad)" />
-          {/* Trend line */}
-          <polyline
-            points={polyline}
-            fill="none"
-            stroke="var(--coral)"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          {/* Dots */}
-          {points.map((p, i) => {
-            const isLast = i === points.length - 1;
-            return isLast ? (
-              <circle
-                key={i}
-                cx={p.x}
-                cy={p.y}
-                r="5"
-                fill="var(--coral)"
-                stroke="var(--bg)"
-                strokeWidth="2"
-              />
-            ) : (
-              <circle key={i} cx={p.x} cy={p.y} r="3.5" fill="var(--coral)" />
-            );
-          })}
-        </svg>
-        <div className="flex justify-between mt-1">
-          {xLabels.map((label, i) => (
-            <span
-              key={i}
-              className={
-                'font-mono text-[9px] ' +
-                (i === xLabels.length - 1 ? 'text-coral' : 'text-t3')
-              }
-            >
-              {label}
-            </span>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export function ExerciseDetailSheet({
   exercise,
   sessionOverrideSets,
@@ -147,6 +28,7 @@ export function ExerciseDetailSheet({
   const currentSets = sessionOverrideSets ?? exercise.sets;
   const [editingSets, setEditingSets] = useState(false);
   const [draftSets, setDraftSets] = useState(currentSets);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -156,37 +38,59 @@ export function ExerciseDetailSheet({
     return () => document.removeEventListener('keydown', onKey);
   }, [onClose]);
 
+  // Focus trap: keep Tab key cycling within the sheet
+  useEffect(() => {
+    if (!dialogRef.current) return;
+
+    const dialog = dialogRef.current;
+    const focusableSelectors = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return;
+      const focusable = Array.from(dialog.querySelectorAll<HTMLElement>(focusableSelectors));
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+      } else {
+        if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   return (
-    <AnimatePresence>
-      <>
-        {/* Backdrop */}
-        <motion.div
-          key="backdrop"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
-          className="fixed inset-0 bg-black/60 z-40"
-          onClick={onClose}
-          aria-hidden="true"
-        />
-        {/* Sheet */}
-        <motion.div
-          key="sheet"
-          initial={prefersReducedMotion ? {} : { y: '100%' }}
-          animate={{ y: 0 }}
-          exit={{ y: '100%' }}
-          transition={
-            prefersReducedMotion
-              ? { duration: 0 }
-              : { duration: 0.38, ease: [0.0, 0.0, 0.2, 1] }
-          }
-          className="fixed inset-x-0 bottom-0 z-50 bg-surface-3 rounded-t-3xl overflow-y-auto max-h-[85dvh]"
-          onClick={(e) => e.stopPropagation()}
-          role="dialog"
-          aria-modal="true"
-          aria-label={`Exercise details for ${exercise.name}`}
-        >
+    <>
+      {/* Backdrop */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
+        className="fixed inset-0 bg-black/60 z-40"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+      {/* Sheet */}
+      <motion.div
+        ref={dialogRef}
+        initial={prefersReducedMotion ? {} : { y: '100%' }}
+        animate={{ y: 0 }}
+        exit={{ y: '100%' }}
+        transition={
+          prefersReducedMotion
+            ? { duration: 0 }
+            : { duration: 0.38, ease: [0.0, 0.0, 0.2, 1] }
+        }
+        className="fixed inset-x-0 bottom-0 z-50 bg-surface-3 rounded-t-3xl overflow-y-auto max-h-[85dvh]"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Exercise details for ${exercise.name}`}
+      >
           {/* Handle */}
           <div className="w-10 h-1 rounded-full bg-border-2 mx-auto mt-3" aria-hidden="true" />
 
@@ -194,12 +98,17 @@ export function ExerciseDetailSheet({
           <div className="flex items-start justify-between px-5 pt-2.5 pb-1">
             <div>
               <h2 className="font-display font-bold text-xl text-t1">{exercise.name}</h2>
-              <p className="text-xs text-t2 mt-0.5">{exercise.muscleGroup}</p>
+              <p className="text-xs text-t2 mt-0.5">
+                {exercise.muscleGroup
+                  .split('_')
+                  .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+                  .join(' ')}
+              </p>
             </div>
             <button
               onClick={onClose}
               autoFocus
-              className="w-9 h-9 rounded-full bg-surface-2 flex items-center justify-center text-t2 flex-shrink-0 mt-0.5 min-h-[44px] min-w-[44px]"
+              className="w-11 h-11 rounded-full bg-surface-2 flex items-center justify-center text-t2 flex-shrink-0 mt-0.5"
               aria-label="Close exercise details"
             >
               <X className="w-4 h-4" strokeWidth={1.8} />
@@ -308,7 +217,6 @@ export function ExerciseDetailSheet({
             </div>
           </div>
         </motion.div>
-      </>
-    </AnimatePresence>
+    </>
   );
 }

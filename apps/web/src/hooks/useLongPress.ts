@@ -25,5 +25,6 @@ export function useLongPress({ onLongPress, delay = 500 }: UseLongPressOptions) 
     onPointerDown: start,
     onPointerUp: cancel,
     onPointerLeave: cancel,
+    cancel,
   };
 }

@@ -8,10 +8,21 @@ export class WorkoutsRepository {
   constructor(@Inject(DATABASE_TOKEN) private readonly db: Kysely<Database>) {}
 
   async findActivePlan(userId: string) {
-    return this.db
+    // Prefer the user's own active plan; fall back to any active plan (shared demo plan
+    // until AI Coach generates a personal one).
+    const own = await this.db
       .selectFrom('training_plans')
       .select(['id', 'name'])
       .where('user_id', '=', userId)
+      .where('is_active', '=', true)
+      .limit(1)
+      .executeTakeFirst();
+
+    if (own) return own;
+
+    return this.db
+      .selectFrom('training_plans')
+      .select(['id', 'name'])
       .where('is_active', '=', true)
       .limit(1)
       .executeTakeFirst();
@@ -382,6 +393,7 @@ export class WorkoutsRepository {
       .where('set_logs.exercise_id', '=', exerciseId)
       .where('set_logs.weight_kg', 'is not', null)
       .orderBy('set_logs.logged_at', 'desc')
+      .orderBy('set_logs.set_number', 'desc')
       .limit(1)
       .executeTakeFirst();
     return result?.weight_kg ?? null;
@@ -393,6 +405,7 @@ export class WorkoutsRepository {
       .select((eb) => eb.fn.max('value').as('best'))
       .where('user_id', '=', userId)
       .where('exercise_id', '=', exerciseId)
+      .where('pr_type', '=', 'e1rm' as PersonalRecordsTable['pr_type'])
       .executeTakeFirst();
     return result?.best ?? null;
   }
@@ -408,6 +421,7 @@ export class WorkoutsRepository {
     return Number(result?.cnt ?? 0);
   }
 
+  // date() groups by UTC date; deviates from user local date — fix when user timezone stored on profile
   async getExerciseTrend(
     userId: string,
     exerciseId: string,
@@ -429,6 +443,7 @@ export class WorkoutsRepository {
       .execute();
     return rows
       .reverse()
+      .filter((r) => r.maxWeightKg !== null)
       .map((r) => ({ date: String(r.date), maxWeightKg: Number(r.maxWeightKg) }));
   }
 }

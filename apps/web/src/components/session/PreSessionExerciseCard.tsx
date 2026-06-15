@@ -1,5 +1,5 @@
 'use client';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, memo } from 'react';
 import { motion, useMotionValue, animate, useReducedMotion } from 'framer-motion';
 import { GripVertical, ChevronRight, MoreVertical, Trash2 } from 'lucide-react';
 import { useLongPress } from '@/hooks/useLongPress';
@@ -15,7 +15,7 @@ interface PreSessionExerciseCardProps {
 
 const SWIPE_THRESHOLD = -60;
 
-export function PreSessionExerciseCard({
+export const PreSessionExerciseCard = memo(function PreSessionExerciseCard({
   exercise,
   isSkipped,
   onTap,
@@ -27,6 +27,10 @@ export function PreSessionExerciseCard({
   const [showConfirm, setShowConfirm] = useState(false);
 
   const sets = exercise.overrideSets ?? exercise.sets;
+  const muscleLabel = exercise.muscleGroup
+    .split('_')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
   const repsLabel =
     exercise.repsMin === exercise.repsMax
       ? `${exercise.repsMax} reps`
@@ -46,11 +50,12 @@ export function PreSessionExerciseCard({
     }
   }, [x, snapBack, prefersReducedMotion]);
 
-  const longPress = useLongPress({
-    onLongPress: () => {
-      setShowConfirm(true);
-    },
-  });
+  // Fix 19: guard against drag+click race — click fires after drag ends
+  const didDragRef = useRef(false);
+
+  // Fix 20: stable callback reference to avoid useLongPress re-subscribing on every render
+  const handleLongPress = useCallback(() => { setShowConfirm(true); }, []);
+  const longPress = useLongPress({ onLongPress: handleLongPress });
 
   if (showConfirm) {
     return (
@@ -80,11 +85,11 @@ export function PreSessionExerciseCard({
         <GripVertical className="w-4 h-4 text-t3 flex-shrink-0" strokeWidth={1.8} />
         <div className="flex-1 min-w-0">
           <div className="text-sm font-semibold text-t1 line-through truncate">{exercise.name}</div>
-          <div className="text-xs text-t2 mt-0.5">{exercise.muscleGroup} · {sets} sets × {repsLabel}</div>
+          <div className="text-xs text-t2 mt-0.5">{muscleLabel} · {sets} sets × {repsLabel}</div>
         </div>
         <button
           onClick={(e) => { e.stopPropagation(); onRestore(); }}
-          className="text-sm text-violet font-medium min-h-[44px] min-w-[44px] flex items-center justify-center flex-shrink-0"
+          className="text-sm text-coral font-medium min-h-[44px] min-w-[44px] flex items-center justify-center flex-shrink-0"
         >
           Undo
         </button>
@@ -108,10 +113,11 @@ export function PreSessionExerciseCard({
         drag="x"
         dragConstraints={{ left: -80, right: 0 }}
         dragElastic={0.1}
-        onDragEnd={handleDragEnd}
+        onDragStart={() => { didDragRef.current = true; longPress.cancel(); }}
+        onDragEnd={() => { handleDragEnd(); setTimeout(() => { didDragRef.current = false; }, 0); }}
         {...longPress}
         className="absolute inset-0 bg-surface-2 border border-border rounded-xl px-3.5 flex items-center gap-2.5 cursor-pointer active:opacity-90"
-        onClick={onTap}
+        onClick={() => { if (!didDragRef.current) onTap(); }}
         role="button"
         aria-label={`${exercise.name}, ${sets} sets, ${repsLabel}`}
       >
@@ -119,7 +125,7 @@ export function PreSessionExerciseCard({
         <div className="flex-1 min-w-0">
           <div className="text-sm font-semibold text-t1 truncate">{exercise.name}</div>
           <div className="text-xs text-t2 mt-0.5">
-            {exercise.muscleGroup} · {sets} sets × {repsLabel}
+            {muscleLabel} · {sets} sets × {repsLabel}
           </div>
         </div>
         <div className="flex items-center flex-shrink-0">
@@ -138,4 +144,4 @@ export function PreSessionExerciseCard({
       </motion.div>
     </div>
   );
-}
+});

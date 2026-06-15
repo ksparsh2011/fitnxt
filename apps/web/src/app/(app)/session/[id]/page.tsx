@@ -48,14 +48,19 @@ export default function SessionPage({ params }: PageProps) {
         sessionId: session.sessionId,
         trainingDayId: session.trainingDayId,
         startedAt: new Date(session.checkedInAt),
-        exercises: session.exercises.map((ex) => ({
-          exerciseId: ex.exerciseId,
-          name: ex.exerciseName,
-          prescribedSets: ex.prescribedSets,
-          repsMin: ex.repsMin,
-          repsMax: ex.repsMax,
-          restSeconds: ex.restSeconds,
-        })),
+        exercises: session.exercises.map((ex) => {
+          const prescribedSets: number = ex.prescribedSets ?? ex.sets.length;
+          const repsMin: number = ex.repsMin ?? 8;
+          const repsMax: number = ex.repsMax ?? 12;
+          return {
+            exerciseId: ex.exerciseId,
+            name: ex.exerciseName,
+            prescribedSets,
+            repsMin,
+            repsMax,
+            restSeconds: ex.restSeconds,
+          };
+        }),
       });
     }
   }, [session, storeSessionId, initSession]);

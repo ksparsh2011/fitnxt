@@ -17,7 +17,7 @@ export function ExerciseList({ onExerciseTap, onAddExercise, compact }: Exercise
       {exercises.map((exercise, index) => {
         const isActive = index === activeExerciseIndex;
         const completedSets = exercise.sets.filter((s) => s.status === 'confirmed').length;
-        const totalSets = exercise.prescribedSets;
+        const totalSets = exercise.prescribedSets ?? exercise.sets.length;
 
         return (
           <button

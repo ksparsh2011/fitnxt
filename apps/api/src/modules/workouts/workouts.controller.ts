@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, HttpStatus, Param, ParseIntPipe, ParseUUIDPipe, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Param, ParseIntPipe, ParseUUIDPipe, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
 import { WorkoutsService } from './workouts.service';
 import { TodayWorkoutResponseDto } from './dto/today-workout.response.dto';
@@ -81,7 +81,7 @@ export class WorkoutsController {
   @UseGuards(JwtAuthGuard)
   async logSet(
     @Req() req: Request,
-    @Param('id') sessionId: string,
+    @Param('id', new ParseUUIDPipe({ errorHttpStatusCode: HttpStatus.BAD_REQUEST })) sessionId: string,
     @Body() dto: LogSetDto,
   ): Promise<{ setId: string; isPr: boolean; pr?: PREvent }> {
     const { userId } = req.user as { userId: string; email: string };
@@ -92,7 +92,7 @@ export class WorkoutsController {
   @UseGuards(JwtAuthGuard)
   async finishSession(
     @Req() req: Request,
-    @Param('id') sessionId: string,
+    @Param('id', new ParseUUIDPipe({ errorHttpStatusCode: HttpStatus.BAD_REQUEST })) sessionId: string,
     @Body() dto: FinishSessionDto,
   ): Promise<WorkoutSessionDetail> {
     const { userId } = req.user as { userId: string; email: string };
@@ -103,7 +103,7 @@ export class WorkoutsController {
   @UseGuards(JwtAuthGuard)
   async getSession(
     @Req() req: Request,
-    @Param('id') sessionId: string,
+    @Param('id', new ParseUUIDPipe({ errorHttpStatusCode: HttpStatus.BAD_REQUEST })) sessionId: string,
   ): Promise<WorkoutSessionDetail> {
     const { userId } = req.user as { userId: string; email: string };
     return this.workoutsService.getSession(userId, sessionId);

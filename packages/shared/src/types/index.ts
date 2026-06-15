@@ -173,9 +173,9 @@ export interface WorkoutSessionDetail {
 export interface SessionExercise {
   exerciseId: string;
   exerciseName: string;
-  prescribedSets: number;
-  repsMin: number;
-  repsMax: number;
+  prescribedSets: number | null;
+  repsMin: number | null;
+  repsMax: number | null;
   restSeconds: number | null;
   sets: SessionSet[];
 }

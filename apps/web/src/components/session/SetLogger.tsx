@@ -93,11 +93,11 @@ export function SetLogger({ exerciseIndex, exercise, sessionId, onNextExercise }
   const confirmedSets = exercise.sets.filter((s) => s.status === 'confirmed');
   const pendingSets = exercise.sets.filter((s) => s.status === 'pending');
   const currentSetNumber = confirmedSets.length + 1;
-  const totalSets = exercise.prescribedSets;
+  const totalSets = exercise.prescribedSets ?? exercise.sets.length;
 
   const initialLoggerState: LoggerState = {
     weightKg: getInitialWeight(exercise),
-    reps: exercise.repsMin,
+    reps: exercise.repsMin ?? 8,
   };
   const [state, dispatch] = useReducer(loggerReducer, initialLoggerState);
 
