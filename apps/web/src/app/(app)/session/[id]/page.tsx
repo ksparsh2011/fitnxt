@@ -39,10 +39,11 @@ export default function SessionPage({ params }: PageProps) {
     initSession,
     setActiveExercise,
   } = useSessionStore();
+  const storeSessionId = useSessionStore((s) => s.sessionId);
 
-  // Initialize store from API data on first load (exercises not yet populated)
+  // Initialize store from API data when session changes or store is for a different session
   useEffect(() => {
-    if (session && exercises.length === 0) {
+    if (session && storeSessionId !== session.sessionId) {
       initSession({
         sessionId: session.sessionId,
         trainingDayId: session.trainingDayId,
@@ -55,14 +56,14 @@ export default function SessionPage({ params }: PageProps) {
         })),
       });
     }
-  }, [session, exercises.length, initSession]);
+  }, [session, storeSessionId, initSession]);
 
   if (isError) {
     return (
       <div className="flex flex-col items-center justify-center min-h-dvh bg-bg px-6 text-center">
         <p className="text-t1 font-display font-bold text-xl mb-2">Session unavailable</p>
-        <p className="text-t2 text-sm mb-6">Could not load this session. It may have ended.</p>
-        <Button variant="primary" size="md" onClick={() => router.push('/today')}>
+        <p className="text-t2 text-base mb-6">Could not load this session. It may have ended.</p>
+        <Button variant="ghost" size="md" onClick={() => router.push('/today')}>
           Go to Today
         </Button>
       </div>
@@ -76,8 +77,7 @@ export default function SessionPage({ params }: PageProps) {
     <div className="relative flex flex-col h-dvh bg-bg overflow-hidden">
       {/* Coral ambient glow — always present in guided view */}
       <div
-        className="absolute top-24 left-1/2 -translate-x-1/2 w-72 h-72 rounded-full pointer-events-none z-0"
-        style={{ background: 'radial-gradient(circle, rgba(249,112,102,0.08) 0%, transparent 70%)' }}
+        className="absolute top-24 left-1/2 -translate-x-1/2 w-72 h-72 rounded-full pointer-events-none z-0 bg-coral/[0.08] blur-3xl"
         aria-hidden="true"
       />
 
@@ -96,7 +96,7 @@ export default function SessionPage({ params }: PageProps) {
           <div className="flex-1 flex flex-col items-center justify-center px-6 text-center gap-4">
             <Dumbbell className="w-12 h-12 text-t3" strokeWidth={1.8} />
             <p className="text-t2 text-sm">No exercises yet</p>
-            <Button variant="secondary" size="md" onClick={() => setShowExerciseSearch(true)}>
+            <Button variant="coral" size="md" onClick={() => setShowExerciseSearch(true)}>
               Add first exercise
             </Button>
           </div>
@@ -137,11 +137,13 @@ export default function SessionPage({ params }: PageProps) {
             </div>
 
             {/* Next Up card — pinned bottom */}
-            <div className="px-5 pb-3 flex-shrink-0">
+            <div className="px-5 pb-[env(safe-area-inset-bottom,12px)] flex-shrink-0">
               {nextExercise !== undefined ? (
-                <button
+                <motion.button
                   onClick={() => setActiveExercise(activeExerciseIndex + 1)}
-                  className="w-full h-[72px] bg-surface-2 border border-border rounded-2xl px-4 flex items-center gap-3 text-left"
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ duration: 0.1 }}
+                  className="w-full h-[72px] bg-surface-2 border border-border rounded-2xl px-4 flex items-center gap-3 text-left active:bg-surface-3"
                   aria-label={`Next exercise: ${nextExercise.name}`}
                 >
                   <div className="flex-1 min-w-0">
@@ -153,7 +155,7 @@ export default function SessionPage({ params }: PageProps) {
                     </p>
                   </div>
                   <ChevronRight className="w-5 h-5 text-t2 flex-shrink-0" strokeWidth={1.8} />
-                </button>
+                </motion.button>
               ) : (
                 <div className="w-full h-[72px] bg-surface-2 border border-border rounded-2xl px-4 flex items-center">
                   <p className="text-sm text-t2">Last exercise — finish strong</p>
@@ -196,7 +198,7 @@ export default function SessionPage({ params }: PageProps) {
               transition={
                 prefersReducedMotion ? { duration: 0 } : { duration: 0.38, ease: [0.0, 0.0, 0.2, 1] }
               }
-              className="fixed inset-x-0 bottom-0 z-50 bg-surface-3 rounded-t-[28px] flex flex-col max-h-[70dvh]"
+              className="fixed inset-x-0 bottom-0 z-50 bg-surface rounded-t-4xl flex flex-col max-h-[70dvh]"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Handle */}

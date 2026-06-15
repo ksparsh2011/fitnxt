@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import { useInterval } from '@/hooks/useInterval';
 import { Button } from '@/components/ui/Button';
+import { OfflineBanner } from '@/components/ui/OfflineBanner';
 
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60).toString().padStart(2, '0');
@@ -28,6 +29,7 @@ export function SessionHeader({ startedAt, onFinish, onBack, workoutName }: Sess
 
   return (
     <header className="px-5 pt-4 pb-2">
+      <OfflineBanner />
       {/* Top row: back (optional) / name / finish */}
       <div className="flex items-center justify-between mb-3">
         {onBack !== undefined ? (
@@ -52,7 +54,7 @@ export function SessionHeader({ startedAt, onFinish, onBack, workoutName }: Sess
 
         <Button
           variant="coral"
-          size="sm"
+          size="md"
           className="bg-coral/20 border border-coral/30 text-coral hover:bg-coral/30"
           onClick={onFinish}
         >

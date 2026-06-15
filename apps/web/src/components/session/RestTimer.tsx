@@ -1,5 +1,5 @@
 'use client';
-import { useReducedMotion } from 'framer-motion';
+import { useReducedMotion, motion } from 'framer-motion';
 import { Check } from 'lucide-react';
 import { useInterval } from '@/hooks/useInterval';
 import { useSessionStore } from '@/stores/session.store';
@@ -32,8 +32,6 @@ export function RestTimer() {
 
   const progress = restTotalSeconds > 0 ? restSecondsRemaining / restTotalSeconds : 0;
   const ARC_RADIUS = 95;
-  const ARC_CIRCUMFERENCE = 2 * Math.PI * ARC_RADIUS;
-  const strokeDashoffset = ARC_CIRCUMFERENCE * (1 - progress);
 
   const activeExercise = exercises[activeExerciseIndex];
   const confirmedSets = activeExercise?.sets.filter((s) => s.status === 'confirmed') ?? [];
@@ -45,8 +43,8 @@ export function RestTimer() {
       {/* Set logged confirmation */}
       {lastSet && (
         <div className="flex items-center gap-2 bg-success/10 border border-success/20 rounded-full px-4 py-2">
-          <Check className="w-4 h-4 text-success" strokeWidth={2.5} />
-          <span className="text-sm font-medium text-success">
+          <Check className="w-4 h-4 text-success" strokeWidth={1.8} />
+          <span className="text-base font-medium text-success">
             Set {nextSetNumber - 1} logged
           </span>
         </div>
@@ -56,7 +54,7 @@ export function RestTimer() {
       {lastSet && activeExercise && (
         <div className="text-center">
           <div className="font-display font-bold text-lg text-t1">{activeExercise.name}</div>
-          <div className="font-mono text-sm text-t2">
+          <div className="font-mono text-base text-t2">
             {lastSet.weightKg ?? 0} kg × {lastSet.reps} reps
           </div>
         </div>
@@ -72,7 +70,7 @@ export function RestTimer() {
         >
           {formatTime(restSecondsRemaining)}
         </div>
-        <div className="text-sm text-t2 mt-2">of {formatTime(restTotalSeconds)}</div>
+        <div className="text-base text-t2 mt-2">of {formatTime(restTotalSeconds)}</div>
       </div>
 
       {/* Arc SVG */}
@@ -92,7 +90,7 @@ export function RestTimer() {
             stroke="var(--surface-3)"
             strokeWidth="8"
           />
-          <circle
+          <motion.circle
             cx="110"
             cy="110"
             r={ARC_RADIUS}
@@ -100,8 +98,9 @@ export function RestTimer() {
             stroke="var(--coral)"
             strokeWidth="8"
             strokeLinecap="round"
-            strokeDasharray={ARC_CIRCUMFERENCE}
-            strokeDashoffset={strokeDashoffset}
+            pathLength={1}
+            animate={{ pathLength: progress }}
+            transition={{ duration: 1, ease: 'linear' }}
             transform="rotate(-90 110 110)"
             opacity="0.4"
           />

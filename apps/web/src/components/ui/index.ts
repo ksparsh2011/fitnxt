@@ -9,3 +9,5 @@ export { StatRow }      from "./StatRow";
 export { ToastProvider, useToast } from "./Toast";
 export { Modal }        from "./Modal";
 export { Avatar }       from "./Avatar";
+export { BottomSheet }  from "./BottomSheet";
+export { OfflineBanner } from "./OfflineBanner";

@@ -50,6 +50,8 @@ interface SessionActions {
   setPrCelebration: (pr: PREvent | null) => void;
   clearPR: () => void;
   clearSession: () => void;
+  editSet: (exerciseIndex: number, localId: string, weightKg: number, reps: number) => void;
+  deleteSet: (exerciseIndex: number, localId: string) => void;
 }
 
 const initialState: SessionState = {
@@ -139,4 +141,26 @@ export const useSessionStore = create<SessionState & SessionActions>((set) => ({
   setPrCelebration: (pr) => set({ prCelebration: pr }),
   clearPR: () => set({ prCelebration: null }),
   clearSession: () => set(initialState),
+
+  editSet: (exerciseIndex, localId, weightKg, reps) =>
+    set((state) => {
+      const exercises = [...state.exercises];
+      exercises[exerciseIndex] = {
+        ...exercises[exerciseIndex],
+        sets: exercises[exerciseIndex].sets.map((s) =>
+          s.localId === localId ? { ...s, weightKg, reps } : s,
+        ),
+      };
+      return { exercises };
+    }),
+
+  deleteSet: (exerciseIndex, localId) =>
+    set((state) => {
+      const exercises = [...state.exercises];
+      exercises[exerciseIndex] = {
+        ...exercises[exerciseIndex],
+        sets: exercises[exerciseIndex].sets.filter((s) => s.localId !== localId),
+      };
+      return { exercises };
+    }),
 }));

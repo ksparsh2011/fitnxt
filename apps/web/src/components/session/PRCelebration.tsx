@@ -62,7 +62,7 @@ export function PRCelebration() {
           transition={{ type: 'spring', stiffness: 400, damping: 20 }}
           className="w-20 h-20 rounded-3xl flex items-center justify-center mb-6 bg-gold-tint border border-gold-border"
         >
-          <Trophy className="w-10 h-10 text-gold" strokeWidth={1.6} />
+          <Trophy className="w-10 h-10 text-gold" strokeWidth={1.8} />
         </motion.div>
 
         <motion.div

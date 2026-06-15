@@ -67,7 +67,7 @@ export function FinishModal({ sessionId, onClose, onComplete }: FinishModalProps
           <div className="w-10 h-1 rounded-full bg-border-2 mx-auto mb-6" />
 
           <h3 className="font-display font-bold text-xl text-t1 mb-2">Finish Workout?</h3>
-          <p className="text-sm text-t2 mb-6">Your progress will be saved.</p>
+          <p className="text-base text-t2 mb-6">Your progress will be saved.</p>
 
           {/* Stats summary */}
           <div className="grid grid-cols-3 gap-3 mb-6">
@@ -91,7 +91,7 @@ export function FinishModal({ sessionId, onClose, onComplete }: FinishModalProps
               Keep Going
             </Button>
             <Button
-              variant="primary"
+              variant="coral"
               size="lg"
               className="flex-[2] font-display font-bold"
               loading={isFinishing}

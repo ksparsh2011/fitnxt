@@ -64,8 +64,7 @@ export default function SessionEntryPage() {
     <div className="relative flex flex-col items-center justify-center min-h-dvh bg-bg px-6">
       {/* radial-gradient not expressible in Tailwind without custom config */}
       <div
-        className="absolute top-1/3 left-1/2 -translate-x-1/2 w-72 h-72 rounded-full pointer-events-none"
-        style={{ background: 'radial-gradient(circle, var(--coral-tint) 0%, transparent 70%)' }}
+        className="absolute top-1/3 left-1/2 -translate-x-1/2 w-72 h-72 rounded-full pointer-events-none bg-coral/[0.12] blur-3xl"
         aria-hidden="true"
       />
 
@@ -76,7 +75,7 @@ export default function SessionEntryPage() {
 
         <div>
           <p className="font-display text-2xl font-extrabold text-t1 mb-1">Ready to train?</p>
-          <p className="text-sm text-t2">Start a new session and log your sets as you go.</p>
+          <p className="text-base text-t2">Start a new session and log your sets as you go.</p>
         </div>
 
         <div className="w-full flex flex-col gap-3">

@@ -1,12 +1,13 @@
 'use client';
-import { useReducer, useCallback } from 'react';
-import { ArrowRight, Check, ChevronRight } from 'lucide-react';
+import { useReducer, useCallback, useState } from 'react';
+import { ArrowRight, Check, ChevronRight, Minus, Plus } from 'lucide-react';
 import { useSessionStore } from '@/stores/session.store';
 import { useSession } from '@/hooks/useSession';
 import { useToast } from '@/components/ui/Toast';
 import { Button } from '@/components/ui/Button';
-import { cn } from '@/lib/utils';
-import type { SessionExerciseLocal } from '@/stores/session.store';
+import { useLongPress } from '@/hooks/useLongPress';
+import { EditSetModal } from './EditSetModal';
+import type { SessionExerciseLocal, LocalSet } from '@/stores/session.store';
 
 interface SetLoggerProps {
   exerciseIndex: number;
@@ -54,11 +55,40 @@ function getInitialWeight(exercise: SessionExerciseLocal): number {
   return lastConfirmed?.weightKg ?? 60;
 }
 
+interface SetRowProps {
+  set: LocalSet;
+  index: number;
+  exerciseIndex: number;
+  onLongPress: (localId: string) => void;
+}
+
+function ConfirmedSetRow({ set, index, onLongPress }: SetRowProps) {
+  const longPress = useLongPress({ onLongPress: () => onLongPress(set.localId) });
+
+  return (
+    <div
+      {...longPress}
+      className="flex items-center justify-between rounded-xl px-4 py-3 border bg-surface-2 border-border cursor-pointer select-none min-h-[44px]"
+      role="button"
+      aria-label={`Set ${index + 1}: ${set.weightKg ?? 0} kg × ${set.reps} reps. Long press to edit.`}
+    >
+      <span className="text-base text-t2">Set {index + 1}</span>
+      <span className="flex items-center gap-1.5 font-mono text-base">
+        <span className="text-success">
+          {set.weightKg ?? 0} kg × {set.reps}
+        </span>
+        <Check className="w-3.5 h-3.5 text-success" strokeWidth={1.8} />
+      </span>
+    </div>
+  );
+}
+
 export function SetLogger({ exerciseIndex, exercise, sessionId, onNextExercise }: SetLoggerProps) {
-  const { optimisticAddSet, confirmSet, rollbackSet, startRestTimer, setPrCelebration } =
+  const { optimisticAddSet, confirmSet, rollbackSet, startRestTimer, setPrCelebration, editSet, deleteSet } =
     useSessionStore();
   const { logSetAsync, isLoggingSet } = useSession(sessionId);
   const { toast } = useToast();
+  const [editTarget, setEditTarget] = useState<string | null>(null);
 
   const confirmedSets = exercise.sets.filter((s) => s.status === 'confirmed');
   const pendingSets = exercise.sets.filter((s) => s.status === 'pending');
@@ -130,6 +160,8 @@ export function SetLogger({ exerciseIndex, exercise, sessionId, onNextExercise }
     exercise,
     exerciseIndex,
     pendingSets.length,
+    confirmedSets.length,
+    totalSets,
     logSetAsync,
     optimisticAddSet,
     confirmSet,
@@ -142,6 +174,9 @@ export function SetLogger({ exerciseIndex, exercise, sessionId, onNextExercise }
   const hasPending = pendingSets.length > 0;
   const weightDisplay =
     state.weightKg % 1 === 0 ? String(state.weightKg) : state.weightKg.toFixed(1);
+
+  const editTargetSet =
+    editTarget !== null ? exercise.sets.find((s) => s.localId === editTarget) : null;
 
   return (
     <div className="flex flex-col py-4 gap-6">
@@ -223,20 +258,20 @@ export function SetLogger({ exerciseIndex, exercise, sessionId, onNextExercise }
         <div className="flex items-center">
           <button
             onClick={() => dispatch({ type: 'DECREMENT_WEIGHT' })}
-            className="w-12 h-12 rounded-l-xl bg-surface-3 border border-border text-t1 text-xl flex items-center justify-center active:bg-surface-4 transition-colors"
+            className="w-12 h-12 rounded-l-xl bg-surface-3 border border-border text-t1 flex items-center justify-center active:bg-surface-4 transition-colors"
             aria-label="Decrease weight"
           >
-            −
+            <Minus className="w-4 h-4" strokeWidth={1.8} />
           </button>
           <div className="w-24 h-12 bg-surface-2 border-t border-b border-border flex items-center justify-center font-mono text-base font-medium text-t1">
             {weightDisplay} kg
           </div>
           <button
             onClick={() => dispatch({ type: 'INCREMENT_WEIGHT' })}
-            className="w-12 h-12 rounded-r-xl bg-surface-3 border border-border text-t1 text-xl flex items-center justify-center active:bg-surface-4 transition-colors"
+            className="w-12 h-12 rounded-r-xl bg-surface-3 border border-border text-t1 flex items-center justify-center active:bg-surface-4 transition-colors"
             aria-label="Increase weight"
           >
-            +
+            <Plus className="w-4 h-4" strokeWidth={1.8} />
           </button>
         </div>
       </div>
@@ -247,20 +282,20 @@ export function SetLogger({ exerciseIndex, exercise, sessionId, onNextExercise }
         <div className="flex items-center">
           <button
             onClick={() => dispatch({ type: 'DECREMENT_REPS' })}
-            className="w-12 h-12 rounded-l-xl bg-surface-3 border border-border text-t1 text-xl flex items-center justify-center active:bg-surface-4 transition-colors"
+            className="w-12 h-12 rounded-l-xl bg-surface-3 border border-border text-t1 flex items-center justify-center active:bg-surface-4 transition-colors"
             aria-label="Decrease reps"
           >
-            −
+            <Minus className="w-4 h-4" strokeWidth={1.8} />
           </button>
           <div className="w-24 h-12 bg-surface-2 border-t border-b border-border flex items-center justify-center font-mono text-base font-medium text-t1">
             {state.reps}
           </div>
           <button
             onClick={() => dispatch({ type: 'INCREMENT_REPS' })}
-            className="w-12 h-12 rounded-r-xl bg-surface-3 border border-border text-t1 text-xl flex items-center justify-center active:bg-surface-4 transition-colors"
+            className="w-12 h-12 rounded-r-xl bg-surface-3 border border-border text-t1 flex items-center justify-center active:bg-surface-4 transition-colors"
             aria-label="Increase reps"
           >
-            +
+            <Plus className="w-4 h-4" strokeWidth={1.8} />
           </button>
         </div>
       </div>
@@ -269,7 +304,7 @@ export function SetLogger({ exerciseIndex, exercise, sessionId, onNextExercise }
       {allSetsDone ? (
         <div className="flex flex-col gap-2">
           <div className="w-full h-10 flex items-center justify-center gap-1.5 rounded-xl bg-coral/10 border border-coral/20">
-            <Check className="w-4 h-4 text-coral" strokeWidth={2.5} />
+            <Check className="w-4 h-4 text-coral" strokeWidth={1.8} />
             <span className="text-sm font-medium text-coral">All {totalSets} sets complete</span>
           </div>
           {onNextExercise && (
@@ -301,35 +336,49 @@ export function SetLogger({ exerciseIndex, exercise, sessionId, onNextExercise }
         <div>
           <div className="text-xs uppercase tracking-widest text-t3 mb-3">Previous sets</div>
           <div className="flex flex-col gap-2">
-            {exercise.sets.map((set, i) => (
-              <div
-                key={set.localId}
-                className={cn(
-                  'flex items-center justify-between rounded-xl px-4 py-2.5 border',
-                  set.status === 'pending'
-                    ? 'bg-coral/10 border-coral/20'
-                    : 'bg-surface-2 border-border',
-                )}
-              >
-                <span className={`text-sm ${set.status === 'pending' ? 'text-coral' : 'text-t2'}`}>
-                  Set {i + 1}
-                </span>
-                <span className="flex items-center gap-1.5 font-mono text-sm">
-                  <span className={set.status === 'pending' ? 'text-coral' : 'text-success'}>
-                    {set.weightKg ?? 0} kg × {set.reps}
+            {exercise.sets.map((set, i) =>
+              set.status === 'confirmed' ? (
+                <ConfirmedSetRow
+                  key={set.localId}
+                  set={set}
+                  index={i}
+                  exerciseIndex={exerciseIndex}
+                  onLongPress={(localId) => setEditTarget(localId)}
+                />
+              ) : (
+                <div
+                  key={set.localId}
+                  className="flex items-center justify-between rounded-xl px-4 py-2.5 border bg-coral/10 border-coral/20"
+                >
+                  <span className="text-sm text-coral">Set {i + 1}</span>
+                  <span className="flex items-center gap-1.5 font-mono text-sm">
+                    <span className="text-coral">
+                      {set.weightKg ?? 0} kg × {set.reps}
+                    </span>
+                    <ChevronRight className="w-3.5 h-3.5 text-coral" strokeWidth={1.8} />
                   </span>
-                  {set.status === 'confirmed' ? (
-                    <Check className="w-3.5 h-3.5 text-success" strokeWidth={2.5} />
-                  ) : (
-                    <ChevronRight className="w-3.5 h-3.5 text-coral" strokeWidth={2} />
-                  )}
-                </span>
-              </div>
-            ))}
+                </div>
+              ),
+            )}
           </div>
         </div>
+      )}
+
+      {/* Edit set modal */}
+      {editTarget !== null && editTargetSet != null && (
+        <EditSetModal
+          set={editTargetSet}
+          onSave={(weightKg, reps) => {
+            editSet(exerciseIndex, editTarget, weightKg, reps);
+            setEditTarget(null);
+          }}
+          onDelete={() => {
+            deleteSet(exerciseIndex, editTarget);
+            setEditTarget(null);
+          }}
+          onClose={() => setEditTarget(null)}
+        />
       )}
     </div>
   );
 }
-

@@ -1,5 +1,5 @@
 'use client';
-import { Plus } from 'lucide-react';
+import { Check, Plus } from 'lucide-react';
 import { useSessionStore } from '@/stores/session.store';
 import { cn } from '@/lib/utils';
 
@@ -39,8 +39,13 @@ export function ExerciseList({ onExerciseTap, onAddExercise, compact }: Exercise
               {index + 1}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="font-display font-bold text-base text-t1 truncate">
-                {exercise.name}
+              <div className="flex items-center gap-1.5 min-w-0">
+                <div className="font-display font-bold text-base text-t1 truncate">
+                  {exercise.name}
+                </div>
+                {completedSets >= totalSets && (
+                  <Check className="w-4 h-4 text-success flex-shrink-0" strokeWidth={1.8} />
+                )}
               </div>
               <div className={cn('text-xs', isActive ? 'text-coral' : 'text-t2')}>
                 {exercise.prescribedSets}×{exercise.prescribedReps} reps
@@ -55,7 +60,7 @@ export function ExerciseList({ onExerciseTap, onAddExercise, compact }: Exercise
 
       <button
         onClick={onAddExercise}
-        className="flex items-center justify-center gap-2 w-full p-4 rounded-2xl border border-dashed border-border-2 text-t2 text-sm hover:text-t1 transition-colors"
+        className="flex items-center justify-center gap-2 w-full p-4 rounded-2xl border border-dashed border-border-2 text-t2 text-base hover:text-t1 transition-colors"
       >
         <Plus className="w-4 h-4" strokeWidth={1.8} />
         Add exercise

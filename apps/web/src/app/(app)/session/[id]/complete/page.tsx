@@ -134,7 +134,7 @@ export default function WorkoutCompletePage({ params }: PageProps) {
           animate="visible"
           className="w-20 h-20 rounded-3xl flex items-center justify-center mb-5 bg-gold-tint border border-gold-border"
         >
-          <Trophy className="w-10 h-10 text-gold" strokeWidth={1.6} />
+          <Trophy className="w-10 h-10 text-gold" strokeWidth={1.8} />
         </motion.div>
 
         <motion.div
@@ -144,7 +144,7 @@ export default function WorkoutCompletePage({ params }: PageProps) {
           animate="visible"
         >
           <h1 className="font-display font-extrabold text-2xl text-t1 mb-1">Workout Done!</h1>
-          <p className="text-sm text-t2 mb-8">Great work. Keep the momentum going.</p>
+          <p className="text-base text-t2 mb-8">Great work. Keep the momentum going.</p>
         </motion.div>
 
         {/* 2×2 stats grid */}
@@ -193,7 +193,7 @@ export default function WorkoutCompletePage({ params }: PageProps) {
             Share
           </Button>
           <Button
-            variant="primary"
+            variant="coral"
             size="lg"
             className="flex-[2] font-display font-bold"
             onClick={() => { clearSession(); router.push('/today'); }}
