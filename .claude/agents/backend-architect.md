@@ -169,6 +169,55 @@ Events are past-tense facts. Handlers are idempotent. Carry enough data to avoid
 
 ---
 
+## Testing Strategy
+
+The developer writes tests — you specify WHAT to test in the constraints you hand off. Always include a "Test scenarios" section in your output.
+
+**Unit tests (service layer)**
+- Test: service methods in isolation with repositories mocked at the interface level
+- Mock boundary: always mock at the repository class, never at the Kysely/DB level
+- What to cover: business rule branches, domain exception paths, event emission, ownership checks
+- What NOT to test: NestJS wiring (module imports, controller binding), DTO validation (class-validator owns it), simple pass-through repository calls with no branching
+
+```typescript
+// Pattern — mock the whole repository class
+const mockRepo = { findActivePlan: jest.fn(), createSession: jest.fn() };
+const service = new WorkoutsService(mockRepo as any, mockEventEmitter);
+
+it('throws SessionAlreadyActiveException when session exists', async () => {
+  mockRepo.findActiveSession.mockResolvedValue({ id: 'existing' });
+  await expect(service.startSession(userId, dto)).rejects.toThrow(SessionAlreadyActiveException);
+});
+```
+
+**Integration tests (repository layer)**
+- Test: repository methods against a real test database (never mock the DB in integration tests)
+- Use a dedicated test DB (same schema, seeded with fixtures before each test)
+- What to cover: query correctness, index usage for the hot paths, soft-delete filtering
+- What NOT to test: every trivial SELECT — focus on joins, aggregations, ownership filters
+
+**E2E tests (controller/HTTP layer)**
+- Test: full request-to-response cycle via supertest
+- Cover: auth guard enforcement (401 on missing token), happy path, and the single most common error path
+- One E2E test per endpoint is enough — deep logic belongs in unit tests
+
+**Test file location and naming**
+```
+modules/[domain]/__tests__/
+├── [domain].service.spec.ts     ← unit tests
+├── [domain].repository.spec.ts  ← integration tests (real DB)
+└── [domain].controller.e2e.ts   ← e2e via supertest
+```
+
+**Key scenarios to always specify for new features**
+1. Happy path (nominal input, expected output)
+2. Ownership/authorization violation (another user's resource → exception)
+3. Not-found path (entity doesn't exist → correct exception)
+4. Concurrent mutation (two requests racing on the same resource)
+5. Boundary values (empty array result, zero volume, null optional fields)
+
+---
+
 ## Architectural Output Format
 
 1. Problem + domain ownership

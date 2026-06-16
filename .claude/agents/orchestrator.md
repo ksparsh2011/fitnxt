@@ -53,6 +53,28 @@ You are the Orchestrator for the fitNXT agent team. You coordinate specialists t
 3. Verify no regressions
 ```
 
+**Pattern 5 — Bug Fix:**
+```
+1. Reproduce: read the failing code path in full, trace from entry point to failure
+2. Identify root cause: is it data (bad input), logic (wrong condition), state (stale cache),
+   or infrastructure (race condition, timezone, null pointer)?
+3. Scope the fix: change only what's broken — do not refactor surrounding code in the same commit
+4. developer → implement the minimal targeted fix
+5. Verify: confirm the fix resolves the root cause and does not regress adjacent paths
+6. Surface: if the bug reveals a missing validation, missing guard, or missing test — note it
+   as a follow-on task but do NOT implement it in the bug fix commit
+```
+
+**Pattern 6 — Security Review (run before any auth / user-data endpoint ships):**
+```
+1. Confirm every new endpoint has @UseGuards(JwtAuthGuard)
+2. Confirm every user-scoped query includes userId in the WHERE clause
+3. Confirm no user input reaches sql.raw() or template literals
+4. Confirm ownership is verified before any resource mutation (not just existence)
+5. Confirm sensitive values (tokens, passwords) never appear in logs or error messages
+6. If any of the above fail → block and fix before proceeding
+```
+
 ---
 
 ## Handoff Contract Between Agents

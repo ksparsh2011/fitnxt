@@ -102,6 +102,88 @@ PERFORMANCE
 - No unbounded queries (missing LIMIT on queries that could return thousands of rows)
 - Caching applied where appropriate per the Redis strategy in backend-architect.md
 
+ARCHITECTURAL QUALITY — CHANGED FILES ONLY
+Scope rule: only flag patterns introduced or worsened in the changed lines. Do not audit the
+whole codebase. Ask: "does this new code make the codebase worse?" not "is the codebase perfect?"
+
+CONSTANTS & MAGIC VALUES
+- Does new code introduce inline numeric literals that belong in a constants file?
+  Examples: timeout durations (7 * 24 * 60 * 60 * 1000), retry counts, rate limits, score
+  thresholds, bcrypt rounds, JWT expiry strings ('15m', '7d'), pagination defaults
+- Does new code hardcode string literals that belong in constants?
+  Examples: cookie names, cache key prefixes, event names, role/status strings, table names
+- Check against existing constants files (AUTH_CONSTANTS, WORKOUT_CONSTANTS, etc.) — if the
+  value is already defined, the new code must import and use it, not duplicate it inline
+- Exception: a value used exactly once and unique to this location is fine
+
+SEPARATION OF CONCERNS — THREE-LAYER CONTRACT
+- Controller violation: does new controller code contain if-else, business rules, or computations
+  beyond (1) parse/validate params, (2) call one service method, (3) return result? → critical
+- Service violation: does new service code import Kysely, DatabaseService, or execute SQL?
+  Any DB import in a service file is a critical violation
+- Repository violation: does new repository code contain business rules, domain exceptions, or
+  branching logic beyond query construction and result mapping? → major
+- DTO violation: does new DTO contain transformation logic or business rules? DTOs validate only
+- Guard/interceptor in wrong layer: auth checks in services, response transformation in controllers?
+
+DRY — WITHIN CHANGED SCOPE
+- Does new code duplicate a query that already exists in the same repository? (copy-paste variation)
+- Does new code re-implement a transformation that already exists in a service or mapper?
+- Does new code define a new domain exception that is identical or near-identical to an existing one?
+- Does new code repeat a validation rule inline that is already expressed in a shared DTO or util?
+- Only flag actual duplication visible in changed files — not hypothetical future cases
+
+DOMAIN BOUNDARY VIOLATIONS
+- Does a service in module A import a repository from module B? → critical violation
+- Does a repository in module A SELECT from a table owned by module B? → critical violation
+- Is a cross-domain data need solved by direct import rather than EventEmitter2 events or the
+  other module's exported service? → major
+- Check all new imports: if a service imports from a different bounded domain folder, flag it
+
+DATA STRUCTURES & ALGORITHM COMPLEXITY
+- Array.find() or Array.includes() called inside a loop (O(n²)) → pre-build a Map before the loop
+- Two or more Array.filter() passes on the same array → single .reduce() accumulating both results
+- Array.includes() for membership test on a set that never changes → use a Set or Record lookup
+- Fetching full entity rows just to check existence → SELECT id WHERE ... LIMIT 1 (exists pattern)
+- Loading all rows to count them → SELECT COUNT(*) not array.length after full fetch
+- Sorting inside a function called repeatedly on unchanged data → sort once, cache the result
+- Two separate queries that could be expressed as one JOIN → flag as N+1
+
+NAMING CONSISTENCY
+- Repository methods: find* (read one/many), create* (insert), update* (update), delete* (soft delete),
+  verify* (boolean ownership/existence check), count* (aggregation)
+- Service methods: get* (reads), create*/start*/finish*/complete* (writes), compute*/build* (derivations)
+- Event names: SCREAMING_SNAKE_CASE past-tense nouns (WORKOUT_SESSION_COMPLETED not COMPLETE_WORKOUT)
+- DTO classes: [Action][Entity]Dto (CreateSetDto, FinishSessionDto, StartSessionDto)
+- Exception classes: [Entity][Condition]Exception (SessionNotFoundException, SessionAlreadyActiveException)
+- Inconsistent naming breaks grep-driven navigation and makes the codebase harder to extend
+
+VALIDATION COMPLETENESS
+- New numeric DTO field without @Min + @Max bounds → allows unbounded user input
+- New string DTO field without @MaxLength → allows unbounded string from users
+- New array DTO field without @ArrayMaxSize → allows unbounded array payload
+- UUID fields using @IsString() not @IsUUID() → accepts malformed IDs, breaks FK constraints
+- @IsOptional() not placed FIRST in the decorator stack → class-validator ignores it
+
+DEAD CODE
+- New exported function/method with zero call sites in the codebase → flag
+- New import not referenced anywhere in the file → flag
+- New event emitted with no registered listener → warn (not blocking, but note it)
+- New DTO field defined but never read in the handler → flag
+
+RESPONSE SHAPE CONSISTENCY
+- New POST endpoint returning 200 instead of 201 → flag
+- New DELETE endpoint returning a body instead of 204 → flag
+- New endpoint returning bare data where existing endpoints use { data: T } envelope → flag
+- New error response not matching { error: { code: string, message: string } } shape → flag
+- Field naming: new response field in snake_case when all existing fields are camelCase (or vice versa)
+
+ERROR MESSAGE QUALITY
+- Domain exceptions must include the entity ID: "Session {sessionId} not found" not "Not found"
+- Error codes must be unique SCREAMING_SNAKE_CASE strings per exception class
+- Error messages must be actionable — what happened, not a generic status word
+- No internal details in exception messages: no SQL, no stack traces, no file paths, no table names
+
 OUTPUT FORMAT — for each issue found:
   SEVERITY: critical | major | minor
   FILE: exact path + line number
@@ -206,6 +288,129 @@ MOBILE / PWA
 - No fixed-height elements that break on smaller screens (use min-h, not h-)
 - Horizontal scroll containers have -webkit-overflow-scrolling: touch equivalent (overflow-x-auto)
 - Swipe gesture components: horizontal drag must not intercept vertical page scroll
+
+ARCHITECTURAL QUALITY — CHANGED FILES ONLY
+Scope rule: only flag patterns introduced or worsened in the changed lines. Do not audit the
+whole codebase. Ask: "does this new code make the codebase worse?" not "is the codebase perfect?"
+
+CONSTANTS & MAGIC VALUES
+- Does new code hardcode a numeric value that belongs in WORKOUT_CONSTANTS or UI_CONSTANTS?
+  Examples: 2.5 (weight step), 90 (rest seconds), 60 (default weight), 84 (nav height px),
+  300 (debounce ms), 3000 (toast duration ms), 500 (long press delay ms)
+- Does new code hardcode a Tailwind arbitrary value that belongs in a spacing/sizing token?
+  Example: h-[84px] when UI_CONSTANTS.NAV_HEIGHT_PX already defines 84
+- Does new code hardcode a timeout (setTimeout(fn, 3000)) instead of referencing UI_CONSTANTS?
+- Exception: a one-off value truly unique to this component and never shared elsewhere is fine
+
+QUERY KEY CONSISTENCY
+- Does new useQuery or useMutation use raw string arrays (['workouts', 'today']) instead of
+  QUERY_KEYS factory from lib/query-keys? → flag, replace with QUERY_KEYS.*()
+- Does new invalidateQueries use raw strings instead of QUERY_KEYS.*()? → flag
+- Does a new query key omit a variable the query depends on?
+  Example: a query using exerciseId must include it in the key — ['exercise', 'stats'] is wrong
+- Does a new mutation fail to invalidate affected query keys?
+  Example: finishing a session must invalidate workouts.today AND workouts.sessions.active
+
+AUTH QUERY PATTERN
+- Does new query copy `const isAuthenticated = useAuthStore(s => s.accessToken !== null)` inline
+  then pass it as `enabled`? → should use useAuthQuery base hook instead
+- Does new query manually guard with `enabled: isAuthenticated` without using useAuthQuery? → flag
+
+FORMAT FUNCTIONS
+- Does new code format weight/kg inline (value % 1 === 0 ? ... : value.toFixed(1))?
+  → use formatWeight() from lib/format
+- Does new code compute a time display inline (Math.floor(s/60) + ':' + ...)?
+  → use formatDuration() from lib/format
+- Does new code transform muscle group strings inline (.replace(/_/g, ' '), toUpperCase)?
+  → use formatMuscleGroup() from lib/format
+- Does new code compute a volume display inline?
+  → use formatVolume() from lib/format
+
+STATE PLACEMENT
+- Is new useState storing data that is directly derivable from props or other state?
+  → useMemo instead; useState for derived values causes stale state bugs
+- Is new useState storing a server response (API data)?
+  → useQuery instead; useState for server data breaks cache consistency
+- Is new Zustand slice storing data returned by a TanStack Query?
+  → critical violation; Zustand is for UI state only
+- Is new URL-sensitive state (tabs, filters, selected item) in useState?
+  → nuqs instead; useState breaks back button and link sharing
+- Is state being lifted through props to a sibling component?
+  → move to Zustand slice if shared cross-screen, or restructure component tree
+
+HOOK EXTRACTION
+- Does new component body directly call apiGet/apiPost or contain fetch logic?
+  → extract to a custom hook using useQuery/useMutation
+- Does new component body contain a complex derived computation (> 5 lines)?
+  → extract to useMemo inside the component, or to a custom hook if reused
+- Is the same useEffect + useState combo pattern used in more than one component?
+  → extract to a shared hook in hooks/
+- Does any new hook call another hook conditionally or inside a loop?
+  → Rules of Hooks violation — crashes in StrictMode and production
+
+COMPONENT COMPOSITION
+- New component > 150 lines? → list the specific sub-components that should be extracted
+- New component handles both data fetching AND complex rendering?
+  → split into a container hook and a pure presentational component
+- New JSX has 3+ levels of nested ternary?
+  → extract to a named renderX() function or a named sub-component
+- New component receives 5+ props being passed straight through to a child 2+ levels down?
+  → extract context, collocate state, or restructure the tree
+
+CLASS NAME COMPOSITION
+- Does new code build Tailwind class strings with string concatenation (className += ' ...') or
+  template literals ('base-class ' + condition ? 'a' : 'b')? → cn() from lib/utils
+- Does new code produce potentially conflicting Tailwind classes (two bg-* or two text-* values)?
+  → cn() with tailwind-merge resolves conflicts automatically; raw concatenation does not
+- Does new code have a className that reads as an unstructured wall of 15+ classes with no logic?
+  → consider cva() for variant-heavy components
+
+MOTION PATTERNS
+- Does new animation hardcode an easing array ([0.0, 0.0, 0.2, 1] or [0.34, 1.56, 0.64, 1])?
+  → import EASE_OUT or EASE_SPRING from lib/motion
+- Does new component check prefersReducedMotion inline with a ternary to switch animation off?
+  → use motionTransition() helper from lib/motion
+- Does new animation use `animate={{ ... }}` with inline values instead of named `variants`?
+  → flag; variants are required for consistency and enable exit animations
+- Does new animation animate width, height, margin, or padding?
+  → critical; these trigger layout recalculation. Animate transform/opacity/scale only
+
+COMPONENT REUSE — CHECK BEFORE BUILDING
+- Does new code render a raw <button> or <input> when Button/Input exists in components/ui?
+  → always use design system components; raw elements only when no component fits
+- Does new code build a bottom sheet or drawer from scratch?
+  → use the BottomSheet atom from components/ui
+- Does new code implement a stepper (+ / - control for numeric values)?
+  → use StepperControl from components/ui
+- Does new code re-implement a password visibility toggle?
+  → use PasswordToggleIcon from components/ui
+- General rule: grep components/ui/ before writing any new interactive UI primitive
+
+EFFECT NECESSITY
+- Is useEffect used to set state that could be computed with useMemo?
+  → remove the effect; compute inline. Effects for state sync are a common source of stale loops
+- Is useEffect used to call an async function on mount with an empty dep array?
+  → consider whether this is a query (use useQuery instead)
+- Does useEffect have [] but read from props or state inside the body?
+  → stale closure — values captured at mount never update
+- Does useEffect subscribe to an event or interval without returning a cleanup function?
+  → memory leak on unmount
+
+NAMING CONSISTENCY
+- Hooks: use* prefix always (useTodayWorkout, not getTodayWorkout or todayWorkoutHook)
+- Components: PascalCase, describe what renders (ExerciseDetailSheet not ExerciseModal2)
+- Event handlers: handle* prefix for local handlers (handleSubmit, handleRemove)
+  on* prefix for props that receive handlers (onClose, onSelect)
+- Boolean props: is*/has*/should* prefix (isLoading, hasWorkout, shouldAnimate)
+- Named exports for all components — default exports only for page.tsx (Next.js requirement)
+
+DEAD CODE & UNUSED IMPORTS
+- New import not used anywhere in the file? → flag
+- New component prop in the interface that never appears in JSX? → flag
+- New exported component/hook with no import site anywhere in the project? → flag
+  (exception: page.tsx and layout.tsx are loaded by Next.js routing, not imported)
+- useCallback or useMemo wrapping a value that is neither a dep array member nor passed as a prop?
+  → the memoization buys nothing; remove it
 
 OUTPUT FORMAT — for each issue found:
   SEVERITY: critical | major | minor

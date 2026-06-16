@@ -117,6 +117,75 @@ export class WorkoutSessionNotFoundException extends DomainException {
 
 ---
 
+## Writing Database Migrations
+
+Migrations live in `apps/api/libs/database/migrations/`. They are forward-only and numbered sequentially. Never modify an existing migration file — create a new one.
+
+**File naming**: `NNNN_[action]_[entity].ts` where NNNN is the next sequential number (check existing files).
+
+**Safe column additions — required pattern**
+```typescript
+// Adding a nullable column — always safe
+await db.schema.alterTable('workout_sessions')
+  .addColumn('fatigue_rating', 'integer', (col) => col.defaultTo(null))
+  .execute();
+
+// Adding a NOT NULL column — MUST have a DEFAULT or the migration fails on existing rows
+await db.schema.alterTable('workout_sessions')
+  .addColumn('total_sets', 'integer', (col) => col.notNull().defaultTo(0))
+  .execute();
+```
+
+**Never do this in `up()`**
+- `DROP TABLE` or `DROP COLUMN` without a preceding data migration and stakeholder sign-off
+- `ALTER COLUMN ... SET NOT NULL` on a column with existing NULL rows (will fail)
+- Adding a UNIQUE constraint on a column that might have duplicate values in production
+
+**Index naming convention**
+```
+idx_[table]_[column(s)]
+idx_[table]_[column]_[condition]   ← for partial indexes
+
+Examples:
+idx_workout_sessions_user_id
+idx_workout_sessions_user_id_active        ← WHERE checked_out_at IS NULL
+idx_set_logs_session_id
+```
+
+**`down()` is required and must exactly reverse `up()`**
+```typescript
+async down(db: Kysely<unknown>): Promise<void> {
+  await db.schema.alterTable('workout_sessions').dropColumn('fatigue_rating').execute();
+}
+```
+
+**Transactions in migrations**: wrap multi-statement migrations in a transaction so a partial failure doesn't leave the schema in an inconsistent state.
+
+---
+
+## Writing Tests
+
+Tests are not written yet — the app is still in active feature development. When tests are added (after the core loop is stable), follow this pattern:
+
+**Unit tests (service layer)**
+- File: `modules/[domain]/__tests__/[domain].service.spec.ts`
+- Mock repositories at the class level using jest.fn()
+- Test every branch: happy path, not-found, ownership violation, concurrent mutation
+- Never mock at the Kysely/DB level — mock the repository interface
+
+**Integration tests (repository layer)**
+- File: `modules/[domain]/__tests__/[domain].repository.spec.ts`
+- Use a real test database seeded with fixtures — never mock the DB in integration tests
+- Cover: joins, aggregations, soft-delete filtering, ownership WHERE clauses
+
+**Frontend tests (component + hook layer)**
+- File: colocated `ComponentName.test.tsx` next to the component
+- Use Vitest + React Testing Library
+- Test: user interactions (click, type), loading/error/empty states, query invalidation on mutation
+- Do not test internal implementation — test what the user sees and does
+
+---
+
 ## Self-Review Checklist (before marking done)
 
 - [ ] No hardcoded hex values — Tailwind token classes only

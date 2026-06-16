@@ -102,6 +102,74 @@ loading.tsx and error.tsx are required on every data-fetching page — never opt
 
 ---
 
+## Error Boundaries
+
+Every data-fetching route must have an error.tsx. But error boundaries also need deliberate placement at the component level for partial failures.
+
+**Where to place boundaries**
+```
+app/(app)/layout.tsx          → root boundary: catches total crashes, shows "reload" screen
+app/(app)/today/error.tsx     → per-route: catches Today screen data failures
+app/(app)/session/error.tsx   → per-route: catches session load failures
+```
+Never wrap every component in its own boundary — that fragments the error surface and makes debugging harder. One boundary per logical "page region" that can fail independently.
+
+**What error boundaries catch**
+- Render errors thrown during React's render phase
+- Errors inside useEffect that propagate to the render tree (rare)
+- They do NOT catch: async errors in event handlers, errors in setTimeout/Promise — those need try/catch
+
+**Fallback UI pattern**
+Error boundaries in fitNXT show a minimal recovery UI, not a blank screen:
+```tsx
+// error.tsx
+'use client';
+export default function ErrorBoundary({ error, reset }: { error: Error; reset: () => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center flex-1 gap-4 p-8">
+      <p className="text-t2 text-sm text-center">{error.message || 'Something went wrong'}</p>
+      <button onClick={reset} className="text-coral text-sm underline">Try again</button>
+    </div>
+  );
+}
+```
+The `reset()` function re-renders the route segment — prefer this over full page reload.
+
+**Partial failure pattern (component-level)**
+When a sub-section of a page can fail independently (e.g. MacroRing fails but WorkoutCard should still show), wrap that section in a client-side ErrorBoundary component, not a route error.tsx. Specify this in your component tree spec so developer knows where to place it.
+
+---
+
+## Bundle Analysis & Code Splitting
+
+**Core rule**: never make the user wait for code they didn't ask for.
+
+**What to always lazy-load**
+- Heavy chart libraries (recharts, victory) — only load on Progress screen
+- ExerciseDetailSheet — only load when a user taps an exercise (it's never in the critical path)
+- AI coach components — only load on Coach screen
+- Any component > 20KB that is not on the default landing screen (Today)
+
+```typescript
+// Pattern — dynamic import in Next.js App Router
+const ExerciseDetailSheet = dynamic(
+  () => import('@/components/session/ExerciseDetailSheet'),
+  { ssr: false }  // sheets are client-only
+);
+```
+
+**What NOT to lazy-load**
+- Core UI atoms (Button, Input, Badge) — tiny, always needed
+- Bottom nav — visible on every screen
+- Today screen components — first thing the user sees after login
+
+**Bundle size budget**: Initial JS < 150KB gzipped. When specifying a new screen or heavy component, note whether it needs a dynamic import and why.
+
+**When to specify Suspense boundaries**
+Wrap lazy-loaded components in `<Suspense fallback={<SkeletonComponent />}>`. The fallback must match the component's layout (no generic spinners — use a skeleton that matches the content shape). Specify the skeleton shape in your component tree output.
+
+---
+
 ## Output Format
 
 1. Problem statement
