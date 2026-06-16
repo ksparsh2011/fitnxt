@@ -1,16 +1,14 @@
 'use client';
-import { useQuery } from '@tanstack/react-query';
+import { useAuthQuery } from './useAuthQuery';
 import { apiGet } from '@/lib/api';
-import { useAuthStore } from '@/stores/auth.store';
+import { QUERY_KEYS } from '@/lib/query-keys';
 import type { TodayWorkout } from '@/types/today';
 
+/** Returns the training plan for the specified day number (1=Monday, 7=Sunday). */
 export function useDayWorkout(dayNumber: number) {
-  const isAuthenticated = useAuthStore((s) => s.accessToken !== null);
-
-  return useQuery<TodayWorkout | null>({
-    queryKey: ['workouts', 'day', dayNumber],
+  return useAuthQuery<TodayWorkout | null>({
+    queryKey: QUERY_KEYS.workouts.day(dayNumber),
     queryFn: () => apiGet<TodayWorkout>(`/workouts/day/${dayNumber}`),
     staleTime: 60_000,
-    enabled: isAuthenticated,
   });
 }

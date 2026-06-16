@@ -73,6 +73,16 @@ export class WorkoutsRepository {
       .executeTakeFirst();
   }
 
+  async verifySessionOwnership(sessionId: string, userId: string): Promise<boolean> {
+    const row = await this.db
+      .selectFrom('workout_sessions')
+      .select('id')
+      .where('id', '=', sessionId)
+      .where('user_id', '=', userId)
+      .executeTakeFirst();
+    return row !== undefined;
+  }
+
   async createSession(
     userId: string,
     trainingDayId: string | null,
@@ -119,16 +129,6 @@ export class WorkoutsRepository {
       .where('session_id', '=', sessionId)
       .orderBy('set_number', 'asc')
       .execute();
-  }
-
-  async getSetCountForExerciseInSession(sessionId: string, exerciseId: string): Promise<number> {
-    const result = await this.db
-      .selectFrom('set_logs')
-      .select((eb) => eb.fn.count<number>('id').as('cnt'))
-      .where('session_id', '=', sessionId)
-      .where('exercise_id', '=', exerciseId)
-      .executeTakeFirst();
-    return Number(result?.cnt ?? 0);
   }
 
   async insertSetLog(data: {

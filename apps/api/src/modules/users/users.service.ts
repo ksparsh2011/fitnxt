@@ -10,6 +10,7 @@ import { UserNotFoundException } from './exceptions/users.exceptions';
 export class UsersService {
   constructor(private readonly usersRepository: UsersRepository) {}
 
+  /** Returns the full user profile including email, display name, fitness goal, and onboarding status. */
   async getProfile(userId: string): Promise<UserProfileResponseDto> {
     const record = await this.usersRepository.findUserWithProfile(userId);
     if (!record) {
@@ -26,6 +27,7 @@ export class UsersService {
     return dto;
   }
 
+  /** Saves onboarding data for the user and marks the onboarding flow as completed. */
   async updateOnboarding(
     userId: string,
     dto: PatchOnboardingDto,
@@ -34,6 +36,7 @@ export class UsersService {
     return { onboardingCompleted: true };
   }
 
+  /** Returns the lightweight user profile used for display, including session count and member since date. */
   async getLeanProfile(userId: string): Promise<LeanProfileResponseDto> {
     const record = await this.usersRepository.findLeanProfile(userId);
     if (!record) {
@@ -50,6 +53,7 @@ export class UsersService {
     return dto;
   }
 
+  /** Applies the given profile field changes and returns the updated lean profile. */
   async updateProfile(userId: string, dto: PatchProfileDto): Promise<LeanProfileResponseDto> {
     await this.usersRepository.updateProfileFields(userId, dto);
     return this.getLeanProfile(userId);

@@ -1,16 +1,14 @@
 'use client';
-import { useQuery } from '@tanstack/react-query';
+import { useAuthQuery } from './useAuthQuery';
 import { apiGet } from '@/lib/api';
-import { useAuthStore } from '@/stores/auth.store';
+import { QUERY_KEYS } from '@/lib/query-keys';
 import type { WeekPlanDay } from '@/types/today';
 
+/** Returns the 7-day training plan overview for the authenticated user. */
 export function useWeekPlan() {
-  const isAuthenticated = useAuthStore((s) => s.accessToken !== null);
-
-  return useQuery<WeekPlanDay[] | null>({
-    queryKey: ['workouts', 'week'],
+  return useAuthQuery<WeekPlanDay[] | null>({
+    queryKey: QUERY_KEYS.workouts.week(),
     queryFn: () => apiGet<WeekPlanDay[]>('/workouts/week'),
     staleTime: 60_000,
-    enabled: isAuthenticated,
   });
 }

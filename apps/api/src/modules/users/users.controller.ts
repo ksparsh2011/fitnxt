@@ -1,11 +1,11 @@
-import { Body, Controller, Get, Patch, Req, UseGuards } from '@nestjs/common';
-import { Request } from 'express';
+import { Body, Controller, Get, Patch, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UserProfileResponseDto } from './dto/user-profile.response.dto';
 import { PatchOnboardingDto } from './dto/patch-onboarding.dto';
 import { PatchProfileDto } from './dto/patch-profile.dto';
 import { LeanProfileResponseDto } from './dto/lean-profile.response.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CurrentUser, CurrentUserPayload } from '../../common/decorators/current-user.decorator';
 
 @Controller('users')
 export class UsersController {
@@ -18,35 +18,31 @@ export class UsersController {
 
   @Get('me')
   @UseGuards(JwtAuthGuard)
-  async getMe(@Req() req: Request): Promise<UserProfileResponseDto> {
-    const { userId } = req.user as { userId: string; email: string };
-    return this.usersService.getProfile(userId);
+  async getMe(@CurrentUser() user: CurrentUserPayload): Promise<UserProfileResponseDto> {
+    return this.usersService.getProfile(user.userId);
   }
 
   @Patch('me/onboarding')
   @UseGuards(JwtAuthGuard)
   async updateOnboarding(
-    @Req() req: Request,
+    @CurrentUser() user: CurrentUserPayload,
     @Body() dto: PatchOnboardingDto,
   ): Promise<{ onboardingCompleted: boolean }> {
-    const { userId } = req.user as { userId: string; email: string };
-    return this.usersService.updateOnboarding(userId, dto);
+    return this.usersService.updateOnboarding(user.userId, dto);
   }
 
   @Get('me/profile')
   @UseGuards(JwtAuthGuard)
-  async getLeanProfile(@Req() req: Request): Promise<LeanProfileResponseDto> {
-    const { userId } = req.user as { userId: string; email: string };
-    return this.usersService.getLeanProfile(userId);
+  async getLeanProfile(@CurrentUser() user: CurrentUserPayload): Promise<LeanProfileResponseDto> {
+    return this.usersService.getLeanProfile(user.userId);
   }
 
   @Patch('me/profile')
   @UseGuards(JwtAuthGuard)
   async updateProfile(
-    @Req() req: Request,
+    @CurrentUser() user: CurrentUserPayload,
     @Body() dto: PatchProfileDto,
   ): Promise<LeanProfileResponseDto> {
-    const { userId } = req.user as { userId: string; email: string };
-    return this.usersService.updateProfile(userId, dto);
+    return this.usersService.updateProfile(user.userId, dto);
   }
 }

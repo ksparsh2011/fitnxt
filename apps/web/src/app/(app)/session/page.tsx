@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Dumbbell } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { WeekStrip } from '@/components/session/WeekStrip';
@@ -11,10 +11,12 @@ import { PreSessionExerciseCard } from '@/components/session/PreSessionExerciseC
 import { ExerciseDetailSheet } from '@/components/session/ExerciseDetailSheet';
 import { useWeekPlan } from '@/hooks/useWeekPlan';
 import { useDayWorkout } from '@/hooks/useDayWorkout';
+import { useStartSession } from '@/hooks/useStartSession';
 import { useSessionStore } from '@/stores/session.store';
-import { apiGet, apiPost } from '@/lib/api';
+import { apiGet } from '@/lib/api';
 import { computeTodayDayNumber } from '@/lib/dates';
-import type { ActiveSessionResponse, TodayWorkout } from '@/types/today';
+import { QUERY_KEYS } from '@/lib/query-keys';
+import type { TodayWorkout } from '@/types/today';
 
 function estimateMinutes(
   exercises: TodayWorkout['exercises'],
@@ -30,7 +32,6 @@ function estimateMinutes(
 
 export default function SessionEntryPage() {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const todayDayNumber = computeTodayDayNumber();
 
   const [selectedDayNumber, setSelectedDayNumber] = useState(todayDayNumber);
@@ -39,10 +40,10 @@ export default function SessionEntryPage() {
     null,
   );
   const [overrideSets, setOverrideSets] = useState<Record<string, number>>({});
-  const [isStarting, setIsStarting] = useState(false);
 
   const weekPlan = useWeekPlan();
   const dayWorkout = useDayWorkout(selectedDayNumber);
+  const startSession = useStartSession();
   const setSkippedExercises = useSessionStore((s) => s.setSkippedExercises);
 
   const handleRemove = useCallback((id: string) => {
@@ -55,7 +56,7 @@ export default function SessionEntryPage() {
 
   // Check for active session via TanStack Query and redirect if found
   const activeSessionQuery = useQuery({
-    queryKey: ['workouts', 'sessions', 'active'],
+    queryKey: QUERY_KEYS.workouts.sessions.active(),
     queryFn: () => apiGet<{ sessionId: string } | null>('/workouts/sessions/active'),
     staleTime: 0,
     retry: false,
@@ -69,26 +70,6 @@ export default function SessionEntryPage() {
   const exercises = dayWorkout.data?.exercises ?? [];
   const isToday = selectedDayNumber === todayDayNumber;
   const estMin = estimateMinutes(exercises, overrideSets);
-
-  const handleStartSession = async () => {
-    if (!isToday) return;
-    setSkippedExercises(Array.from(skippedIds));
-    setIsStarting(true);
-    try {
-      const session = await apiPost<ActiveSessionResponse>('/workouts/sessions', {
-        training_day_id: dayWorkout.data?.trainingDayId ?? null,
-      });
-      if (session?.sessionId) {
-        await queryClient.invalidateQueries({ queryKey: ['workouts', 'today'] });
-        await queryClient.invalidateQueries({ queryKey: ['workouts', 'week'] });
-        router.replace(`/session/${session.sessionId}`);
-      } else {
-        setIsStarting(false);
-      }
-    } catch {
-      setIsStarting(false);
-    }
-  };
 
   const hasActivePlan = (weekPlan.data ?? []).some((d) => d.hasWorkout);
 
@@ -238,11 +219,14 @@ export default function SessionEntryPage() {
                 variant="coral"
                 size="lg"
                 className="w-full rounded-xl font-display font-bold text-[17px] tracking-[0.02em] h-14"
-                loading={isStarting}
-                onClick={() => void handleStartSession()}
-                disabled={isStarting || !dayWorkout.data}
+                loading={startSession.isPending}
+                onClick={() => {
+                  setSkippedExercises(Array.from(skippedIds));
+                  startSession.mutate(dayWorkout.data?.trainingDayId ?? null);
+                }}
+                disabled={startSession.isPending || !dayWorkout.data}
               >
-                {!isStarting && (
+                {!startSession.isPending && (
                   <svg
                     width="18"
                     height="18"

@@ -40,6 +40,7 @@ export class WorkoutsService {
     return jsDay === 0 ? 7 : jsDay; // Sunday→7, others stay
   }
 
+  /** Returns today's scheduled training day and exercise list for the given user. */
   async getTodayWorkout(userId: string, clientDayNumber?: number): Promise<TodayWorkoutResponseDto | null> {
     return this.buildDayWorkoutResponse(userId, clientDayNumber ?? this.computeTodayDayNumber());
   }
@@ -73,6 +74,7 @@ export class WorkoutsService {
     return dto;
   }
 
+  /** Returns the currently active (unfinished) workout session for the given user, or null. */
   async getActiveSession(userId: string): Promise<ActiveSessionResponseDto | null> {
     const session = await this.workoutsRepository.findActiveSession(userId);
     if (!session) return null;
@@ -85,6 +87,7 @@ export class WorkoutsService {
     return dto;
   }
 
+  /** Creates a new workout session, optionally linked to a training day. */
   async startSession(userId: string, dto: StartSessionDto): Promise<ActiveSessionResponseDto> {
     const existing = await this.workoutsRepository.findActiveSession(userId);
     if (existing) throw new SessionAlreadyActiveException();
@@ -109,14 +112,15 @@ export class WorkoutsService {
     return response;
   }
 
+  /** Logs a single set for the specified exercise within the active session, detecting PRs. */
   async logSet(
     userId: string,
     sessionId: string,
     dto: LogSetDto,
   ): Promise<{ setId: string; isPr: boolean; pr?: PREvent }> {
     // Ownership check: session must exist and belong to this user
-    const { session: ownedSession } = await this.workoutsRepository.getSessionWithSets(sessionId, userId);
-    if (!ownedSession) throw new SessionNotFoundException(sessionId);
+    const isOwner = await this.workoutsRepository.verifySessionOwnership(sessionId, userId);
+    if (!isOwner) throw new SessionNotFoundException(sessionId);
 
     const { id: setId } = await this.workoutsRepository.insertSetLog({
       sessionId,
@@ -189,6 +193,7 @@ export class WorkoutsService {
     return { setId, isPr, pr };
   }
 
+  /** Marks the session as complete, computes volume/PR totals, and emits the completion event. */
   async finishSession(
     userId: string,
     sessionId: string,
@@ -199,13 +204,17 @@ export class WorkoutsService {
     if (session.checked_out_at !== null) throw new SessionAlreadyFinishedException();
 
     const setLogs = await this.workoutsRepository.getSetLogsForSession(sessionId);
-    const nonWarmupSets = setLogs.filter((s) => !s.is_warmup);
-    const totalVolumeKg = nonWarmupSets.reduce(
-      (acc, s) => acc + (s.weight_kg ?? 0) * s.reps,
-      0,
+    const { totalVolumeKg, totalSets, prCount } = setLogs.reduce(
+      (acc, s) => {
+        if (!s.is_warmup) {
+          acc.totalVolumeKg += (s.weight_kg ?? 0) * s.reps;
+          acc.totalSets += 1;
+        }
+        if (s.is_pr) acc.prCount += 1;
+        return acc;
+      },
+      { totalVolumeKg: 0, totalSets: 0, prCount: 0 },
     );
-    const totalSets = nonWarmupSets.length;
-    const prCount = setLogs.filter((s) => s.is_pr).length;
 
     await this.workoutsRepository.finishSession(sessionId, userId, {
       totalVolumeKg,
@@ -229,13 +238,16 @@ export class WorkoutsService {
     return this.buildSessionDetail(sessionId, userId);
   }
 
+  /** Returns the full session detail including all logged sets for the given session. */
   async getSession(userId: string, sessionId: string): Promise<WorkoutSessionDetail> {
     return this.buildSessionDetail(sessionId, userId);
   }
 
+  /** Returns exercises matching the search string (min 2 chars). */
   async searchExercises(
     search: string,
   ): Promise<Array<{ id: string; name: string; muscleGroups: string[]; equipment: string }>> {
+    if (!search || search.length < 2) return [];
     const results = await this.workoutsRepository.findExercises(search);
     return results.map((e) => ({
       id: e.id,
@@ -245,6 +257,7 @@ export class WorkoutsService {
     }));
   }
 
+  /** Creates a custom exercise scoped to the given user. */
   async createExercise(
     userId: string,
     dto: { name: string; equipment?: string; muscle_groups?: string[] },
@@ -348,6 +361,7 @@ export class WorkoutsService {
     };
   }
 
+  /** Returns the training day workout for the specified day number. */
   async getDayWorkout(userId: string, dayNumber: number): Promise<TodayWorkoutResponseDto | null> {
     if (dayNumber < 1 || dayNumber > 7) {
       throw new BadRequestException('dayNumber must be between 1 and 7');
@@ -355,6 +369,7 @@ export class WorkoutsService {
     return this.buildDayWorkoutResponse(userId, dayNumber);
   }
 
+  /** Returns the 7-day week overview indicating which days have workouts scheduled. */
   async getWeekPlan(userId: string): Promise<Array<{ dayNumber: number; name: string; focus: string[]; hasWorkout: boolean }>> {
     const activePlan = await this.workoutsRepository.findActivePlan(userId);
     if (!activePlan) {
@@ -381,6 +396,7 @@ export class WorkoutsService {
     });
   }
 
+  /** Returns historical performance stats for the specified exercise and user. */
   async getExerciseStats(
     userId: string,
     exerciseId: string,

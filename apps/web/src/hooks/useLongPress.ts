@@ -5,6 +5,7 @@ interface UseLongPressOptions {
   delay?: number;
 }
 
+/** Returns pointer event handlers that fire onLongPress after the pointer is held for the given delay. */
 export function useLongPress({ onLongPress, delay = 500 }: UseLongPressOptions) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 

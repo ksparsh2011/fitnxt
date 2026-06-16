@@ -65,37 +65,6 @@ export interface WorkoutPlan {
   createdAt: Date;
 }
 
-export interface WorkoutSession {
-  id: string;
-  userId: string;
-  /** FK to training_days.id — NULL for unplanned sessions */
-  trainingDayId?: string;
-  name: string;
-  startedAt: Date;
-  completedAt?: Date;
-  durationSeconds?: number;
-  notes?: string;
-  totalVolume?: number;
-}
-
-export interface ExerciseEntry {
-  id: string;
-  sessionId: string;
-  exerciseName: string;
-  muscleGroup: string;
-  orderIndex: number;
-}
-
-export interface Set {
-  id: string;
-  exerciseEntryId: string;
-  setNumber: number;
-  weightKg: number;
-  reps: number;
-  rpe?: number;
-  completedAt: Date;
-}
-
 export interface PersonalRecord {
   id: string;
   userId: string;

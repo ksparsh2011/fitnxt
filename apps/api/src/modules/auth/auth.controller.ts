@@ -16,13 +16,14 @@ import { RegisterDto } from './dto/register.dto';
 import { AuthResponse } from './interfaces/auth-tokens.interface';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { AUTH_CONSTANTS } from './auth.constants';
 
 const REFRESH_COOKIE_OPTIONS: CookieOptions = {
   httpOnly: true,
   secure: process.env['NODE_ENV'] === 'production',
   sameSite: 'lax',
   path: '/api/v1/auth',
-  maxAge: 7 * 24 * 60 * 60 * 1000,
+  maxAge: AUTH_CONSTANTS.REFRESH_TOKEN_TTL_MS,
 };
 
 @Controller('auth')
@@ -71,7 +72,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ accessToken: string }> {
     // req.cookies is typed as any by Express with cookie-parser — cast to avoid any propagation
-    const rawRefreshToken = (req.cookies as Record<string, string | undefined>)?.['refresh_token'];
+    const rawRefreshToken = (req.cookies as Record<string, string | undefined>)?.[AUTH_CONSTANTS.REFRESH_TOKEN_COOKIE];
     if (!rawRefreshToken) throw new UnauthorizedException('No refresh token');
     const result = await this.authService.refresh(rawRefreshToken);
     this.setRefreshCookie(res, result.rawRefreshToken);
@@ -87,7 +88,7 @@ export class AuthController {
   ): Promise<void> {
     // req.user is populated by JwtStrategy.validate() — shape is { userId, email }
     const user = req.user as { userId: string; email: string };
-    const rawRefreshToken = (req.cookies as Record<string, string | undefined>)?.['refresh_token'];
+    const rawRefreshToken = (req.cookies as Record<string, string | undefined>)?.[AUTH_CONSTANTS.REFRESH_TOKEN_COOKIE];
     if (rawRefreshToken) {
       await this.authService.logout(user.userId, rawRefreshToken);
     }
@@ -95,10 +96,10 @@ export class AuthController {
   }
 
   private setRefreshCookie(res: Response, rawToken: string): void {
-    res.cookie('refresh_token', rawToken, REFRESH_COOKIE_OPTIONS);
+    res.cookie(AUTH_CONSTANTS.REFRESH_TOKEN_COOKIE, rawToken, REFRESH_COOKIE_OPTIONS);
   }
 
   private clearRefreshCookie(res: Response): void {
-    res.clearCookie('refresh_token', REFRESH_COOKIE_OPTIONS);
+    res.clearCookie(AUTH_CONSTANTS.REFRESH_TOKEN_COOKIE, REFRESH_COOKIE_OPTIONS);
   }
 }

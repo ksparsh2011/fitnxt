@@ -1,8 +1,8 @@
-import { Controller, Get, Req, UseGuards } from '@nestjs/common';
-import { Request } from 'express';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { NutritionService } from './nutrition.service';
 import { TodayNutritionResponseDto } from './dto/today-nutrition.response.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CurrentUser, CurrentUserPayload } from '../../common/decorators/current-user.decorator';
 
 @Controller('nutrition')
 export class NutritionController {
@@ -15,8 +15,7 @@ export class NutritionController {
 
   @Get('today')
   @UseGuards(JwtAuthGuard)
-  async getTodayNutrition(@Req() req: Request): Promise<TodayNutritionResponseDto> {
-    const { userId } = req.user as { userId: string; email: string };
-    return this.nutritionService.getTodayNutrition(userId);
+  async getTodayNutrition(@CurrentUser() user: CurrentUserPayload): Promise<TodayNutritionResponseDto> {
+    return this.nutritionService.getTodayNutrition(user.userId);
   }
 }

@@ -1,7 +1,8 @@
 'use client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuthQuery } from './useAuthQuery';
 import { apiGet, apiPost, apiPatch } from '@/lib/api';
-import { useAuthStore } from '@/stores/auth.store';
+import { QUERY_KEYS } from '@/lib/query-keys';
 import type { WorkoutSessionDetail, PREvent } from '@fitnxt/shared';
 
 interface LogSetInput {
@@ -23,14 +24,14 @@ interface FinishSessionInput {
   notes?: string;
 }
 
+/** Returns the full session detail and exposes logSet / finishSession mutations. */
 export function useSession(sessionId: string | null) {
-  const isAuthenticated = useAuthStore((s) => s.accessToken !== null);
   const queryClient = useQueryClient();
 
-  const sessionQuery = useQuery<WorkoutSessionDetail | null>({
-    queryKey: ['sessions', sessionId],
+  const sessionQuery = useAuthQuery<WorkoutSessionDetail | null>({
+    queryKey: QUERY_KEYS.workouts.sessions.detail(sessionId ?? ''),
     queryFn: () => apiGet<WorkoutSessionDetail>(`/workouts/sessions/${sessionId}`),
-    enabled: !!sessionId && isAuthenticated,
+    enabled: !!sessionId,
     staleTime: 0,
   });
 
@@ -38,7 +39,9 @@ export function useSession(sessionId: string | null) {
     mutationFn: (input: LogSetInput) =>
       apiPost<LogSetResponse>(`/workouts/sessions/${sessionId}/sets`, input),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['sessions', sessionId] });
+      void queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.workouts.sessions.detail(sessionId ?? ''),
+      });
     },
   });
 
@@ -46,7 +49,8 @@ export function useSession(sessionId: string | null) {
     mutationFn: (input: FinishSessionInput) =>
       apiPatch<WorkoutSessionDetail>(`/workouts/sessions/${sessionId}/finish`, input),
     onSuccess: (data) => {
-      queryClient.setQueryData(['sessions', sessionId], data);
+      queryClient.setQueryData(QUERY_KEYS.workouts.sessions.detail(sessionId ?? ''), data);
+      // Prefix invalidation — dayNumber not known here, so invalidate all today keys
       void queryClient.invalidateQueries({ queryKey: ['workouts', 'today'] });
     },
   });

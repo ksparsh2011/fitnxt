@@ -14,10 +14,9 @@ import { RegisterDto } from './dto/register.dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { AuthTokens, AuthResponse } from './interfaces/auth-tokens.interface';
 import { UserRegistered, UserLoggedIn } from './events/auth.events';
+import { AUTH_CONSTANTS } from './auth.constants';
 import { DATABASE_TOKEN } from '../../../libs/database/database.module';
 import { Database } from '../../../libs/database/database.types';
-
-const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 @Injectable()
 export class AuthService {
@@ -45,8 +44,26 @@ export class AuthService {
     return { accessToken, rawRefreshToken };
   }
 
+  private async persistTokenSession(
+    userId: string,
+    email: string,
+    meta: { ipAddress: string | null; userAgent: string | null },
+  ): Promise<{ accessToken: string; rawRefreshToken: string }> {
+    const tokens = this.issueTokens(userId, email);
+    const expiresAt = new Date(Date.now() + AUTH_CONSTANTS.REFRESH_TOKEN_TTL_MS);
+    await this.authRepository.createRefreshToken({
+      userId,
+      tokenHash: this.hashToken(tokens.rawRefreshToken),
+      expiresAt,
+      userAgent: meta.userAgent,
+      ipAddress: meta.ipAddress,
+    });
+    return { accessToken: tokens.accessToken, rawRefreshToken: tokens.rawRefreshToken };
+  }
+
   // ── Public API ─────────────────────────────────────────────
 
+  /** Verifies the provided email and password, returning the user identity on success or null on failure. */
   async validateUser(
     email: string,
     password: string,
@@ -58,6 +75,7 @@ export class AuthService {
     return { id: user.id, email: user.email };
   }
 
+  /** Creates a new user account with a hashed password and issues the initial token pair. */
   async register(
     dto: RegisterDto,
     meta: { userAgent: string | null; ipAddress: string | null },
@@ -65,7 +83,7 @@ export class AuthService {
     const existing = await this.authRepository.findUserByEmail(dto.email);
     if (existing) throw new ConflictException('Email already registered');
 
-    const passwordHash = await bcrypt.hash(dto.password, 12);
+    const passwordHash = await bcrypt.hash(dto.password, AUTH_CONSTANTS.BCRYPT_ROUNDS);
 
     // Transaction: create user + profile atomically
     const user = await this.db.transaction().execute(async (trx) => {
@@ -88,16 +106,7 @@ export class AuthService {
       return { id: created.id, email: created.email };
     });
 
-    const tokens = this.issueTokens(user.id, user.email);
-    const expiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL_MS);
-
-    await this.authRepository.createRefreshToken({
-      userId: user.id,
-      tokenHash: this.hashToken(tokens.rawRefreshToken),
-      expiresAt,
-      userAgent: meta.userAgent,
-      ipAddress: meta.ipAddress,
-    });
+    const tokens = await this.persistTokenSession(user.id, user.email, meta);
 
     // Emit after transaction commits — never inside
     this.eventEmitter.emit(
@@ -113,64 +122,29 @@ export class AuthService {
     };
   }
 
+  /** Issues a new token pair for an already-validated user and emits the login event. */
   async login(
     user: { id: string; email: string },
     meta: { userAgent: string | null; ipAddress: string | null },
   ): Promise<AuthResponse & { rawRefreshToken: string }> {
-    const tokens = this.issueTokens(user.id, user.email);
-    const expiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL_MS);
-
-    await this.authRepository.createRefreshToken({
-      userId: user.id,
-      tokenHash: this.hashToken(tokens.rawRefreshToken),
-      expiresAt,
-      userAgent: meta.userAgent,
-      ipAddress: meta.ipAddress,
-    });
-
-    this.eventEmitter.emit(
-      UserLoggedIn.EVENT,
-      new UserLoggedIn(user.id, meta.ipAddress, meta.userAgent, new Date()),
-    );
-
-    return {
-      accessToken: tokens.accessToken,
-      userId: user.id,
-      email: user.email,
-      rawRefreshToken: tokens.rawRefreshToken,
-    };
+    const tokens = await this.persistTokenSession(user.id, user.email, meta);
+    this.eventEmitter.emit(UserLoggedIn.EVENT, new UserLoggedIn(user.id, meta.ipAddress, meta.userAgent, new Date()));
+    return { accessToken: tokens.accessToken, userId: user.id, email: user.email, rawRefreshToken: tokens.rawRefreshToken };
   }
 
+  /** Rotates the refresh token and issues a new access token, revoking the consumed token. */
   async refresh(
     rawRefreshToken: string,
   ): Promise<AuthResponse & { rawRefreshToken: string }> {
     const tokenHash = this.hashToken(rawRefreshToken);
     const existing = await this.authRepository.findValidRefreshToken(tokenHash);
     if (!existing) throw new UnauthorizedException('Invalid or expired refresh token');
-
-    // Revoke old token
     await this.authRepository.revokeRefreshToken(existing.id);
-
-    // Issue new tokens
-    const tokens = this.issueTokens(existing.userId, existing.email);
-    const expiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL_MS);
-
-    await this.authRepository.createRefreshToken({
-      userId: existing.userId,
-      tokenHash: this.hashToken(tokens.rawRefreshToken),
-      expiresAt,
-      userAgent: null,
-      ipAddress: null,
-    });
-
-    return {
-      accessToken: tokens.accessToken,
-      userId: existing.userId,
-      email: existing.email,
-      rawRefreshToken: tokens.rawRefreshToken,
-    };
+    const tokens = await this.persistTokenSession(existing.userId, existing.email, { ipAddress: null, userAgent: null });
+    return { accessToken: tokens.accessToken, userId: existing.userId, email: existing.email, rawRefreshToken: tokens.rawRefreshToken };
   }
 
+  /** Revokes all refresh tokens for the user, effectively signing out all devices. */
   async logout(userId: string, rawRefreshToken: string): Promise<void> {
     const tokenHash = this.hashToken(rawRefreshToken);
     // Verify the presented token belongs to this user before revoking all

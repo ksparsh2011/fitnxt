@@ -1,5 +1,6 @@
 'use client';
 import { useReducedMotion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 import { getWeekMonday } from '@/lib/dates';
 import type { WeekPlanDay } from '@/types/today';
 
@@ -34,18 +35,13 @@ export function WeekStrip({
         const planDay = weekPlan.find((d) => d.dayNumber === dayNumber);
         const hasWorkout = planDay?.hasWorkout ?? false;
 
-        let cellClass =
-          'flex-1 min-w-0 h-[60px] rounded-[14px] flex flex-col items-center justify-center gap-[2px] transition-colors duration-150 cursor-pointer select-none min-h-[44px]';
-
-        if (isToday) {
-          cellClass += ' bg-coral';
-        } else if (isSelected) {
-          cellClass += ' bg-transparent border-2 border-coral';
-        } else if (hasWorkout) {
-          cellClass += ' bg-surface-3';
-        } else {
-          cellClass += ' bg-surface-3 opacity-40';
-        }
+        const cellClass = cn(
+          'flex-1 min-w-0 h-[60px] rounded-[14px] flex flex-col items-center justify-center gap-[2px] transition-colors duration-150 cursor-pointer select-none min-h-[44px]',
+          isToday && 'bg-coral',
+          isSelected && !isToday && 'bg-transparent border-2 border-coral',
+          !isToday && !isSelected && hasWorkout && 'bg-surface-3',
+          !isToday && !isSelected && !hasWorkout && 'bg-surface-3 opacity-40',
+        );
 
         return (
           <div
@@ -66,18 +62,18 @@ export function WeekStrip({
               style={{ WebkitTapHighlightColor: 'transparent' }}
             >
               <span
-                className={
-                  'text-[9px] font-bold tracking-[0.04em] ' +
-                  (isToday ? 'text-white/75' : isSelected ? 'text-coral' : 'text-t2')
-                }
+                className={cn(
+                  'text-[9px] font-bold tracking-[0.04em]',
+                  isToday ? 'text-white/75' : isSelected ? 'text-coral' : 'text-t2',
+                )}
               >
                 {abbrev}
               </span>
               <span
-                className={
-                  'font-mono text-[13px] font-semibold leading-none ' +
-                  (isToday ? 'text-white' : isSelected ? 'text-coral' : 'text-t1')
-                }
+                className={cn(
+                  'font-mono text-[13px] font-semibold leading-none',
+                  isToday ? 'text-white' : isSelected ? 'text-coral' : 'text-t1',
+                )}
               >
                 {dateNum}
               </span>
@@ -85,9 +81,7 @@ export function WeekStrip({
             {/* Dot indicator */}
             {(hasWorkout || isToday) && (
               <div
-                className={
-                  'w-1 h-1 rounded-full ' + (isToday ? 'bg-coral' : 'bg-t3')
-                }
+                className={cn('w-1 h-1 rounded-full', isToday ? 'bg-coral' : 'bg-t3')}
                 aria-hidden="true"
               />
             )}

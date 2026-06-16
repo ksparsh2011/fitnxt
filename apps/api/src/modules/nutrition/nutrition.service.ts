@@ -6,6 +6,7 @@ import { TodayNutritionResponseDto } from './dto/today-nutrition.response.dto';
 export class NutritionService {
   constructor(private readonly nutritionRepository: NutritionRepository) {}
 
+  /** Returns today's logged macro totals alongside the user's configured macro targets. */
   async getTodayNutrition(userId: string): Promise<TodayNutritionResponseDto> {
     const now = new Date();
     const from = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));

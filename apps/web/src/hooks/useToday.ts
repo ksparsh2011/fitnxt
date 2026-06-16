@@ -1,34 +1,13 @@
 'use client';
-import { useQuery } from '@tanstack/react-query';
-import { apiGet } from '@/lib/api';
-import { useAuthStore } from '@/stores/auth.store';
-import type { UserProfile, TodayWorkout, TodayNutrition } from '@/types/today';
+import { useCurrentUser } from './useCurrentUser';
+import { useTodayWorkout } from './useTodayWorkout';
+import { useTodayNutrition } from './useTodayNutrition';
 
+/** Aggregates user profile, today's workout, and today's nutrition into a single data shape for the Today screen. */
 export function useToday() {
-  const isAuthenticated = useAuthStore((s) => s.accessToken !== null);
-
-  const userQuery = useQuery<UserProfile | null>({
-    queryKey: ['user', 'me'],
-    queryFn: () => apiGet<UserProfile>('/users/me'),
-    staleTime: Infinity,
-    enabled: isAuthenticated,
-  });
-
-  const localDayNumber = (() => { const d = new Date().getDay(); return d === 0 ? 7 : d; })();
-
-  const workoutQuery = useQuery<TodayWorkout | null>({
-    queryKey: ['workouts', 'today', localDayNumber],
-    queryFn: () => apiGet<TodayWorkout>(`/workouts/today?dayNumber=${localDayNumber}`),
-    staleTime: 60_000,
-    enabled: isAuthenticated,
-  });
-
-  const nutritionQuery = useQuery<TodayNutrition | null>({
-    queryKey: ['nutrition', 'today'],
-    queryFn: () => apiGet<TodayNutrition>('/nutrition/today'),
-    staleTime: 30_000,
-    enabled: isAuthenticated,
-  });
+  const userQuery = useCurrentUser();
+  const workoutQuery = useTodayWorkout();
+  const nutritionQuery = useTodayNutrition();
 
   return {
     user: userQuery.data,

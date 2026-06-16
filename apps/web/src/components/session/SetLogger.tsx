@@ -1,12 +1,15 @@
 'use client';
 import { useReducer, useCallback, useState } from 'react';
-import { ArrowRight, Check, ChevronRight, Minus, Plus } from 'lucide-react';
+import { ArrowRight, Check, ChevronRight } from 'lucide-react';
+import { StepperControl } from '@/components/ui/StepperControl';
 import { useSessionStore } from '@/stores/session.store';
 import { useSession } from '@/hooks/useSession';
 import { useToast } from '@/components/ui/Toast';
 import { Button } from '@/components/ui/Button';
 import { useLongPress } from '@/hooks/useLongPress';
 import { EditSetModal } from './EditSetModal';
+import { WORKOUT_CONSTANTS } from '@/lib/workout.constants';
+import { formatWeight } from '@/lib/format';
 import type { SessionExerciseLocal, LocalSet } from '@/stores/session.store';
 
 interface SetLoggerProps {
@@ -29,14 +32,12 @@ type LoggerAction =
   | { type: 'SET_WEIGHT'; value: number }
   | { type: 'SET_REPS'; value: number };
 
-const WEIGHT_STEP = 2.5;
-
 function loggerReducer(state: LoggerState, action: LoggerAction): LoggerState {
   switch (action.type) {
     case 'INCREMENT_WEIGHT':
-      return { ...state, weightKg: Math.round((state.weightKg + WEIGHT_STEP) * 10) / 10 };
+      return { ...state, weightKg: Math.round((state.weightKg + WORKOUT_CONSTANTS.WEIGHT_STEP_KG) * 10) / 10 };
     case 'DECREMENT_WEIGHT':
-      return { ...state, weightKg: Math.max(0, Math.round((state.weightKg - WEIGHT_STEP) * 10) / 10) };
+      return { ...state, weightKg: Math.max(0, Math.round((state.weightKg - WORKOUT_CONSTANTS.WEIGHT_STEP_KG) * 10) / 10) };
     case 'INCREMENT_REPS':
       return { ...state, reps: state.reps + 1 };
     case 'DECREMENT_REPS':
@@ -52,7 +53,7 @@ function loggerReducer(state: LoggerState, action: LoggerAction): LoggerState {
 
 function getInitialWeight(exercise: SessionExerciseLocal): number {
   const lastConfirmed = [...exercise.sets].reverse().find((s) => s.status === 'confirmed');
-  return lastConfirmed?.weightKg ?? 60;
+  return lastConfirmed?.weightKg ?? WORKOUT_CONSTANTS.DEFAULT_STARTING_WEIGHT_KG;
 }
 
 interface SetRowProps {
@@ -97,7 +98,7 @@ export function SetLogger({ exerciseIndex, exercise, sessionId, onNextExercise }
 
   const initialLoggerState: LoggerState = {
     weightKg: getInitialWeight(exercise),
-    reps: exercise.repsMin ?? 8,
+    reps: exercise.repsMin ?? WORKOUT_CONSTANTS.DEFAULT_REPS_MIN,
   };
   const [state, dispatch] = useReducer(loggerReducer, initialLoggerState);
 
@@ -150,7 +151,7 @@ export function SetLogger({ exerciseIndex, exercise, sessionId, onNextExercise }
         setPrCelebration(result.pr);
       }
 
-      startRestTimer(exercise.restSeconds ?? 90);
+      startRestTimer(exercise.restSeconds ?? WORKOUT_CONSTANTS.DEFAULT_REST_SECONDS);
     } catch {
       rollbackSet(exerciseIndex, localId);
       toast('Failed to log set. Please try again.', 'error');
@@ -172,8 +173,7 @@ export function SetLogger({ exerciseIndex, exercise, sessionId, onNextExercise }
   ]);
 
   const hasPending = pendingSets.length > 0;
-  const weightDisplay =
-    state.weightKg % 1 === 0 ? String(state.weightKg) : state.weightKg.toFixed(1);
+  const weightDisplay = formatWeight(state.weightKg);
 
   const editTargetSet =
     editTarget !== null ? exercise.sets.find((s) => s.localId === editTarget) : null;
@@ -256,52 +256,20 @@ export function SetLogger({ exerciseIndex, exercise, sessionId, onNextExercise }
       </div>
 
       {/* Weight stepper */}
-      <div className="flex items-center justify-between">
-        <span className="text-xs uppercase tracking-widest text-t2">Weight</span>
-        <div className="flex items-center">
-          <button
-            onClick={() => dispatch({ type: 'DECREMENT_WEIGHT' })}
-            className="w-12 h-12 rounded-l-xl bg-surface-3 border border-border text-t1 flex items-center justify-center active:bg-surface-4 transition-colors"
-            aria-label="Decrease weight"
-          >
-            <Minus className="w-4 h-4" strokeWidth={1.8} />
-          </button>
-          <div className="w-24 h-12 bg-surface-2 border-t border-b border-border flex items-center justify-center font-mono text-base font-medium text-t1">
-            {weightDisplay} kg
-          </div>
-          <button
-            onClick={() => dispatch({ type: 'INCREMENT_WEIGHT' })}
-            className="w-12 h-12 rounded-r-xl bg-surface-3 border border-border text-t1 flex items-center justify-center active:bg-surface-4 transition-colors"
-            aria-label="Increase weight"
-          >
-            <Plus className="w-4 h-4" strokeWidth={1.8} />
-          </button>
-        </div>
-      </div>
+      <StepperControl
+        label="Weight"
+        displayValue={`${weightDisplay} kg`}
+        onIncrement={() => dispatch({ type: 'INCREMENT_WEIGHT' })}
+        onDecrement={() => dispatch({ type: 'DECREMENT_WEIGHT' })}
+      />
 
       {/* Reps stepper */}
-      <div className="flex items-center justify-between">
-        <span className="text-xs uppercase tracking-widest text-t2">Reps</span>
-        <div className="flex items-center">
-          <button
-            onClick={() => dispatch({ type: 'DECREMENT_REPS' })}
-            className="w-12 h-12 rounded-l-xl bg-surface-3 border border-border text-t1 flex items-center justify-center active:bg-surface-4 transition-colors"
-            aria-label="Decrease reps"
-          >
-            <Minus className="w-4 h-4" strokeWidth={1.8} />
-          </button>
-          <div className="w-24 h-12 bg-surface-2 border-t border-b border-border flex items-center justify-center font-mono text-base font-medium text-t1">
-            {state.reps}
-          </div>
-          <button
-            onClick={() => dispatch({ type: 'INCREMENT_REPS' })}
-            className="w-12 h-12 rounded-r-xl bg-surface-3 border border-border text-t1 flex items-center justify-center active:bg-surface-4 transition-colors"
-            aria-label="Increase reps"
-          >
-            <Plus className="w-4 h-4" strokeWidth={1.8} />
-          </button>
-        </div>
-      </div>
+      <StepperControl
+        label="Reps"
+        displayValue={String(state.reps)}
+        onIncrement={() => dispatch({ type: 'INCREMENT_REPS' })}
+        onDecrement={() => dispatch({ type: 'DECREMENT_REPS' })}
+      />
 
       {/* LOG SET / NEXT EXERCISE button */}
       {allSetsDone ? (

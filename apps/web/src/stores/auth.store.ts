@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 interface AuthState {
   accessToken: string | null;
@@ -11,10 +12,22 @@ interface AuthActions {
   clearAuth: () => void;
 }
 
-export const useAuthStore = create<AuthState & AuthActions>((set) => ({
-  accessToken: null,
-  userId: null,
-  email: null,
-  setAuth: (accessToken, userId, email) => set({ accessToken, userId, email }),
-  clearAuth: () => set({ accessToken: null, userId: null, email: null }),
-}));
+export const useAuthStore = create<AuthState & AuthActions>()(
+  persist(
+    (set) => ({
+      accessToken: null,
+      userId: null,
+      email: null,
+      setAuth: (accessToken, userId, email) => set({ accessToken, userId, email }),
+      clearAuth: () => set({ accessToken: null, userId: null, email: null }),
+    }),
+    {
+      name: 'fitnxt-auth',
+      partialize: (state) => ({
+        accessToken: state.accessToken,
+        userId: state.userId,
+        email: state.email,
+      }),
+    },
+  ),
+);

@@ -11,3 +11,4 @@ export { Modal }        from "./Modal";
 export { Avatar }       from "./Avatar";
 export { BottomSheet }  from "./BottomSheet";
 export { OfflineBanner } from "./OfflineBanner";
+export { StepperControl } from "./StepperControl";
