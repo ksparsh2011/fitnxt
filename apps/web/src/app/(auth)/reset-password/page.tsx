@@ -1,28 +1,29 @@
 'use client';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
-import { RegisterSchema, type RegisterInput } from '@fitnxt/shared';
+import { ResetPasswordSchema, type ResetPasswordInput } from '@fitnxt/shared';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
 import { apiPost } from '@/lib/api';
-import { useAuthStore } from '@/stores/auth.store';
 import { getAuthVariants } from '@/lib/motion';
 
-interface AuthApiResponse {
-  accessToken: string;
-  userId: string;
-  email: string;
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={null}>
+      <ResetPasswordForm />
+    </Suspense>
+  );
 }
 
-export default function RegisterPage() {
+function ResetPasswordForm() {
   const router = useRouter();
-  const setAuth = useAuthStore((s) => s.setAuth);
+  const searchParams = useSearchParams();
+  const token = searchParams.get('token');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -33,23 +34,18 @@ export default function RegisterPage() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<RegisterInput>({
-    resolver: zodResolver(RegisterSchema),
+  } = useForm<ResetPasswordInput>({
+    resolver: zodResolver(ResetPasswordSchema),
   });
 
-  const onSubmit = async (data: RegisterInput) => {
+  const onSubmit = async (data: ResetPasswordInput) => {
+    if (!token) return;
     setServerError(null);
     try {
-      const res = await apiPost<AuthApiResponse>('/auth/register', {
-        email: data.email,
-        password: data.password,
-        displayName: data.displayName,
-      });
-      if (!res) throw new Error('Registration failed');
-      setAuth(res.accessToken, res.userId, res.email);
-      router.push('/onboard');
+      await apiPost('/auth/reset-password', { token, newPassword: data.newPassword });
+      router.push('/login');
     } catch (err) {
-      setServerError(err instanceof Error ? err.message : 'Registration failed');
+      setServerError(err instanceof Error ? err.message : 'Unable to reset password');
     }
   };
 
@@ -83,6 +79,27 @@ export default function RegisterPage() {
     </button>
   );
 
+  if (!token) {
+    return (
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="flex flex-col"
+      >
+        <motion.div variants={itemVariants} className="mb-3">
+          <p className="font-display text-3xl font-extrabold text-t1 mb-1">Invalid link</p>
+          <p className="text-sm text-t2">Invalid or missing reset link</p>
+        </motion.div>
+        <motion.div variants={itemVariants} className="mt-4">
+          <Link href="/forgot-password" className="text-sm text-violet hover:opacity-80 transition-opacity">
+            Request a new reset link
+          </Link>
+        </motion.div>
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div
       variants={containerVariants}
@@ -90,7 +107,6 @@ export default function RegisterPage() {
       animate="visible"
       className="flex flex-col"
     >
-      {/* Back */}
       <motion.div variants={itemVariants}>
         <button
           type="button"
@@ -104,8 +120,8 @@ export default function RegisterPage() {
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <motion.div variants={itemVariants} className="mb-3">
-          <p className="font-display text-3xl font-extrabold text-t1 mb-1">Create account</p>
-          <p className="text-sm text-t2">Start your AI-powered fitness journey</p>
+          <p className="font-display text-3xl font-extrabold text-t1 mb-1">Reset password</p>
+          <p className="text-sm text-t2">Choose a new password for your account</p>
         </motion.div>
 
         {serverError && (
@@ -120,41 +136,19 @@ export default function RegisterPage() {
 
         <motion.div variants={itemVariants} className="mt-6">
           <Input
-            label="Display name"
-            type="text"
-            autoComplete="name"
-            placeholder="Your name"
-            error={errors.displayName?.message}
-            {...register('displayName')}
-          />
-        </motion.div>
-
-        <motion.div variants={itemVariants} className="mt-4">
-          <Input
-            label="Email"
-            type="email"
-            autoComplete="email"
-            placeholder="you@example.com"
-            error={errors.email?.message}
-            {...register('email')}
-          />
-        </motion.div>
-
-        <motion.div variants={itemVariants} className="mt-4">
-          <Input
-            label="Password"
+            label="New password"
             type={showPassword ? 'text' : 'password'}
             autoComplete="new-password"
             placeholder="Min. 8 characters"
-            error={errors.password?.message}
+            error={errors.newPassword?.message}
             trailingIcon={passwordToggle}
-            {...register('password')}
+            {...register('newPassword')}
           />
         </motion.div>
 
         <motion.div variants={itemVariants} className="mt-4">
           <Input
-            label="Confirm password"
+            label="Confirm new password"
             type={showConfirm ? 'text' : 'password'}
             autoComplete="new-password"
             placeholder="Repeat your password"
@@ -172,28 +166,8 @@ export default function RegisterPage() {
             loading={isSubmitting}
             className="w-full"
           >
-            Create account
+            Reset password
           </Button>
-        </motion.div>
-
-        {/* Divider */}
-        <motion.div variants={itemVariants} className="flex items-center gap-3 my-5">
-          <div className="flex-1 h-px bg-border" />
-          <span className="text-xs text-t3">or</span>
-          <div className="flex-1 h-px bg-border" />
-        </motion.div>
-
-        {/* Google OAuth button */}
-        <motion.div variants={itemVariants}>
-          <GoogleAuthButton />
-        </motion.div>
-
-        {/* Footer */}
-        <motion.div variants={itemVariants} className="text-center text-sm text-t2 mt-8">
-          Already have an account?{' '}
-          <Link href="/login" className="text-violet hover:opacity-80 transition-opacity">
-            Sign in
-          </Link>
         </motion.div>
       </form>
     </motion.div>

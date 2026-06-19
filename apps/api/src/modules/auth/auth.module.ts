@@ -7,8 +7,11 @@ import { AuthService } from './auth.service';
 import { AuthRepository } from './auth.repository';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { GoogleStrategy } from './strategies/google.strategy';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { GoogleAuthGuard } from './guards/google-auth.guard';
+import { EmailService } from './services/email.service';
 
 @Module({
   imports: [
@@ -29,11 +32,14 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
   providers: [
     AuthService,
     AuthRepository,
+    EmailService,
     LocalStrategy,
     JwtStrategy,
+    GoogleStrategy,
     LocalAuthGuard,
     JwtAuthGuard,
+    GoogleAuthGuard,
   ],
-  exports: [AuthService, JwtAuthGuard, JwtModule],
+  exports: [AuthService, JwtAuthGuard, GoogleAuthGuard, JwtModule],
 })
 export class AuthModule {}

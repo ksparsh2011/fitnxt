@@ -2,4 +2,7 @@ export const AUTH_CONSTANTS = {
   BCRYPT_ROUNDS: 12,
   REFRESH_TOKEN_TTL_MS: 7 * 24 * 60 * 60 * 1000, // 7 days
   REFRESH_TOKEN_COOKIE: 'refresh_token',
+  PASSWORD_RESET_TOKEN_TTL_MS: 30 * 60 * 1000, // 30 minutes
+  RESET_TOKEN_BYTES: 32,
+  REFRESH_TOKEN_BYTES: 64,
 } as const;

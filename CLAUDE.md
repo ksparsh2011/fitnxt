@@ -10,6 +10,7 @@ AI-powered fitness PWA for gym athletes. Core features: intelligent workout logg
 1. [REPO_MAP.md](REPO_MAP.md) — current file map, installed packages, domain inventory
 2. [docs/design-system/MASTER.md](docs/design-system/MASTER.md) — Ignite design system (colors, fonts, components, anti-patterns)
 3. [docs/ADR-001-to-006.md](docs/ADR-001-to-006.md) — every architectural decision and why
+4. [docs/ADR-007-ai-coach-plan-templating.md](docs/ADR-007-ai-coach-plan-templating.md) — AI Coach bucketed plan templating & adaptive onboarding (schema, alternatives, risks)
 
 ---
 

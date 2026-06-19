@@ -1,4 +1,8 @@
-import { IsEmail, IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, Matches, MaxLength, MinLength } from 'class-validator';
+import {
+  PASSWORD_COMPLEXITY_MESSAGE,
+  PASSWORD_COMPLEXITY_REGEX,
+} from '../validators/password-complexity.constant';
 
 export class RegisterDto {
   @IsEmail()
@@ -8,6 +12,7 @@ export class RegisterDto {
   @IsString()
   @MinLength(8)
   @MaxLength(72) // bcrypt hard limit — never allow more
+  @Matches(PASSWORD_COMPLEXITY_REGEX, { message: PASSWORD_COMPLEXITY_MESSAGE })
   password!: string;
 
   @IsString()

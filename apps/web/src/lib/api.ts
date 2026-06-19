@@ -1,6 +1,6 @@
 import { useAuthStore } from '@/stores/auth.store';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 const NETWORK_ERROR = 'Unable to connect. Please check your connection and try again.';
 
 function getToken(): string | undefined {

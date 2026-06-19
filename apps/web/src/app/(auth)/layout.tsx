@@ -1,6 +1,6 @@
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-dvh bg-bg flex flex-col items-center justify-center relative overflow-hidden px-5 py-8">
+    <div className="min-h-dvh bg-bg flex flex-col items-center justify-start relative overflow-hidden px-5 py-8">
       {/* Violet radial glow behind content */}
       <div
         aria-hidden="true"

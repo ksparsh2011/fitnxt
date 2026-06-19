@@ -91,6 +91,29 @@ export const RegisterSchema = z
   });
 export type RegisterInput = z.infer<typeof RegisterSchema>;
 
+export const ForgotPasswordSchema = z.object({
+  email: z.string().email('Please enter a valid email address'),
+});
+export type ForgotPasswordInput = z.infer<typeof ForgotPasswordSchema>;
+
+export const ResetPasswordSchema = z
+  .object({
+    newPassword: z
+      .string()
+      .min(8, 'Password must be at least 8 characters')
+      .max(72, 'Password is too long')
+      .regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+        'Password must contain uppercase, lowercase, and a number',
+      ),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  });
+export type ResetPasswordInput = z.infer<typeof ResetPasswordSchema>;
+
 export const PatchOnboardingSchema = z.object({
   fitness_goal: z.enum(['lean_bulk', 'cut', 'recomp', 'strength', 'endurance']),
   activity_level: z.enum([
